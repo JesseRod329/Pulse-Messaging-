@@ -1,0 +1,763 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A000001 /* PulseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000011 /* PulseApp.swift */; };
+		0A000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000012 /* ContentView.swift */; };
+		0A000003 /* RadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000013 /* RadarView.swift */; };
+		0A000004 /* PeerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000014 /* PeerNode.swift */; };
+		0A000005 /* StatusToggleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000015 /* StatusToggleButton.swift */; };
+		0A000006 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000016 /* ChatView.swift */; };
+		0A000007 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000017 /* OnboardingView.swift */; };
+		0A000008 /* MeshManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000018 /* MeshManager.swift */; };
+		0A000009 /* PulsePeer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000019 /* PulsePeer.swift */; };
+		0A00000A /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000020 /* Message.swift */; };
+		0A00000B /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000021 /* KeychainManager.swift */; };
+		0A00000C /* PulseIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000022 /* PulseIdentity.swift */; };
+		0A00000D /* IdentityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000023 /* IdentityManager.swift */; };
+		0A00000F /* ChatManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000025 /* ChatManager.swift */; };
+		0A000031 /* PersistedMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000026 /* PersistedMessage.swift */; };
+		0A000032 /* PersistedConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000027 /* PersistedConversation.swift */; };
+		0A000033 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000028 /* PersistenceManager.swift */; };
+		0A000034 /* PowerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000029 /* PowerManager.swift */; };
+		0A000035 /* RSSIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00002A /* RSSIManager.swift */; };
+		0A000036 /* BLEAdvertiser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00002B /* BLEAdvertiser.swift */; };
+		0A000041 /* TransportProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000051 /* TransportProtocol.swift */; };
+		0A000042 /* MessageDeduplicationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000052 /* MessageDeduplicationService.swift */; };
+		0A000043 /* MessageRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000053 /* MessageRouter.swift */; };
+		0A000044 /* NostrTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000054 /* NostrTransport.swift */; };
+		0A000045 /* GeohashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000055 /* GeohashService.swift */; };
+		0A000046 /* MeshTopologyTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000056 /* MeshTopologyTracker.swift */; };
+		0A000047 /* UnifiedTransportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000057 /* UnifiedTransportManager.swift */; };
+		0A000071 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000061 /* ThemeManager.swift */; };
+		0A000072 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000062 /* SettingsView.swift */; };
+		0A000073 /* NetworkTopologyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000063 /* NetworkTopologyView.swift */; };
+		0A000074 /* LocationChannelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000064 /* LocationChannelsView.swift */; };
+		0A000075 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000065 /* ProfileView.swift */; };
+		0A000076 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000066 /* SoundManager.swift */; };
+		0A000077 /* VoiceNoteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000067 /* VoiceNoteManager.swift */; };
+		0A000078 /* VoiceNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000068 /* VoiceNoteView.swift */; };
+		0A000081 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A000080 /* Assets.xcassets */; };
+		0A000093 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0A000092 /* Localizable.strings */; };
+		0A000095 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0A000094 /* PrivacyInfo.xcprivacy */; };
+		0A000096 /* ErrorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000097 /* ErrorManager.swift */; };
+		0A000098 /* ErrorAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000099 /* ErrorAlertView.swift */; };
+		0A00009B /* LaunchRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00009A /* LaunchRadarView.swift */; };
+		0A00009C /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00009D /* SearchView.swift */; };
+		0A00009E /* ImageUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00009F /* ImageUtility.swift */; };
+		0A0000A1 /* ImageMessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000A2 /* ImageMessageBubble.swift */; };
+		0A0000A4 /* AvatarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000A5 /* AvatarManager.swift */; };
+		0A0000A8 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000A6 /* Group.swift */; };
+		0A0000A9 /* PersistedGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000AA /* PersistedGroup.swift */; };
+		0A0000AB /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000AC /* CreateGroupView.swift */; };
+		0A0000AD /* EmojiPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000AE /* EmojiPickerView.swift */; };
+		0A0000AF /* ReactionDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000B0 /* ReactionDisplayView.swift */; };
+		0A0000B2 /* GroupListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000B1 /* GroupListView.swift */; };
+		0A0000B4 /* GroupChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0000B3 /* GroupChatView.swift */; };
+		0A000201 /* IdentityCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000200 /* IdentityCardView.swift */; };
+		0A000203 /* LiquidGlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000202 /* LiquidGlassComponents.swift */; };
+		0A000205 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000204 /* Typography.swift */; };
+		0A000301 /* Place.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000300 /* Place.swift */; };
+		0A000303 /* PlaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000302 /* PlaceManager.swift */; };
+		0A000305 /* PlaceComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000304 /* PlaceComponents.swift */; };
+		0A000307 /* CreateChannelSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000306 /* CreateChannelSheet.swift */; };
+		0A000309 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000308 /* HapticManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		886480242F133977003A7D61 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0A0000F8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0A0000FF;
+			remoteInfo = Pulse;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0A000011 /* PulseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseApp.swift; sourceTree = "<group>"; };
+		0A000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		0A000013 /* RadarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadarView.swift; sourceTree = "<group>"; };
+		0A000014 /* PeerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerNode.swift; sourceTree = "<group>"; };
+		0A000015 /* StatusToggleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusToggleButton.swift; sourceTree = "<group>"; };
+		0A000016 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		0A000017 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		0A000018 /* MeshManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshManager.swift; sourceTree = "<group>"; };
+		0A000019 /* PulsePeer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulsePeer.swift; sourceTree = "<group>"; };
+		0A000020 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		0A000021 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		0A000022 /* PulseIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseIdentity.swift; sourceTree = "<group>"; };
+		0A000023 /* IdentityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityManager.swift; sourceTree = "<group>"; };
+		0A000025 /* ChatManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatManager.swift; sourceTree = "<group>"; };
+		0A000026 /* PersistedMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistedMessage.swift; sourceTree = "<group>"; };
+		0A000027 /* PersistedConversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistedConversation.swift; sourceTree = "<group>"; };
+		0A000028 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
+		0A000029 /* PowerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerManager.swift; sourceTree = "<group>"; };
+		0A00002A /* RSSIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSSIManager.swift; sourceTree = "<group>"; };
+		0A00002B /* BLEAdvertiser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEAdvertiser.swift; sourceTree = "<group>"; };
+		0A000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0A000051 /* TransportProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportProtocol.swift; sourceTree = "<group>"; };
+		0A000052 /* MessageDeduplicationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageDeduplicationService.swift; sourceTree = "<group>"; };
+		0A000053 /* MessageRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageRouter.swift; sourceTree = "<group>"; };
+		0A000054 /* NostrTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrTransport.swift; sourceTree = "<group>"; };
+		0A000055 /* GeohashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeohashService.swift; sourceTree = "<group>"; };
+		0A000056 /* MeshTopologyTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshTopologyTracker.swift; sourceTree = "<group>"; };
+		0A000057 /* UnifiedTransportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedTransportManager.swift; sourceTree = "<group>"; };
+		0A000061 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		0A000062 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0A000063 /* NetworkTopologyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTopologyView.swift; sourceTree = "<group>"; };
+		0A000064 /* LocationChannelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationChannelsView.swift; sourceTree = "<group>"; };
+		0A000065 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		0A000066 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
+		0A000067 /* VoiceNoteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceNoteManager.swift; sourceTree = "<group>"; };
+		0A000068 /* VoiceNoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceNoteView.swift; sourceTree = "<group>"; };
+		0A000080 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0A000090 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0A000091 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0A000094 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		0A000097 /* ErrorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorManager.swift; sourceTree = "<group>"; };
+		0A000099 /* ErrorAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorAlertView.swift; sourceTree = "<group>"; };
+		0A00009A /* LaunchRadarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRadarView.swift; sourceTree = "<group>"; };
+		0A00009D /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		0A00009F /* ImageUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtility.swift; sourceTree = "<group>"; };
+		0A0000A2 /* ImageMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMessageBubble.swift; sourceTree = "<group>"; };
+		0A0000A5 /* AvatarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarManager.swift; sourceTree = "<group>"; };
+		0A0000A6 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
+		0A0000AA /* PersistedGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistedGroup.swift; sourceTree = "<group>"; };
+		0A0000AC /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
+		0A0000AE /* EmojiPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPickerView.swift; sourceTree = "<group>"; };
+		0A0000B0 /* ReactionDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionDisplayView.swift; sourceTree = "<group>"; };
+		0A0000B1 /* GroupListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListView.swift; sourceTree = "<group>"; };
+		0A0000B3 /* GroupChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChatView.swift; sourceTree = "<group>"; };
+		0A000100 /* Pulse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pulse.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0A000200 /* IdentityCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityCardView.swift; sourceTree = "<group>"; };
+		0A000202 /* LiquidGlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassComponents.swift; sourceTree = "<group>"; };
+		0A000204 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
+		0A000300 /* Place.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Place.swift; sourceTree = "<group>"; };
+		0A000302 /* PlaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceManager.swift; sourceTree = "<group>"; };
+		0A000304 /* PlaceComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceComponents.swift; sourceTree = "<group>"; };
+		0A000306 /* CreateChannelSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateChannelSheet.swift; sourceTree = "<group>"; };
+		0A000308 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		886480202F133977003A7D61 /* PulseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PulseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		886480212F133977003A7D61 /* PulseTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PulseTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0A0000FD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8864801D2F133977003A7D61 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A0000A0 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				0A000202 /* LiquidGlassComponents.swift */,
+				0A000304 /* PlaceComponents.swift */,
+				0A000099 /* ErrorAlertView.swift */,
+				0A0000A2 /* ImageMessageBubble.swift */,
+				0A0000AE /* EmojiPickerView.swift */,
+				0A0000B0 /* ReactionDisplayView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		0A0000A3 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				0A000204 /* Typography.swift */,
+				0A00009F /* ImageUtility.swift */,
+				0A0000A5 /* AvatarManager.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		0A0000F7 = {
+			isa = PBXGroup;
+			children = (
+				0A000102 /* Pulse */,
+				886480212F133977003A7D61 /* PulseTests */,
+				0A000101 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0A000101 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0A000100 /* Pulse.app */,
+				886480202F133977003A7D61 /* PulseTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0A000102 /* Pulse */ = {
+			isa = PBXGroup;
+			children = (
+				0A000011 /* PulseApp.swift */,
+				0A000012 /* ContentView.swift */,
+				0A000103 /* Views */,
+				0A000104 /* Models */,
+				0A000105 /* Managers */,
+				0A000106 /* Networking */,
+				0A0000A3 /* Utilities */,
+				0A000080 /* Assets.xcassets */,
+				0A000092 /* Localizable.strings */,
+				0A000094 /* PrivacyInfo.xcprivacy */,
+				0A000030 /* Info.plist */,
+			);
+			path = Pulse;
+			sourceTree = "<group>";
+		};
+		0A000103 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0A000200 /* IdentityCardView.swift */,
+				0A00009A /* LaunchRadarView.swift */,
+				0A000013 /* RadarView.swift */,
+				0A000014 /* PeerNode.swift */,
+				0A000015 /* StatusToggleButton.swift */,
+				0A000016 /* ChatView.swift */,
+				0A000017 /* OnboardingView.swift */,
+				0A000062 /* SettingsView.swift */,
+				0A000063 /* NetworkTopologyView.swift */,
+				0A000064 /* LocationChannelsView.swift */,
+				0A000065 /* ProfileView.swift */,
+				0A000068 /* VoiceNoteView.swift */,
+				0A00009D /* SearchView.swift */,
+				0A0000AC /* CreateGroupView.swift */,
+				0A000306 /* CreateChannelSheet.swift */,
+				0A0000B1 /* GroupListView.swift */,
+				0A0000B3 /* GroupChatView.swift */,
+				0A0000A0 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0A000104 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0A000019 /* PulsePeer.swift */,
+				0A000300 /* Place.swift */,
+				0A000020 /* Message.swift */,
+				0A000022 /* PulseIdentity.swift */,
+				0A000026 /* PersistedMessage.swift */,
+				0A000027 /* PersistedConversation.swift */,
+				0A0000A6 /* Group.swift */,
+				0A0000AA /* PersistedGroup.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		0A000105 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				0A000018 /* MeshManager.swift */,
+				0A000302 /* PlaceManager.swift */,
+				0A000021 /* KeychainManager.swift */,
+				0A000023 /* IdentityManager.swift */,
+				0A000025 /* ChatManager.swift */,
+				0A000028 /* PersistenceManager.swift */,
+				0A000029 /* PowerManager.swift */,
+				0A00002A /* RSSIManager.swift */,
+				0A00002B /* BLEAdvertiser.swift */,
+				0A000061 /* ThemeManager.swift */,
+				0A000066 /* SoundManager.swift */,
+				0A000067 /* VoiceNoteManager.swift */,
+				0A000097 /* ErrorManager.swift */,
+				0A000308 /* HapticManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		0A000106 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				0A000051 /* TransportProtocol.swift */,
+				0A000052 /* MessageDeduplicationService.swift */,
+				0A000053 /* MessageRouter.swift */,
+				0A000054 /* NostrTransport.swift */,
+				0A000055 /* GeohashService.swift */,
+				0A000056 /* MeshTopologyTracker.swift */,
+				0A000057 /* UnifiedTransportManager.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0A0000FF /* Pulse */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A00012E /* Build configuration list for PBXNativeTarget "Pulse" */;
+			buildPhases = (
+				0A0000FC /* Sources */,
+				0A0000FD /* Frameworks */,
+				0A0000FE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Pulse;
+			productName = Pulse;
+			productReference = 0A000100 /* Pulse.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8864801F2F133977003A7D61 /* PulseTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 886480282F133977003A7D61 /* Build configuration list for PBXNativeTarget "PulseTests" */;
+			buildPhases = (
+				8864801C2F133977003A7D61 /* Sources */,
+				8864801D2F133977003A7D61 /* Frameworks */,
+				8864801E2F133977003A7D61 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				886480252F133977003A7D61 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				886480212F133977003A7D61 /* PulseTests */,
+			);
+			name = PulseTests;
+			packageProductDependencies = (
+			);
+			productName = PulseTests;
+			productReference = 886480202F133977003A7D61 /* PulseTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0A0000F8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					0A0000FF = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					8864801F2F133977003A7D61 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 0A0000FF;
+					};
+				};
+			};
+			buildConfigurationList = 0A0000FB /* Build configuration list for PBXProject "Pulse" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				es,
+				Base,
+			);
+			mainGroup = 0A0000F7;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0A000101 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0A0000FF /* Pulse */,
+				8864801F2F133977003A7D61 /* PulseTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0A0000FE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A000081 /* Assets.xcassets in Resources */,
+				0A000093 /* Localizable.strings in Resources */,
+				0A000095 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8864801E2F133977003A7D61 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0A0000FC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A000205 /* Typography.swift in Sources */,
+				0A000201 /* IdentityCardView.swift in Sources */,
+				0A000203 /* LiquidGlassComponents.swift in Sources */,
+				0A000305 /* PlaceComponents.swift in Sources */,
+				0A00009B /* LaunchRadarView.swift in Sources */,
+				0A000001 /* PulseApp.swift in Sources */,
+				0A000002 /* ContentView.swift in Sources */,
+				0A000003 /* RadarView.swift in Sources */,
+				0A000004 /* PeerNode.swift in Sources */,
+				0A000005 /* StatusToggleButton.swift in Sources */,
+				0A000006 /* ChatView.swift in Sources */,
+				0A000007 /* OnboardingView.swift in Sources */,
+				0A000008 /* MeshManager.swift in Sources */,
+				0A000303 /* PlaceManager.swift in Sources */,
+				0A000009 /* PulsePeer.swift in Sources */,
+				0A000301 /* Place.swift in Sources */,
+				0A00000A /* Message.swift in Sources */,
+				0A00000B /* KeychainManager.swift in Sources */,
+				0A00000C /* PulseIdentity.swift in Sources */,
+				0A00000D /* IdentityManager.swift in Sources */,
+				0A00000F /* ChatManager.swift in Sources */,
+				0A000031 /* PersistedMessage.swift in Sources */,
+				0A000032 /* PersistedConversation.swift in Sources */,
+				0A000033 /* PersistenceManager.swift in Sources */,
+				0A000034 /* PowerManager.swift in Sources */,
+				0A000035 /* RSSIManager.swift in Sources */,
+				0A000036 /* BLEAdvertiser.swift in Sources */,
+				0A000041 /* TransportProtocol.swift in Sources */,
+				0A000042 /* MessageDeduplicationService.swift in Sources */,
+				0A000043 /* MessageRouter.swift in Sources */,
+				0A000044 /* NostrTransport.swift in Sources */,
+				0A000045 /* GeohashService.swift in Sources */,
+				0A000046 /* MeshTopologyTracker.swift in Sources */,
+				0A000047 /* UnifiedTransportManager.swift in Sources */,
+				0A000071 /* ThemeManager.swift in Sources */,
+				0A000076 /* SoundManager.swift in Sources */,
+				0A000077 /* VoiceNoteManager.swift in Sources */,
+				0A000078 /* VoiceNoteView.swift in Sources */,
+				0A00009C /* SearchView.swift in Sources */,
+				0A000072 /* SettingsView.swift in Sources */,
+				0A000073 /* NetworkTopologyView.swift in Sources */,
+				0A000074 /* LocationChannelsView.swift in Sources */,
+				0A000075 /* ProfileView.swift in Sources */,
+				0A000096 /* ErrorManager.swift in Sources */,
+				0A000309 /* HapticManager.swift in Sources */,
+				0A000098 /* ErrorAlertView.swift in Sources */,
+				0A00009E /* ImageUtility.swift in Sources */,
+				0A0000A1 /* ImageMessageBubble.swift in Sources */,
+				0A0000A4 /* AvatarManager.swift in Sources */,
+				0A0000A8 /* Group.swift in Sources */,
+				0A0000A9 /* PersistedGroup.swift in Sources */,
+				0A0000AB /* CreateGroupView.swift in Sources */,
+				0A000307 /* CreateChannelSheet.swift in Sources */,
+				0A0000AD /* EmojiPickerView.swift in Sources */,
+				0A0000AF /* ReactionDisplayView.swift in Sources */,
+				0A0000B2 /* GroupListView.swift in Sources */,
+				0A0000B4 /* GroupChatView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8864801C2F133977003A7D61 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		886480252F133977003A7D61 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0A0000FF /* Pulse */;
+			targetProxy = 886480242F133977003A7D61 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		0A000092 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0A000090 /* en */,
+				0A000091 /* es */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		0A00012C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		0A00012D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0A00012F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Pulse/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jesse.pulse-mesh";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0A000130 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Pulse/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jesse.pulse-mesh";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		886480262F133977003A7D61 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.spark.PulseTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pulse.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pulse";
+			};
+			name = Debug;
+		};
+		886480272F133977003A7D61 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.spark.PulseTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pulse.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pulse";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0A0000FB /* Build configuration list for PBXProject "Pulse" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A00012C /* Debug */,
+				0A00012D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0A00012E /* Build configuration list for PBXNativeTarget "Pulse" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A00012F /* Debug */,
+				0A000130 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		886480282F133977003A7D61 /* Build configuration list for PBXNativeTarget "PulseTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				886480262F133977003A7D61 /* Debug */,
+				886480272F133977003A7D61 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0A0000F8 /* Project object */;
+}

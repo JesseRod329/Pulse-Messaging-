@@ -1,0 +1,209 @@
+/*
+  Localizable.strings
+  Pulse
+
+  Spanish localization for the Pulse app.
+*/
+
+// MARK: - General
+"app_name" = "Pulse";
+"cancel" = "Cancelar";
+"done" = "Listo";
+"save" = "Guardar";
+"send" = "Enviar";
+"delete" = "Eliminar";
+"close" = "Cerrar";
+"back" = "Atrás";
+"continue" = "Continuar";
+"ok" = "OK";
+"error" = "Error";
+"success" = "Éxito";
+"retry" = "Reintentar";
+
+// MARK: - Onboarding
+"onboarding_welcome_title" = "Pulse";
+"onboarding_welcome_subtitle" = "Descubre desarrolladores cerca de ti.\nConecta. Colabora. Programa.";
+"onboarding_get_started" = "Comenzar";
+"onboarding_choose_handle" = "Elige tu nombre de usuario";
+"onboarding_handle_hint" = "Así te verán otros desarrolladores";
+"onboarding_handle_placeholder" = "tu_usuario";
+"onboarding_handle_validation_min" = "Al menos 2 caracteres";
+"onboarding_handle_validation_more" = "%d carácter(es) más necesarios";
+"onboarding_handle_validation_long" = "Demasiado largo";
+"onboarding_handle_validation_good" = "¡Se ve bien!";
+"onboarding_tech_title" = "¿Con qué trabajas?";
+"onboarding_tech_subtitle" = "Selecciona tus tecnologías principales";
+"onboarding_tech_selected" = "%d seleccionados";
+"onboarding_start_discovering" = "Comenzar a Descubrir";
+
+// MARK: - Radar View
+"radar_nearby" = "Cercanos";
+"radar_developers_nearby" = "%d desarrollador(es) cerca";
+"radar_scanning" = "Buscando desarrolladores...";
+"radar_bluetooth_hint" = "Asegúrate de que Bluetooth esté activado";
+"radar_discovering" = "Descubriendo";
+"radar_network" = "Red";
+"radar_channels" = "Canales";
+
+// MARK: - Peer Status
+"peer_status_active" = "Activo";
+"peer_status_flow_state" = "Estado Flow";
+"peer_status_idle" = "Inactivo";
+"peer_status_open_to_chat" = "Disponible para chatear";
+"peer_status_deep_work" = "Modo trabajo profundo";
+"peer_status_away" = "Ausente";
+
+// MARK: - Distance
+"distance_very_close" = "< 10m";
+"distance_nearby" = "~%dm";
+"distance_far" = "Lejos";
+
+// MARK: - Chat View
+"chat_message_placeholder" = "Mensaje";
+"chat_connected" = "Conectado";
+"chat_connecting" = "Conectando...";
+"chat_typing" = "escribiendo...";
+"chat_read" = "Leído";
+"chat_sent" = "Enviado";
+"chat_delivered" = "Entregado";
+"chat_send_failed" = "Error al enviar";
+
+// MARK: - Voice Notes
+"voice_record" = "Grabar nota de voz";
+"voice_stop_recording" = "Detener grabación";
+"voice_cancel_recording" = "Cancelar grabación";
+"voice_play" = "Reproducir";
+"voice_pause" = "Pausar";
+"voice_send" = "Enviar mensaje de voz";
+"voice_delete" = "Eliminar grabación";
+"voice_preview" = "Vista previa";
+"voice_recording" = "Grabando...";
+
+// MARK: - Code Sharing
+"code_share" = "Compartir Código";
+"code_share_button" = "Compartir código";
+"code_copy" = "Copiar código";
+"code_copied" = "¡Copiado!";
+"code_send" = "Enviar código";
+"code_language" = "Lenguaje";
+
+// MARK: - Settings
+"settings_title" = "Ajustes";
+"settings_appearance" = "Apariencia";
+"settings_transport" = "Transporte";
+"settings_network" = "Red";
+"settings_privacy" = "Privacidad y Comentarios";
+"settings_about" = "Acerca de";
+
+// MARK: - Settings - Appearance
+"theme_midnight" = "Medianoche";
+"theme_ocean" = "Océano";
+"theme_forest" = "Bosque";
+"theme_sunset" = "Atardecer";
+"theme_lavender" = "Lavanda";
+"theme_mono" = "Mono";
+
+// MARK: - Settings - Transport
+"transport_mesh_network" = "Red Mesh";
+"transport_mesh_subtitle" = "P2P local vía Bluetooth y WiFi";
+"transport_nostr" = "Relay Nostr";
+"transport_nostr_subtitle" = "Mensajería global por internet";
+"transport_location_channels" = "Canales de Ubicación";
+"transport_location_subtitle" = "Únete a salas por área";
+"transport_nostr_connected" = "Conectado a %d relays Nostr";
+
+// MARK: - Settings - Network
+"network_max_hops" = "Máx. Saltos de Relay";
+"network_direct_peers" = "Peers Directos";
+"network_relayed_peers" = "Peers Retransmitidos";
+"network_messages_sent" = "Mensajes Enviados";
+"network_messages_received" = "Mensajes Recibidos";
+"network_duplicates_blocked" = "Duplicados Bloqueados";
+
+// MARK: - Settings - Privacy
+"privacy_haptic_feedback" = "Retroalimentación Háptica";
+"privacy_haptic_subtitle" = "Vibración en interacciones";
+"privacy_sound_effects" = "Efectos de Sonido";
+"privacy_sound_subtitle" = "Retroalimentación de audio";
+"privacy_clear_all_data" = "Borrar Todos los Datos";
+
+// MARK: - Settings - About
+"about_version" = "Versión";
+"about_build" = "Compilación";
+"about_features" = "Características";
+"about_e2e_encryption" = "Cifrado E2E";
+"about_encryption_desc" = "Curve25519 + AES-GCM";
+"about_multi_hop" = "Mesh Multi-salto";
+"about_multi_hop_desc" = "Hasta 7 saltos de relay";
+"about_nostr_fallback" = "Fallback Nostr";
+"about_nostr_desc" = "Relay global por internet";
+"about_location_channels" = "Canales de Ubicación";
+"about_location_desc" = "Salas basadas en geohash";
+
+// MARK: - Profile
+"profile_title" = "Perfil";
+"profile_handle" = "Usuario";
+"profile_status" = "Estado";
+"profile_status_message" = "Mensaje de estado (opcional)";
+"profile_tech_stack" = "Stack Tecnológico";
+"profile_crypto_identity" = "Identidad Criptográfica";
+"profile_did" = "DID";
+"profile_created" = "Creado";
+"profile_no_identity" = "Sin identidad generada";
+"profile_crypto_explanation" = "Tu identidad criptográfica se usa para cifrado E2E. Se almacena de forma segura en el Keychain de tu dispositivo.";
+"profile_tap_to_change_photo" = "Toca para cambiar la foto";
+"profile_choose_from_library" = "Elegir de la Biblioteca";
+"profile_remove_photo" = "Eliminar Foto";
+"profile_photo_title" = "Foto de Perfil";
+"profile_copy_did" = "Copiar DID";
+
+// MARK: - Accessibility
+"accessibility_profile_button" = "Perfil";
+"accessibility_profile_hint" = "Abre los ajustes de tu perfil";
+"accessibility_settings_button" = "Ajustes";
+"accessibility_settings_hint" = "Abre los ajustes de la app";
+"accessibility_back_button" = "Atrás";
+"accessibility_back_hint" = "Vuelve a la pantalla anterior";
+"accessibility_send_button" = "Enviar mensaje";
+"accessibility_send_hint" = "Envía tu mensaje";
+"accessibility_status_discovering" = "Estado: Descubriendo desarrolladores cercanos";
+
+// MARK: - Errors
+"error_microphone_denied" = "Permiso de micrófono denegado";
+"error_bluetooth_disabled" = "Bluetooth está desactivado";
+"error_connection_failed" = "Conexión fallida";
+"error_send_failed" = "Error al enviar mensaje";
+"error_encryption_failed" = "Error de cifrado";
+"error_decryption_failed" = "No se pudo descifrar el mensaje";
+"error_peer_disconnected" = "Peer desconectado";
+"error_recording_failed" = "Grabación fallida";
+"error_playback_failed" = "Reproducción fallida";
+
+// MARK: - Permissions
+"permission_microphone_title" = "Acceso al Micrófono";
+"permission_microphone_message" = "Pulse necesita acceso al micrófono para grabar notas de voz.";
+"permission_bluetooth_title" = "Acceso a Bluetooth";
+"permission_bluetooth_message" = "Pulse usa Bluetooth para descubrir desarrolladores cercanos.";
+"permission_open_settings" = "Abrir Ajustes";
+
+// MARK: - Empty States
+"empty_no_peers" = "No hay peers cercanos";
+"empty_no_peers_hint" = "Asegúrate de que Bluetooth esté activado";
+"empty_no_messages" = "Aún no hay mensajes";
+"empty_no_messages_hint" = "¡Inicia una conversación!";
+"empty_invite_friends" = "Invitar Amigos";
+
+// MARK: - Technologies
+"tech_swift" = "Swift";
+"tech_python" = "Python";
+"tech_javascript" = "JavaScript";
+"tech_typescript" = "TypeScript";
+"tech_rust" = "Rust";
+"tech_go" = "Go";
+"tech_kotlin" = "Kotlin";
+"tech_java" = "Java";
+"tech_cpp" = "C++";
+"tech_ruby" = "Ruby";
+"tech_php" = "PHP";
+"tech_csharp" = "C#";
+"tech_scala" = "Scala";

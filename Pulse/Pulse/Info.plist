@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.jesse.pulse-mesh</string>
+    <key>CFBundleName</key>
+    <string>Pulse</string>
+    <key>CFBundleDisplayName</key>
+    <string>Pulse</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>bluetooth-central</string>
+        <string>bluetooth-peripheral</string>
+    </array>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Pulse uses local networking to discover nearby developers and enable peer-to-peer messaging.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Pulse uses Bluetooth to measure distance to nearby developers for accurate proximity display.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Pulse uses Bluetooth to be discoverable by nearby developers.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Pulse uses your location to discover and join nearby chat channels (Geohashes) for local developer networking.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Pulse uses the microphone to record voice notes for encrypted messaging with nearby developers.</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_pulse-mesh._tcp</string>
+        <string>_pulse-mesh._udp</string>
+    </array>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.jesse.pulse-mesh.discovery</string>
+    </array>
+    <key>UILaunchScreen</key>
+    <dict>
+        <key>UIColorName</key>
+        <string>LaunchScreenBackground</string>
+        <key>UIImageName</key>
+        <string>LaunchLogo</string>
+        <key>UIImageRespectsSafeAreaInsets</key>
+        <true/>
+    </dict>
+</dict>
+</plist>
