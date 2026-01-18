@@ -67,6 +67,19 @@
 		0A000305 /* PlaceComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000304 /* PlaceComponents.swift */; };
 		0A000307 /* CreateChannelSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000306 /* CreateChannelSheet.swift */; };
 		0A000309 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000308 /* HapticManager.swift */; };
+		0A000410 /* NostrIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000411 /* NostrIdentity.swift */; };
+		0A000412 /* NostrIdentityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000413 /* NostrIdentityManager.swift */; };
+		0A000414 /* Zap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000415 /* Zap.swift */; };
+		0A000416 /* LNURLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000417 /* LNURLService.swift */; };
+		0A000418 /* ZapManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000419 /* ZapManager.swift */; };
+		0A00041A /* ZapButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00041B /* ZapButton.swift */; };
+		0A00041C /* ZapAmountSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00041D /* ZapAmountSheet.swift */; };
+		0A00041E /* ZapDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00041F /* ZapDisplayView.swift */; };
+		0A000420 /* Bolt11Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000422 /* Bolt11Parser.swift */; };
+		0A000421 /* Bolt11Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000423 /* Bolt11Validator.swift */; };
+		0A000424 /* NostrNormalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000426 /* NostrNormalization.swift */; };
+		0A000425 /* EventNormalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000427 /* EventNormalization.swift */; };
+		88E8D9A62F1CE36A00FE7DC2 /* P256K in Frameworks */ = {isa = PBXBuildFile; productRef = 0A000401 /* P256K */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -143,6 +156,18 @@
 		0A000304 /* PlaceComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceComponents.swift; sourceTree = "<group>"; };
 		0A000306 /* CreateChannelSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateChannelSheet.swift; sourceTree = "<group>"; };
 		0A000308 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		0A000411 /* NostrIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrIdentity.swift; sourceTree = "<group>"; };
+		0A000413 /* NostrIdentityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrIdentityManager.swift; sourceTree = "<group>"; };
+		0A000415 /* Zap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zap.swift; sourceTree = "<group>"; };
+		0A000417 /* LNURLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LNURLService.swift; sourceTree = "<group>"; };
+		0A000419 /* ZapManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapManager.swift; sourceTree = "<group>"; };
+		0A00041B /* ZapButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapButton.swift; sourceTree = "<group>"; };
+		0A00041D /* ZapAmountSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapAmountSheet.swift; sourceTree = "<group>"; };
+		0A00041F /* ZapDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapDisplayView.swift; sourceTree = "<group>"; };
+		0A000422 /* Bolt11Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bolt11Parser.swift; sourceTree = "<group>"; };
+		0A000423 /* Bolt11Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bolt11Validator.swift; sourceTree = "<group>"; };
+		0A000426 /* NostrNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrNormalization.swift; sourceTree = "<group>"; };
+		0A000427 /* EventNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventNormalization.swift; sourceTree = "<group>"; };
 		886480202F133977003A7D61 /* PulseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PulseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -159,6 +184,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				88E8D9A62F1CE36A00FE7DC2 /* P256K in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -181,6 +207,9 @@
 				0A0000A2 /* ImageMessageBubble.swift */,
 				0A0000AE /* EmojiPickerView.swift */,
 				0A0000B0 /* ReactionDisplayView.swift */,
+				0A00041B /* ZapButton.swift */,
+				0A00041D /* ZapAmountSheet.swift */,
+				0A00041F /* ZapDisplayView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -200,6 +229,7 @@
 			children = (
 				0A000102 /* Pulse */,
 				886480212F133977003A7D61 /* PulseTests */,
+				88E8D9C72F1CE66A00FE7DC2 /* Frameworks */,
 				0A000101 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -263,6 +293,8 @@
 				0A000300 /* Place.swift */,
 				0A000020 /* Message.swift */,
 				0A000022 /* PulseIdentity.swift */,
+				0A000411 /* NostrIdentity.swift */,
+				0A000415 /* Zap.swift */,
 				0A000026 /* PersistedMessage.swift */,
 				0A000027 /* PersistedConversation.swift */,
 				0A0000A6 /* Group.swift */,
@@ -278,6 +310,8 @@
 				0A000302 /* PlaceManager.swift */,
 				0A000021 /* KeychainManager.swift */,
 				0A000023 /* IdentityManager.swift */,
+				0A000413 /* NostrIdentityManager.swift */,
+				0A000419 /* ZapManager.swift */,
 				0A000025 /* ChatManager.swift */,
 				0A000028 /* PersistenceManager.swift */,
 				0A000029 /* PowerManager.swift */,
@@ -299,11 +333,23 @@
 				0A000052 /* MessageDeduplicationService.swift */,
 				0A000053 /* MessageRouter.swift */,
 				0A000054 /* NostrTransport.swift */,
+				0A000422 /* Bolt11Parser.swift */,
+				0A000423 /* Bolt11Validator.swift */,
+				0A000426 /* NostrNormalization.swift */,
+				0A000427 /* EventNormalization.swift */,
+				0A000417 /* LNURLService.swift */,
 				0A000055 /* GeohashService.swift */,
 				0A000056 /* MeshTopologyTracker.swift */,
 				0A000057 /* UnifiedTransportManager.swift */,
 			);
 			path = Networking;
+			sourceTree = "<group>";
+		};
+		88E8D9C72F1CE66A00FE7DC2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -322,6 +368,9 @@
 			dependencies = (
 			);
 			name = Pulse;
+			packageProductDependencies = (
+				0A000401 /* P256K */,
+			);
 			productName = Pulse;
 			productReference = 0A000100 /* Pulse.app */;
 			productType = "com.apple.product-type.application";
@@ -357,7 +406,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					0A0000FF = {
 						CreatedOnToolsVersion = 15.0;
@@ -378,6 +427,9 @@
 			);
 			mainGroup = 0A0000F7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				88E8D9C62F1CE58100FE7DC2 /* XCRemoteSwiftPackageReference "swift-secp256k1" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0A000101 /* Products */;
 			projectDirPath = "";
@@ -433,7 +485,11 @@
 				0A00000A /* Message.swift in Sources */,
 				0A00000B /* KeychainManager.swift in Sources */,
 				0A00000C /* PulseIdentity.swift in Sources */,
+				0A000410 /* NostrIdentity.swift in Sources */,
 				0A00000D /* IdentityManager.swift in Sources */,
+				0A000412 /* NostrIdentityManager.swift in Sources */,
+				0A000414 /* Zap.swift in Sources */,
+				0A000418 /* ZapManager.swift in Sources */,
 				0A00000F /* ChatManager.swift in Sources */,
 				0A000031 /* PersistedMessage.swift in Sources */,
 				0A000032 /* PersistedConversation.swift in Sources */,
@@ -445,6 +501,11 @@
 				0A000042 /* MessageDeduplicationService.swift in Sources */,
 				0A000043 /* MessageRouter.swift in Sources */,
 				0A000044 /* NostrTransport.swift in Sources */,
+				0A000420 /* Bolt11Parser.swift in Sources */,
+				0A000421 /* Bolt11Validator.swift in Sources */,
+				0A000424 /* NostrNormalization.swift in Sources */,
+				0A000425 /* EventNormalization.swift in Sources */,
+				0A000416 /* LNURLService.swift in Sources */,
 				0A000045 /* GeohashService.swift in Sources */,
 				0A000046 /* MeshTopologyTracker.swift in Sources */,
 				0A000047 /* UnifiedTransportManager.swift in Sources */,
@@ -469,6 +530,9 @@
 				0A000307 /* CreateChannelSheet.swift in Sources */,
 				0A0000AD /* EmojiPickerView.swift in Sources */,
 				0A0000AF /* ReactionDisplayView.swift in Sources */,
+				0A00041A /* ZapButton.swift in Sources */,
+				0A00041C /* ZapAmountSheet.swift in Sources */,
+				0A00041E /* ZapDisplayView.swift in Sources */,
 				0A0000B2 /* GroupListView.swift in Sources */,
 				0A0000B4 /* GroupChatView.swift in Sources */,
 			);
@@ -509,6 +573,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -539,6 +604,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -562,6 +628,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -572,6 +639,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -602,6 +670,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -618,6 +687,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -629,7 +699,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Pulse/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -659,7 +728,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Pulse/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -689,7 +757,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
@@ -711,7 +778,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2ML6Y9ZBVD;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
@@ -758,6 +824,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		88E8D9C62F1CE58100FE7DC2 /* XCRemoteSwiftPackageReference "swift-secp256k1" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/21-DOT-DEV/swift-secp256k1";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.21.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0A000401 /* P256K */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 88E8D9C62F1CE58100FE7DC2 /* XCRemoteSwiftPackageReference "swift-secp256k1" */;
+			productName = P256K;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0A0000F8 /* Project object */;
 }
