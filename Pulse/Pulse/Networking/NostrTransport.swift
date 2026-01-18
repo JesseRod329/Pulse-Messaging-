@@ -21,6 +21,9 @@ enum NostrEventKind: Int, Codable {
     case repost = 6
     case reaction = 7
     case giftWrap = 1059          // NIP-17 gift-wrapped private messages
+    case zapRequest = 9734        // NIP-57 zap request
+    case zapReceipt = 9735        // NIP-57 zap receipt
+    case auth = 22242             // NIP-42 auth challenge response
     case pulseMessage = 30078     // Custom kind for Pulse mesh messages
     case pulseChannel = 30079     // Custom kind for Pulse location channels
 }
@@ -62,6 +65,37 @@ struct NostrEvent: Codable, Identifiable {
         )
     }
 
+    /// Create a new signed event using NostrIdentity
+    static func createSigned(
+        identity: NostrIdentity,
+        kind: NostrEventKind,
+        content: String,
+        tags: [[String]] = []
+    ) throws -> NostrEvent {
+        let pubkey = identity.publicKeyHex
+        let createdAt = Int(Date().timeIntervalSince1970)
+        let id = computeEventId(
+            pubkey: pubkey,
+            createdAt: createdAt,
+            kind: kind.rawValue,
+            tags: tags,
+            content: content
+        )
+
+        // Sign the event ID with Schnorr signature
+        let signature = try identity.signEventId(id)
+
+        return NostrEvent(
+            id: id,
+            pubkey: pubkey,
+            created_at: createdAt,
+            kind: kind.rawValue,
+            tags: tags,
+            content: content,
+            sig: signature
+        )
+    }
+
     /// Compute event ID as SHA256 of serialized event
     private static func computeEventId(
         pubkey: String,
@@ -70,25 +104,17 @@ struct NostrEvent: Codable, Identifiable {
         tags: [[String]],
         content: String
     ) -> String {
-        let serialized = "[0,\"\(pubkey)\",\(createdAt),\(kind),\(tagsToJson(tags)),\"\(escapeJson(content))\"]"
-        let data = Data(serialized.utf8)
+        guard let data = try? NostrNormalization.canonicalEventJSONData(
+            pubkey: pubkey,
+            createdAt: createdAt,
+            kind: kind,
+            tags: tags,
+            content: content
+        ) else {
+            return ""
+        }
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
-    }
-
-    private static func tagsToJson(_ tags: [[String]]) -> String {
-        let inner = tags.map { tag in
-            "[" + tag.map { "\"\(escapeJson($0))\"" }.joined(separator: ",") + "]"
-        }.joined(separator: ",")
-        return "[\(inner)]"
-    }
-
-    private static func escapeJson(_ str: String) -> String {
-        str.replacingOccurrences(of: "\\", with: "\\\\")
-           .replacingOccurrences(of: "\"", with: "\\\"")
-           .replacingOccurrences(of: "\n", with: "\\n")
-           .replacingOccurrences(of: "\r", with: "\\r")
-           .replacingOccurrences(of: "\t", with: "\\t")
     }
 }
 
@@ -264,7 +290,25 @@ final class NostrRelay: ObservableObject {
             print("Nostr notice: \(message)")
         case .auth(let challenge):
             print("Nostr auth challenge: \(challenge)")
-            // TODO: Implement NIP-42 authentication
+            guard let identity = NostrIdentityManager.shared.nostrIdentity else {
+                print("Nostr auth skipped: missing identity")
+                return
+            }
+            let tags = [
+                ["relay", url.absoluteString],
+                ["challenge", challenge]
+            ]
+            do {
+                let event = try NostrEvent.createSigned(
+                    identity: identity,
+                    kind: .auth,
+                    content: "",
+                    tags: tags
+                )
+                publish(event)
+            } catch {
+                print("Nostr auth failed: \(error)")
+            }
         }
     }
 }
@@ -306,7 +350,7 @@ struct NostrFilter: Codable {
 @MainActor
 final class NostrTransport: ObservableObject, TransportProtocol {
     static let shared = NostrTransport()
-    static let supportsSigning = false
+    static let supportsSigning = true  // Now enabled with secp256k1
 
     let transportType: TransportType = .nostr
 
@@ -316,6 +360,7 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     var onPacketReceived: ((RoutablePacket) -> Void)?
     var onPeerDiscovered: ((DiscoveredPeer) -> Void)?
     var onPeerLost: ((String) -> Void)?
+    var onZapReceived: ((NostrEvent) -> Void)?  // NIP-57 zap receipt handler
 
     // Default Pulse-friendly relays
     private let defaultRelays = [
@@ -331,6 +376,7 @@ final class NostrTransport: ObservableObject, TransportProtocol {
 
     // Active subscriptions
     private var channelSubscriptions: [String: String] = [:] // geohash -> subscriptionId
+    private var zapReceiptSubscriptionId: String?
 
     private init() {}
 
@@ -339,9 +385,20 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     }
 
     func connect() async throws {
-        guard Self.supportsSigning else {
-            throw NostrError.signatureFailed
+        // Ensure we have a Nostr identity for signing
+        let nostrIdentityManager = NostrIdentityManager.shared
+        if !nostrIdentityManager.hasIdentity {
+            if nostrIdentityManager.createIdentity() == nil {
+                throw NostrError.notConfigured
+            }
         }
+
+        // Configure with Nostr public key
+        guard let pubkey = nostrIdentityManager.publicKeyHex else {
+            throw NostrError.notConfigured
+        }
+        self.myPublicKey = pubkey
+
         for urlString in defaultRelays {
             guard let url = URL(string: urlString) else { continue }
             let relay = NostrRelay(url: url)
@@ -379,10 +436,7 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     }
 
     func send(_ packet: RoutablePacket, to recipient: String) async throws {
-        guard Self.supportsSigning else {
-            throw NostrError.signatureFailed
-        }
-        guard let myPubkey = myPublicKey else {
+        guard let identity = NostrIdentityManager.shared.nostrIdentity else {
             throw NostrError.notConfigured
         }
 
@@ -390,26 +444,22 @@ final class NostrTransport: ObservableObject, TransportProtocol {
         let packetData = try JSONEncoder().encode(packet)
         let content = packetData.base64EncodedString()
 
-        // Create event with recipient tag
-        let event = NostrEvent.create(
-            pubkey: myPubkey,
+        // Create signed event with recipient tag
+        let event = try NostrEvent.createSigned(
+            identity: identity,
             kind: .pulseMessage,
             content: content,
             tags: [["p", recipient]]
         )
 
-        // TODO: Sign event with private key
-        // For now, publish unsigned (most relays will reject)
+        // Publish to all connected relays
         for relay in relays where relay.isConnected {
             relay.publish(event)
         }
     }
 
     func broadcast(_ packet: RoutablePacket) async throws {
-        guard Self.supportsSigning else {
-            throw NostrError.signatureFailed
-        }
-        guard let myPubkey = myPublicKey,
+        guard let identity = NostrIdentityManager.shared.nostrIdentity,
               let geohash = currentGeohash else {
             throw NostrError.notConfigured
         }
@@ -417,12 +467,140 @@ final class NostrTransport: ObservableObject, TransportProtocol {
         let packetData = try JSONEncoder().encode(packet)
         let content = packetData.base64EncodedString()
 
-        // Broadcast to location channel
-        let event = NostrEvent.create(
-            pubkey: myPubkey,
+        // Broadcast to location channel with signed event
+        let event = try NostrEvent.createSigned(
+            identity: identity,
             kind: .pulseChannel,
             content: content,
             tags: [["g", geohash]] // Geohash tag
+        )
+
+        for relay in relays where relay.isConnected {
+            relay.publish(event)
+        }
+    }
+
+    // MARK: - NIP-57 Zap Support
+
+    /// Publish a zap request (kind 9734)
+    func publishZapRequest(
+        recipientPubkey: String,
+        lightningAddress: String,
+        amount: Int,  // millisats
+        messageEventId: String?,
+        comment: String?
+    ) async throws -> NostrEvent {
+        guard let identity = NostrIdentityManager.shared.nostrIdentity else {
+            throw NostrError.notConfigured
+        }
+
+        // Build tags per NIP-57
+        var tags: [[String]] = [
+            ["p", recipientPubkey],
+            ["amount", String(amount)],
+            ["relays"] + defaultRelays,
+            ["lnurl", lightningAddress]  // Will be encoded by caller
+        ]
+
+        // Optional: reference the message being zapped
+        if let eventId = messageEventId {
+            tags.append(["e", eventId])
+        }
+
+        let event = try NostrEvent.createSigned(
+            identity: identity,
+            kind: .zapRequest,
+            content: comment ?? "",
+            tags: tags
+        )
+
+        // Publish to relays
+        for relay in relays where relay.isConnected {
+            relay.publish(event)
+        }
+
+        return event
+    }
+
+    /// Subscribe to zap receipts (kind 9735) for a pubkey
+    func subscribeToZapReceipts(for pubkey: String) {
+        let subscriptionId = "zap-\(pubkey.prefix(8))"
+        zapReceiptSubscriptionId = subscriptionId
+
+        var filter = NostrFilter()
+        filter.kinds = [NostrEventKind.zapReceipt.rawValue]
+        filter.tagFilters["p"] = [pubkey]
+        filter.since = Int(Date().addingTimeInterval(-86400).timeIntervalSince1970)  // Last 24 hours
+
+        for relay in relays where relay.isConnected {
+            relay.subscribe(filter: filter, subscriptionId: subscriptionId)
+        }
+    }
+
+    /// Unsubscribe from zap receipts
+    func unsubscribeFromZapReceipts() {
+        guard let subscriptionId = zapReceiptSubscriptionId else { return }
+
+        for relay in relays where relay.isConnected {
+            relay.unsubscribe(subscriptionId)
+        }
+        zapReceiptSubscriptionId = nil
+    }
+
+    /// Fetch peer metadata (kind 0) to get lightning address
+    func fetchPeerMetadata(pubkey: String) async throws -> [String: Any]? {
+        // Create a one-time subscription for kind 0
+        let subscriptionId = "meta-\(pubkey.prefix(8))"
+
+        var filter = NostrFilter()
+        filter.kinds = [NostrEventKind.setMetadata.rawValue]
+        filter.authors = [pubkey]
+        filter.limit = 1
+
+        // Subscribe on first connected relay
+        guard let relay = relays.first(where: { $0.isConnected }) else {
+            throw NostrError.connectionFailed
+        }
+
+        relay.subscribe(filter: filter, subscriptionId: subscriptionId)
+
+        // Note: In a real implementation, you'd use async/await with a continuation
+        // to wait for the response. For now, return nil and let the caller retry.
+        return nil
+    }
+
+    /// Publish profile metadata (kind 0) with lightning address
+    func publishMetadata(
+        name: String,
+        lightningAddress: String?,
+        about: String? = nil,
+        picture: String? = nil
+    ) async throws {
+        guard let identity = NostrIdentityManager.shared.nostrIdentity else {
+            throw NostrError.notConfigured
+        }
+
+        var metadata: [String: Any] = ["name": name]
+        if let lud16 = lightningAddress {
+            metadata["lud16"] = lud16
+        }
+        if let about = about {
+            metadata["about"] = about
+        }
+        if let picture = picture {
+            metadata["picture"] = picture
+        }
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: metadata),
+              let content = String(data: jsonData, encoding: .utf8) else {
+            throw NostrError.notConfigured
+        }
+
+        let event = try NostrEvent.createSigned(
+            identity: identity,
+            kind: .setMetadata,
+            content: content,
+            tags: []
         )
 
         for relay in relays where relay.isConnected {
@@ -459,6 +637,18 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     }
 
     private func handleEvent(_ event: NostrEvent, subscriptionId: String) {
+        // Handle zap receipts (kind 9735)
+        if event.kind == NostrEventKind.zapReceipt.rawValue {
+            onZapReceived?(event)
+            return
+        }
+
+        // Handle metadata events (kind 0)
+        if event.kind == NostrEventKind.setMetadata.rawValue {
+            // Metadata events are handled by their specific callbacks
+            return
+        }
+
         // Decode Pulse packet from content
         guard let packetData = Data(base64Encoded: event.content),
               let packet = try? JSONDecoder().decode(RoutablePacket.self, from: packetData) else {

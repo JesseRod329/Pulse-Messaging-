@@ -26,6 +26,7 @@ This isn't just an app; it's a step toward sovereign communication—private, ce
 | **Resilient Delivery** | Acknowledgements, deduplication, and multi-hop routing |
 | **Privacy Controls** | Toggles for link previews, discovery profile sharing, and data retention |
 | **Offline-First** | Local SwiftData persistence; works without internet |
+| **Lightning Zaps** | NIP-57 zap requests, receipts, and Lightning address support |
 | **Open Protocol Ready** | Nostr transport layer for relay-based messaging (WIP) |
 
 ---

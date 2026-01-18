@@ -16,9 +16,11 @@ struct ProfileView: View {
     @AppStorage("handle") private var handle = ""
     @AppStorage("statusMessage") private var statusMessage = ""
     @AppStorage("userStatus") private var userStatus = 0
+    @AppStorage("lightningAddress") private var lightningAddress = ""
 
     @State private var editingHandle = ""
     @State private var editingStatusMessage = ""
+    @State private var editingLightningAddress = ""
     @State private var selectedTechStack: Set<String> = []
     @State private var showContent = false
     @State private var avatarScale: CGFloat = 0.8
@@ -61,6 +63,11 @@ struct ProfileView: View {
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 20)
 
+                    // Lightning section
+                    lightningSection
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+
                     // Identity section
                     identitySection
                         .opacity(showContent ? 1 : 0)
@@ -98,6 +105,7 @@ struct ProfileView: View {
         .onAppear {
             editingHandle = handle
             editingStatusMessage = statusMessage
+            editingLightningAddress = lightningAddress
             loadTechStack()
             loadProfileImage()
 
@@ -392,6 +400,63 @@ struct ProfileView: View {
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
+    // MARK: - Lightning Section
+
+    private var lightningSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Lightning", icon: "bolt.fill")
+
+            TextField("you@getalby.com", text: $editingLightningAddress)
+                .font(.pulseBodySecondary)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.emailAddress)
+                .padding()
+                .background(themeManager.colors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(themeManager.colors.accent.opacity(0.3), lineWidth: 1)
+                )
+                .accessibilityLabel("Lightning Address")
+                .accessibilityHint("Enter your Lightning Address to receive zaps")
+
+            Text("Your Lightning Address allows others to send you sats via zaps. Supports NIP-57.")
+                .font(.pulseCaption)
+                .foregroundStyle(themeManager.colors.textSecondary)
+
+            // Nostr identity info
+            if let nostrIdentity = NostrIdentityManager.shared.nostrIdentity {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Nostr npub")
+                            .font(.caption)
+                            .foregroundStyle(themeManager.colors.textSecondary)
+                        Spacer()
+                        Text(String(nostrIdentity.npub.prefix(20)) + "...")
+                            .font(.caption.monospaced())
+                            .foregroundStyle(themeManager.colors.text)
+
+                        Button {
+                            UIPasteboard.general.string = nostrIdentity.npub
+                            HapticManager.shared.notify(.success)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .font(.caption)
+                                .foregroundStyle(themeManager.colors.accent)
+                        }
+                    }
+                }
+                .padding()
+                .background(themeManager.colors.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .padding()
+        .background(themeManager.colors.cardBackground.opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
     // MARK: - Identity Section
 
     private var identitySection: some View {
@@ -489,11 +554,22 @@ struct ProfileView: View {
 
         handle = editingHandle
         statusMessage = editingStatusMessage
+        lightningAddress = editingLightningAddress
         UserDefaults.standard.set(Array(selectedTechStack), forKey: "techStack")
 
         // Save profile image
         if profileImage != nil {
             saveProfileImage()
+        }
+
+        // Publish Nostr metadata if Lightning address is set
+        if !editingLightningAddress.isEmpty {
+            Task {
+                try? await NostrTransport.shared.publishMetadata(
+                    name: editingHandle,
+                    lightningAddress: editingLightningAddress
+                )
+            }
         }
 
         dismiss()
