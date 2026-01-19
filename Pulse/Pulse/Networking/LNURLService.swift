@@ -147,7 +147,7 @@ final class LNURLService: ObservableObject {
     func openWallet(invoice: String, preferredWallet: LightningWallet = .automatic) -> Bool {
         // Try preferred wallet first
         if preferredWallet != .automatic,
-           let url = preferredWallet.paymentURL(invoice: invoice),
+           let url = WalletURISanitizer.buildPaymentURL(invoice: invoice, wallet: preferredWallet),
            UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
             return true
@@ -155,7 +155,7 @@ final class LNURLService: ObservableObject {
 
         // Try each wallet in order
         for wallet in LightningWallet.allCases where wallet != .automatic {
-            if let url = wallet.paymentURL(invoice: invoice),
+            if let url = WalletURISanitizer.buildPaymentURL(invoice: invoice, wallet: wallet),
                UIApplication.shared.canOpenURL(url) {
                 UIApplication.shared.open(url)
                 return true
@@ -163,7 +163,7 @@ final class LNURLService: ObservableObject {
         }
 
         // Fall back to generic lightning: scheme
-        if let url = URL(string: "lightning:\(invoice)") {
+        if let url = WalletURISanitizer.buildGenericLightningURL(invoice: invoice) {
             UIApplication.shared.open(url)
             return true
         }
@@ -174,7 +174,7 @@ final class LNURLService: ObservableObject {
     /// Check if any Lightning wallet is installed
     func hasLightningWallet() -> Bool {
         for wallet in LightningWallet.allCases {
-            if let url = wallet.paymentURL(invoice: "lnbc1") {
+            if let url = WalletURISanitizer.buildPaymentURL(invoice: "lnbc1", wallet: wallet) {
                 // Use canOpenURL which requires LSApplicationQueriesSchemes in Info.plist
                 if UIApplication.shared.canOpenURL(url) {
                     return true
@@ -183,7 +183,7 @@ final class LNURLService: ObservableObject {
         }
 
         // Check generic lightning: scheme
-        if let url = URL(string: "lightning:lnbc1") {
+        if let url = WalletURISanitizer.buildGenericLightningURL(invoice: "lnbc1") {
             return UIApplication.shared.canOpenURL(url)
         }
 
