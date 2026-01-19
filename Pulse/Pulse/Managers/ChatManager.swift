@@ -42,6 +42,12 @@ final class LinkPreviewService {
     /// Fetches preview data for a given URL.
     /// It first checks the cache, and if not available, fetches the data from the network.
     func fetchPreview(for url: URL) async -> LinkPreviewData? {
+        // SECURITY: Validate URL before fetching
+        guard isValidPreviewURL(url) else {
+            DebugLogger.error("Blocked invalid URL for preview: \(url.absoluteString)", category: .security)
+            return nil
+        }
+
         let urlString = url.absoluteString
 
         // Check cache first
@@ -52,20 +58,30 @@ final class LinkPreviewService {
         }
 
         // Fetch from network using secure session
-        guard let (data, response) = try? await session.data(for: .init(url: url)),
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10  // Prevent long-running fetches
+
+        // SECURITY: Limit response size to prevent memory exhaustion
+        guard let (data, response) = try? await session.data(for: request),
               let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200,
+              data.count <= 5_000_000,  // Max 5MB
               let htmlString = String(data: data, encoding: .utf8) else {
             return nil
         }
         
         let metadata = parseHTMLForMetadata(htmlString: htmlString, url: url)
-        
+
+        // SECURITY: Sanitize all metadata to prevent XSS
+        let title = metadata["og:title"] ?? metadata["title"]
+        let description = metadata["og:description"] ?? metadata["description"]
+        let imageURL = metadata["og:image"]
+
         let previewData = LinkPreviewData(
             url: urlString,
-            title: metadata["og:title"] ?? metadata["title"],
-            description: metadata["og:description"] ?? metadata["description"],
-            imageURL: metadata["og:image"]
+            title: title.map { sanitizeMetadata($0) },
+            description: description.map { sanitizeMetadata($0) },
+            imageURL: imageURL.flatMap { validateImageURL($0) }
         )
 
         // Don't cache incomplete previews
@@ -118,9 +134,10 @@ final class LinkPreviewService {
             metadata["title"] = String(htmlString[titleRange].dropFirst(7).dropLast(8))
         }
 
-        // Ensure image URL is absolute
+        // SECURITY: Convert relative image URLs to absolute, then validate
         if let imageURL = metadata["og:image"] {
             if imageURL.starts(with: "/") {
+                // Convert relative URL to absolute
                 var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                 components?.path = imageURL
                 components?.query = nil
@@ -130,7 +147,7 @@ final class LinkPreviewService {
                 }
             }
         }
-        
+
         return metadata
     }
 
@@ -149,6 +166,161 @@ final class LinkPreviewService {
             return String(tag[range])
         }
         return nil
+    }
+
+    // MARK: - Security: URL Validation
+
+    /// Validates that a URL is safe to fetch for link previews
+    /// Blocks: file://, javascript:, data:, blob:, about:, and other dangerous schemes
+    private func isValidPreviewURL(_ url: URL) -> Bool {
+        // Only allow http and https schemes
+        guard let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return false
+        }
+
+        // Block localhost and private IP ranges
+        if let host = url.host?.lowercased() {
+            // Block localhost variations
+            if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+                return false
+            }
+
+            // Block private IP ranges (RFC 1918)
+            if host.hasPrefix("10.") ||
+               host.hasPrefix("192.168.") ||
+               (host.hasPrefix("172.") && isPrivateIPv4Class(host)) {
+                return false
+            }
+
+            // Block link-local addresses
+            if host.hasPrefix("169.254.") || host.hasPrefix("fe80:") {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    /// Check if IP is in 172.16.0.0 - 172.31.255.255 range
+    private func isPrivateIPv4Class(_ host: String) -> Bool {
+        let parts = host.split(separator: ".")
+        guard parts.count >= 2,
+              let second = Int(parts[1]) else {
+            return false
+        }
+        return second >= 16 && second <= 31
+    }
+
+    // MARK: - Security: Metadata Sanitization
+
+    /// Sanitizes metadata strings to prevent XSS and HTML injection
+    /// Removes HTML tags, decodes entities, and limits length
+    private func sanitizeMetadata(_ text: String) -> String {
+        var sanitized = text
+
+        // Remove HTML tags
+        sanitized = sanitized.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+
+        // Decode HTML entities
+        sanitized = decodeHTMLEntities(sanitized)
+
+        // Remove control characters and zero-width spaces
+        sanitized = sanitized.filter { char in
+            !char.isNewline && !char.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 0x200B })
+        }
+
+        // Trim whitespace
+        sanitized = sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Limit length to prevent UI issues
+        if sanitized.count > 500 {
+            sanitized = String(sanitized.prefix(500)) + "..."
+        }
+
+        return sanitized
+    }
+
+    /// Decodes common HTML entities (&amp;, &lt;, &gt;, &quot;, &#39;, etc.)
+    private func decodeHTMLEntities(_ text: String) -> String {
+        var decoded = text
+        let entities = [
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": "\"",
+            "&#39;": "'",
+            "&apos;": "'",
+            "&nbsp;": " "
+        ]
+
+        for (entity, replacement) in entities {
+            decoded = decoded.replacingOccurrences(of: entity, with: replacement)
+        }
+
+        // Decode numeric entities (&#123; or &#xAB;)
+        let numericPattern = "&#(x?[0-9a-fA-F]+);"
+        if let regex = try? NSRegularExpression(pattern: numericPattern) {
+            let matches = regex.matches(in: decoded, range: NSRange(decoded.startIndex..., in: decoded))
+            for match in matches.reversed() {
+                guard let range = Range(match.range, in: decoded),
+                      let codeRange = Range(match.range(at: 1), in: decoded) else {
+                    continue
+                }
+
+                let codeStr = String(decoded[codeRange])
+                let code: Int?
+
+                if codeStr.hasPrefix("x") {
+                    code = Int(codeStr.dropFirst(), radix: 16)
+                } else {
+                    code = Int(codeStr)
+                }
+
+                if let code = code, let scalar = UnicodeScalar(code) {
+                    decoded.replaceSubrange(range, with: String(Character(scalar)))
+                }
+            }
+        }
+
+        return decoded
+    }
+
+    /// Validates image URLs to ensure they're safe to load
+    /// Returns nil for invalid/dangerous URLs
+    private func validateImageURL(_ urlString: String) -> String? {
+        // Prevent empty or excessively long URLs
+        guard !urlString.isEmpty, urlString.count <= 2048 else {
+            return nil
+        }
+
+        // Try to parse as URL
+        guard let url = URL(string: urlString),
+              let scheme = url.scheme?.lowercased() else {
+            return nil
+        }
+
+        // Only allow http/https for images
+        guard scheme == "http" || scheme == "https" else {
+            DebugLogger.error("Blocked non-HTTP image URL: \(urlString)", category: .security)
+            return nil
+        }
+
+        // Block localhost and private IPs
+        if let host = url.host?.lowercased() {
+            if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+                return nil
+            }
+
+            if host.hasPrefix("10.") ||
+               host.hasPrefix("192.168.") ||
+               host.hasPrefix("169.254.") ||
+               (host.hasPrefix("172.") && isPrivateIPv4Class(host)) {
+                return nil
+            }
+        }
+
+        return urlString
     }
 }
 
