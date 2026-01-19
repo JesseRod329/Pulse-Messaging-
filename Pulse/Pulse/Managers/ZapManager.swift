@@ -105,6 +105,13 @@ final class ZapManager: ObservableObject {
             pendingZap.status = .invoiceReady
             pendingZaps[zapId] = pendingZap
 
+            // Step 3b: Verify invoice matches zap request + UI intent
+            _ = try ZapSecurityGuard.validate(
+                invoice: invoiceResponse.pr,
+                zapRequest: zapRequestEvent,
+                expectedAmountMsat: amountMillisats
+            )
+
             // Step 4: Open wallet for payment
             pendingZap.status = .paying
             pendingZaps[zapId] = pendingZap
@@ -166,6 +173,13 @@ final class ZapManager: ObservableObject {
     }
 
     private func handleZapReceipt(_ event: NostrEvent) {
+        do {
+            try NostrEventValidator.validateZapReceipt(event)
+        } catch {
+            print("Ignoring invalid zap receipt: \(error.localizedDescription)")
+            return
+        }
+
         guard let receipt = ZapReceipt.from(event: event) else {
             return
         }
