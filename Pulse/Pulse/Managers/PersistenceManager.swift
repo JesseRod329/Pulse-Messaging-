@@ -16,23 +16,11 @@ final class PersistenceManager {
     let container: ModelContainer
     var context: ModelContext { container.mainContext }
 
-    // MARK: - Sent Message Cache
+    // MARK: - Plaintext Encryption for Database Storage
+    // NOTE: Plaintext is NEVER stored in memory. Always encrypted in database, decrypted on-demand.
 
-    private struct CachedMessage {
-        let plaintext: String
-        let timestamp: Date
-    }
-
-    private var sentMessageCache: [String: CachedMessage] = [:]
-    private let cacheMaxAge: TimeInterval = 7 * 24 * 60 * 60
-    private let cacheMaxEntries = 1000
     private let plaintextKeychainKey = "pulse.local.plaintext.key"
     private let plaintextPrefix = "enc:"
-
-    private func storeSentMessage(_ messageId: String, plaintext: String) {
-        sentMessageCache[messageId] = CachedMessage(plaintext: plaintext, timestamp: Date())
-        cleanupSentMessageCache()
-    }
 
     private func loadOrCreatePlaintextKey() -> SymmetricKey? {
         if let keyData = KeychainManager.shared.load(forKey: plaintextKeychainKey) {
@@ -57,6 +45,8 @@ final class PersistenceManager {
         return plaintextPrefix + combined.base64EncodedString()
     }
 
+    /// Decrypt plaintext stored in database
+    /// NOTE: Plaintext is ALWAYS encrypted in database, never stored in plain form
     private func decryptPlaintextIfNeeded(_ stored: String) -> String? {
         guard stored.hasPrefix(plaintextPrefix) else { return stored }
         let base64 = String(stored.dropFirst(plaintextPrefix.count))
@@ -67,33 +57,6 @@ final class PersistenceManager {
             return nil
         }
         return String(data: decrypted, encoding: .utf8)
-    }
-
-    private func retrieveSentMessage(_ messageId: String) -> String? {
-        guard let cached = sentMessageCache[messageId] else { return nil }
-
-        if Date().timeIntervalSince(cached.timestamp) > cacheMaxAge {
-            sentMessageCache.removeValue(forKey: messageId)
-            return nil
-        }
-
-        return cached.plaintext
-    }
-
-    private func cleanupSentMessageCache() {
-        let now = Date()
-        let expired = sentMessageCache.filter { now.timeIntervalSince($0.value.timestamp) > cacheMaxAge }
-        for id in expired.keys {
-            sentMessageCache.removeValue(forKey: id)
-        }
-
-        if sentMessageCache.count > cacheMaxEntries {
-            let sorted = sentMessageCache.sorted { $0.value.timestamp < $1.value.timestamp }
-            let toRemove = sorted.prefix(sentMessageCache.count - cacheMaxEntries)
-            for (id, _) in toRemove {
-                sentMessageCache.removeValue(forKey: id)
-            }
-        }
     }
 
     private init() {
@@ -183,8 +146,8 @@ final class PersistenceManager {
         conversation.addMessage(message)
         try? context.save()
 
-        // Store plaintext in memory cache for immediate display
-        storeSentMessage(id, plaintext: plaintext)
+        // NOTE: Plaintext is encrypted in database, never cached in memory
+        // This prevents memory dumps from exposing sensitive content
     }
 
     /// Save a received message from envelope
@@ -219,12 +182,10 @@ final class PersistenceManager {
 
         // Decrypt and convert to Message objects
         return sortedMessages.compactMap { persistedMessage in
-            // For sent messages ("me"), check stored plaintext or cache
+            // For sent messages ("me"), decrypt the stored encrypted plaintext
             if persistedMessage.senderId == "me" {
                 if let storedPlaintext = persistedMessage.plaintext,
                    let plaintext = decryptPlaintextIfNeeded(storedPlaintext) {
-                    return persistedMessage.toMessage(decryptedContent: plaintext)
-                } else if let plaintext = retrieveSentMessage(persistedMessage.id) {
                     return persistedMessage.toMessage(decryptedContent: plaintext)
                 } else {
                     // Cache expired or not found - placeholder

@@ -23,7 +23,11 @@ final class PersistedMessage {
     var imageWidth: Int? // Image dimensions
     var imageHeight: Int?
     var imageThumbnail: Data? // Thumbnail data for images
-    var plaintext: String? // Plaintext for sent messages (stored locally)
+
+    /// Plaintext for sent messages - ALWAYS stored encrypted (prefixed with "enc:")
+    /// NEVER store actual plaintext to prevent data leakage from database backups
+    /// Decrypted on-demand when loading messages
+    var plaintext: String?
 
     // Group chat support
     var groupId: String? // For group messages
