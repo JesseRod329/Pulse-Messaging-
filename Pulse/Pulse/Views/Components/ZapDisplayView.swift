@@ -62,6 +62,7 @@ struct ZapDetailsSheet: View {
 
     let messageId: String
     let zaps: [ZapReceipt]
+    @State private var revealSensitive = false
 
     var totalAmount: Int {
         zaps.reduce(0) { $0 + $1.sats }
@@ -70,6 +71,11 @@ struct ZapDetailsSheet: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Toggle("Reveal sensitive data", isOn: $revealSensitive)
+                        .privacySensitiveIfAvailable()
+                }
+
                 // Summary section
                 Section {
                     HStack {
@@ -77,15 +83,16 @@ struct ZapDetailsSheet: View {
                             .foregroundStyle(.yellow)
                         Text("Total Zapped")
                         Spacer()
-                        Text("\(totalAmount.formattedSats) sats")
+                        Text(revealSensitive ? "\(totalAmount.formattedSats) sats" : "Hidden")
                             .fontWeight(.semibold)
+                            .privacySensitiveIfAvailable()
                     }
                 }
 
                 // Individual zaps
                 Section("Zaps") {
                     ForEach(zaps) { zap in
-                        ZapRow(zap: zap)
+                        ZapRow(zap: zap, revealSensitive: revealSensitive)
                     }
                 }
             }
@@ -106,20 +113,23 @@ struct ZapDetailsSheet: View {
 
 struct ZapRow: View {
     let zap: ZapReceipt
+    let revealSensitive: Bool
 
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 // Sender info
-                Text(formatPubkey(zap.senderPubkey))
+                Text(revealSensitive ? formatPubkey(zap.senderPubkey) : "Hidden")
                     .font(.subheadline)
                     .fontWeight(.medium)
+                    .privacySensitiveIfAvailable()
 
                 // Comment if any
                 if let comment = zap.comment, !comment.isEmpty {
-                    Text(comment)
+                    Text(revealSensitive ? comment : "Hidden")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .privacySensitiveIfAvailable()
                 }
 
                 // Timestamp
@@ -135,8 +145,9 @@ struct ZapRow: View {
                 Image(systemName: "bolt.fill")
                     .font(.caption)
                     .foregroundStyle(.yellow)
-                Text("\(zap.sats)")
+                Text(revealSensitive ? "\(zap.sats)" : "—")
                     .fontWeight(.semibold)
+                    .privacySensitiveIfAvailable()
             }
         }
         .padding(.vertical, 4)
