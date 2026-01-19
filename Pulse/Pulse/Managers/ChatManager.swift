@@ -84,13 +84,21 @@ final class LinkPreviewService {
     /// A simple parser to extract Open Graph and standard metadata tags from HTML.
     private func parseHTMLForMetadata(htmlString: String, url: URL) -> [String: String] {
         var metadata = [String: String]()
-        
+
         // Regex to find <meta> tags
-        let metaTagRegex = try! NSRegularExpression(pattern: "<meta[^>]+>", options: .caseInsensitive)
+        // NOTE: Use try? instead of try! to prevent crashes on malformed HTML
+        guard let metaTagRegex = try? NSRegularExpression(pattern: "<meta[^>]+>", options: .caseInsensitive) else {
+            DebugLogger.error("Failed to create meta tag regex", category: .general)
+            return metadata
+        }
         let matches = metaTagRegex.matches(in: htmlString, range: NSRange(htmlString.startIndex..., in: htmlString))
-        
+
         for match in matches {
-            let tag = String(htmlString[Range(match.range, in: htmlString)!])
+            // Safely convert NSRange to Range to prevent crashes on malformed HTML
+            guard let range = Range(match.range, in: htmlString) else {
+                continue
+            }
+            let tag = String(htmlString[range])
             
             // Extract property/name and content
             if let property = extractAttribute(from: tag, attribute: "property"),
@@ -128,9 +136,17 @@ final class LinkPreviewService {
 
     private func extractAttribute(from tag: String, attribute: String) -> String? {
         let pattern = "\(attribute)=[\"']([^\"']+)[\"']"
-        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
-        if let match = regex.firstMatch(in: tag, range: NSRange(tag.startIndex..., in: tag)) {
-            return String(tag[Range(match.range(at: 1), in: tag)!])
+
+        // NOTE: Use try? instead of try! to prevent crashes on malformed patterns
+        // If attribute contains regex special chars, pattern creation could fail
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+            DebugLogger.error("Failed to create attribute extraction regex", category: .general)
+            return nil
+        }
+
+        if let match = regex.firstMatch(in: tag, range: NSRange(tag.startIndex..., in: tag)),
+           let range = Range(match.range(at: 1), in: tag) {
+            return String(tag[range])
         }
         return nil
     }
