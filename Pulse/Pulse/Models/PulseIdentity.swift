@@ -83,10 +83,20 @@ struct PulseIdentity: Codable {
         let ephemeralKey = Curve25519.KeyAgreement.PrivateKey()
         let recipientKey = try Curve25519.KeyAgreement.PublicKey(rawRepresentation: recipientPublicKey)
 
+        // SECURITY: Generate random salt for HKDF (NIST SP 800-56C Rev. 2)
+        // Salt must be random for each encryption to prevent key reuse attacks
+        var randomSalt = Data(count: 32)  // 256-bit random salt
+        let result = randomSalt.withUnsafeMutableBytes { ptr in
+            SecRandomCopyBytes(kSecRandomDefault, 32, ptr.baseAddress!)
+        }
+        guard result == errSecSuccess else {
+            throw CryptoError.randomGenerationFailed
+        }
+
         let sharedSecret = try ephemeralKey.sharedSecretFromKeyAgreement(with: recipientKey)
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
-            salt: Data(),
+            salt: randomSalt,  // ✅ Random salt for each encryption
             sharedInfo: "pulse-e2e-v1".data(using: .utf8)!,
             outputByteCount: 32
         )
@@ -94,8 +104,10 @@ struct PulseIdentity: Codable {
         let plainData = plaintext.data(using: .utf8)!
         let sealedBox = try AES.GCM.seal(plainData, using: symmetricKey)
 
-        // Combine: ephemeralPublicKey + nonce + ciphertext + tag
+        // Combine: salt + ephemeralPublicKey + nonce + ciphertext + tag
+        // Salt must be transmitted so recipient can derive the same key
         var combined = Data()
+        combined.append(randomSalt) // 32 bytes (new)
         combined.append(ephemeralKey.publicKey.rawRepresentation) // 32 bytes
         combined.append(contentsOf: sealedBox.nonce) // 12 bytes
         combined.append(sealedBox.ciphertext)
@@ -105,11 +117,51 @@ struct PulseIdentity: Codable {
     }
 
     func decrypt(_ ciphertext: Data) throws -> String {
+        // NEW FORMAT: salt(32) + ephemeralPublicKey(32) + nonce(12) + ciphertext + tag(16)
+        // OLD FORMAT: ephemeralPublicKey(32) + nonce(12) + ciphertext + tag(16)
+        // Minimum: 32 + 32 + 12 + 0 + 16 = 92 bytes (new) or 60 bytes (old)
+
+        // Try new format first (with salt)
+        if ciphertext.count >= 92 {
+            // Extract components (new format with salt)
+            let saltData = ciphertext.prefix(32)
+            let ephemeralPublicKeyData = ciphertext.dropFirst(32).prefix(32)
+            let nonceData = ciphertext.dropFirst(64).prefix(12)
+            let tagData = ciphertext.suffix(16)
+            let ciphertextData = ciphertext.dropFirst(76).dropLast(16)
+
+            let ephemeralPublicKey = try Curve25519.KeyAgreement.PublicKey(rawRepresentation: ephemeralPublicKeyData)
+            let myPrivateKey = try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: privateKey)
+
+            let sharedSecret = try myPrivateKey.sharedSecretFromKeyAgreement(with: ephemeralPublicKey)
+            let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
+                using: SHA256.self,
+                salt: saltData,  // ✅ Use transmitted salt
+                sharedInfo: "pulse-e2e-v1".data(using: .utf8)!,
+                outputByteCount: 32
+            )
+
+            let sealedBox = try AES.GCM.SealedBox(
+                nonce: AES.GCM.Nonce(data: nonceData),
+                ciphertext: ciphertextData,
+                tag: tagData
+            )
+
+            let plainData = try AES.GCM.open(sealedBox, using: symmetricKey)
+
+            guard let plaintext = String(data: plainData, encoding: .utf8) else {
+                throw CryptoError.invalidPlaintext
+            }
+
+            return plaintext
+        }
+
+        // BACKWARD COMPATIBILITY: Try old format (without salt) for existing messages
         guard ciphertext.count >= 60 else {
             throw CryptoError.invalidCiphertext
         }
 
-        // Extract components
+        // Extract components (old format without salt)
         let ephemeralPublicKeyData = ciphertext.prefix(32)
         let nonceData = ciphertext.dropFirst(32).prefix(12)
         let tagData = ciphertext.suffix(16)
@@ -121,7 +173,7 @@ struct PulseIdentity: Codable {
         let sharedSecret = try myPrivateKey.sharedSecretFromKeyAgreement(with: ephemeralPublicKey)
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
-            salt: Data(),
+            salt: Data(),  // Old format used empty salt
             sharedInfo: "pulse-e2e-v1".data(using: .utf8)!,
             outputByteCount: 32
         )
@@ -210,6 +262,7 @@ enum CryptoError: Error {
     case invalidCiphertext
     case invalidPlaintext
     case invalidSignature
+    case randomGenerationFailed
 }
 
 // MARK: - Base58 Encoding (for DID)
