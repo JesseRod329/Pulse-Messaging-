@@ -34,8 +34,11 @@ final class LNURLService: ObservableObject {
         lastError = nil
         defer { isProcessing = false }
 
+        // SECURITY: Validate and sanitize Lightning Address
+        let validatedAddress = try validateLightningAddress(address)
+
         // Parse Lightning Address
-        let parts = address.split(separator: "@")
+        let parts = validatedAddress.split(separator: "@")
         guard parts.count == 2 else {
             throw LNURLServiceError.invalidLightningAddress
         }
@@ -43,10 +46,18 @@ final class LNURLService: ObservableObject {
         let username = String(parts[0])
         let domain = String(parts[1])
 
-        // Construct well-known URL
-        guard let url = URL(string: "https://\(domain)/.well-known/lnurlp/\(username)") else {
+        // SECURITY: URL-encode username to prevent injection attacks
+        guard let encodedUsername = username.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
             throw LNURLServiceError.invalidLightningAddress
         }
+
+        // Construct well-known URL
+        guard let url = URL(string: "https://\(domain)/.well-known/lnurlp/\(encodedUsername)") else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // SECURITY: Validate URL doesn't target internal networks
+        try validateLNURLEndpoint(url)
 
         // Fetch LNURL metadata
         let (data, response) = try await session.data(from: url)
@@ -207,6 +218,182 @@ final class LNURLService: ObservableObject {
             return nil
         }
         return String(data: data, encoding: .utf8)
+    }
+
+    // MARK: - Input Validation
+
+    /// Validate and sanitize Lightning Address
+    /// Format: username@domain.com
+    private func validateLightningAddress(_ address: String) throws -> String {
+        // 1. Trim whitespace
+        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 2. Check length limits
+        guard trimmed.count >= 3, trimmed.count <= 255 else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // 3. Check format (must contain exactly one @)
+        let atCount = trimmed.filter { $0 == "@" }.count
+        guard atCount == 1 else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // 4. Parse components
+        let parts = trimmed.split(separator: "@")
+        guard parts.count == 2 else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        let username = String(parts[0])
+        let domain = String(parts[1])
+
+        // 5. Validate username
+        try validateUsername(username)
+
+        // 6. Validate domain
+        try validateDomain(domain)
+
+        return trimmed
+    }
+
+    /// Validate Lightning Address username component
+    /// Allowed: alphanumeric, hyphen, underscore, dot
+    private func validateUsername(_ username: String) throws {
+        // Length check
+        guard username.count >= 1, username.count <= 64 else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Character validation (alphanumeric + hyphen + underscore + dot)
+        let allowedCharacters = CharacterSet.alphanumerics
+            .union(CharacterSet(charactersIn: "-_."))
+
+        guard username.unicodeScalars.allSatisfy({ allowedCharacters.contains($0) }) else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Must start with alphanumeric
+        guard let firstChar = username.first,
+              firstChar.isLetter || firstChar.isNumber else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Block directory traversal
+        guard !username.contains(".."),
+              !username.contains("//"),
+              !username.contains("\\") else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+    }
+
+    /// Validate Lightning Address domain component
+    private func validateDomain(_ domain: String) throws {
+        // Length check
+        guard domain.count >= 3, domain.count <= 253 else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Convert to lowercase for validation
+        let lowercaseDomain = domain.lowercased()
+
+        // Block localhost
+        guard lowercaseDomain != "localhost",
+              lowercaseDomain != "127.0.0.1",
+              lowercaseDomain != "::1" else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Block private IP ranges
+        if lowercaseDomain.starts(with: "10.") ||
+           lowercaseDomain.starts(with: "192.168.") ||
+           lowercaseDomain.starts(with: "169.254.") {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Check for 172.16.0.0 - 172.31.255.255
+        if lowercaseDomain.starts(with: "172.") {
+            let parts = lowercaseDomain.split(separator: ".")
+            if parts.count >= 2, let second = Int(parts[1]), second >= 16, second <= 31 {
+                throw LNURLServiceError.invalidLightningAddress
+            }
+        }
+
+        // Basic domain format validation
+        // Must contain at least one dot
+        guard lowercaseDomain.contains(".") else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Domain labels (separated by dots)
+        let labels = lowercaseDomain.split(separator: ".")
+
+        // At least 2 labels (e.g., "domain.com")
+        guard labels.count >= 2 else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Validate each label
+        for label in labels {
+            // Label length: 1-63 characters
+            guard label.count >= 1, label.count <= 63 else {
+                throw LNURLServiceError.invalidLightningAddress
+            }
+
+            // Label must start and end with alphanumeric
+            guard let first = label.first, first.isLetter || first.isNumber,
+                  let last = label.last, last.isLetter || last.isNumber else {
+                throw LNURLServiceError.invalidLightningAddress
+            }
+
+            // Label can only contain alphanumeric and hyphen
+            let allowedCharacters = CharacterSet.alphanumerics
+                .union(CharacterSet(charactersIn: "-"))
+
+            guard label.unicodeScalars.allSatisfy({ allowedCharacters.contains($0) }) else {
+                throw LNURLServiceError.invalidLightningAddress
+            }
+        }
+
+        // TLD (top-level domain) must be at least 2 characters
+        if let tld = labels.last {
+            guard tld.count >= 2 else {
+                throw LNURLServiceError.invalidLightningAddress
+            }
+        }
+    }
+
+    /// Validate LNURL endpoint doesn't target internal networks
+    private func validateLNURLEndpoint(_ url: URL) throws {
+        // Check scheme
+        guard url.scheme?.lowercased() == "https" else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Check host
+        guard let host = url.host?.lowercased() else {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Block localhost
+        if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Block private IPs (redundant check, but defense in depth)
+        if host.starts(with: "10.") ||
+           host.starts(with: "192.168.") ||
+           host.starts(with: "169.254.") {
+            throw LNURLServiceError.invalidLightningAddress
+        }
+
+        // Block 172.16-31 range
+        if host.starts(with: "172.") {
+            let parts = host.split(separator: ".")
+            if parts.count >= 2, let second = Int(parts[1]), second >= 16, second <= 31 {
+                throw LNURLServiceError.invalidLightningAddress
+            }
+        }
     }
 }
 
