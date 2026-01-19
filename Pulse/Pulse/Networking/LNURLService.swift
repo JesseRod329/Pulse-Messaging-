@@ -18,6 +18,9 @@ final class LNURLService: ObservableObject {
     @Published var lastError: String?
 
     private let session: URLSession
+    private var requestLimiter = RateLimiter(maxEvents: 5, interval: 1)
+    private let maxRetries = 3
+    private let baseRetryDelay: TimeInterval = 0.4
 
     private init() {
         let config = URLSessionConfiguration.default
@@ -34,6 +37,10 @@ final class LNURLService: ObservableObject {
         lastError = nil
         defer { isProcessing = false }
 
+        guard requestLimiter.shouldAllow() else {
+            throw LNURLServiceError.rateLimited
+        }
+
         // Parse Lightning Address
         let parts = address.split(separator: "@")
         guard parts.count == 2 else {
@@ -49,7 +56,7 @@ final class LNURLService: ObservableObject {
         }
 
         // Fetch LNURL metadata
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await fetchData(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
@@ -85,6 +92,10 @@ final class LNURLService: ObservableObject {
         isProcessing = true
         lastError = nil
         defer { isProcessing = false }
+
+        guard requestLimiter.shouldAllow() else {
+            throw LNURLServiceError.rateLimited
+        }
 
         // Validate amount
         guard amount >= payResponse.minSendable,
@@ -123,7 +134,7 @@ final class LNURLService: ObservableObject {
         }
 
         // Request invoice
-        let (data, response) = try await session.data(from: callbackURL)
+        let (data, response) = try await fetchData(from: callbackURL)
 
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
@@ -208,6 +219,43 @@ final class LNURLService: ObservableObject {
         }
         return String(data: data, encoding: .utf8)
     }
+
+    // MARK: - Network Defense Helpers
+
+    private func fetchData(from url: URL) async throws -> (Data, HTTPURLResponse) {
+        var lastError: Error?
+
+        for attempt in 0...maxRetries {
+            try Task.checkCancellation()
+
+            do {
+                let (data, response) = try await session.data(from: url)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw LNURLServiceError.serverError
+                }
+
+                if (500...599).contains(httpResponse.statusCode), attempt < maxRetries {
+                    lastError = LNURLServiceError.serverError
+                } else {
+                    return (data, httpResponse)
+                }
+            } catch {
+                lastError = error
+            }
+
+            guard attempt < maxRetries else { break }
+            let delay = backoffDelay(for: attempt)
+            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        }
+
+        throw lastError ?? LNURLServiceError.serverError
+    }
+
+    private func backoffDelay(for attempt: Int) -> TimeInterval {
+        let exponential = baseRetryDelay * pow(2.0, Double(attempt))
+        let jitter = Double.random(in: 0...0.2)
+        return exponential + jitter
+    }
 }
 
 // MARK: - Errors
@@ -217,6 +265,7 @@ enum LNURLServiceError: Error, LocalizedError {
     case invalidResponse
     case invalidCallback
     case serverError
+    case rateLimited
     case amountOutOfRange(min: Int, max: Int)
     case noWalletInstalled
     case zapNotSupported
@@ -231,6 +280,8 @@ enum LNURLServiceError: Error, LocalizedError {
             return "Invalid callback URL"
         case .serverError:
             return "Lightning server error"
+        case .rateLimited:
+            return "Too many Lightning requests. Please try again shortly."
         case .amountOutOfRange(let min, let max):
             return "Amount must be between \(min) and \(max) sats"
         case .noWalletInstalled:

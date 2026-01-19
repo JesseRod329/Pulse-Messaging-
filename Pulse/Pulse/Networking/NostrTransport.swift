@@ -373,6 +373,7 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     private var relays: [NostrRelay] = []
     private var myPublicKey: String?
     private var currentGeohash: String?
+    private var relayEventLimiter = RateLimiter(maxEvents: 60, interval: 1)
 
     // Active subscriptions
     private var channelSubscriptions: [String: String] = [:] // geohash -> subscriptionId
@@ -637,6 +638,10 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     }
 
     private func handleEvent(_ event: NostrEvent, subscriptionId: String) {
+        guard relayEventLimiter.shouldAllow() else {
+            return
+        }
+
         // Handle zap receipts (kind 9735)
         if event.kind == NostrEventKind.zapReceipt.rawValue {
             onZapReceived?(event)

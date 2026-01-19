@@ -83,6 +83,7 @@
 		0A000429 /* ZapSecurityGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042B /* ZapSecurityGuard.swift */; };
 		0A00042C /* NostrEventValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042D /* NostrEventValidator.swift */; };
 		0A00042E /* WalletURISanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042F /* WalletURISanitizer.swift */; };
+		0A000430 /* RateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000431 /* RateLimiter.swift */; };
 		88E8D9A62F1CE36A00FE7DC2 /* P256K in Frameworks */ = {isa = PBXBuildFile; productRef = 0A000401 /* P256K */; };
 /* End PBXBuildFile section */
 
@@ -176,6 +177,7 @@
 		0A00042B /* ZapSecurityGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapSecurityGuard.swift; sourceTree = "<group>"; };
 		0A00042D /* NostrEventValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrEventValidator.swift; sourceTree = "<group>"; };
 		0A00042F /* WalletURISanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletURISanitizer.swift; sourceTree = "<group>"; };
+		0A000431 /* RateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimiter.swift; sourceTree = "<group>"; };
 		886480202F133977003A7D61 /* PulseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PulseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -349,6 +351,7 @@
 				0A00042B /* ZapSecurityGuard.swift */,
 				0A00042D /* NostrEventValidator.swift */,
 				0A00042F /* WalletURISanitizer.swift */,
+				0A000431 /* RateLimiter.swift */,
 				0A000417 /* LNURLService.swift */,
 				0A000055 /* GeohashService.swift */,
 				0A000056 /* MeshTopologyTracker.swift */,
@@ -521,6 +524,7 @@
 				0A000429 /* ZapSecurityGuard.swift in Sources */,
 				0A00042C /* NostrEventValidator.swift in Sources */,
 				0A00042E /* WalletURISanitizer.swift in Sources */,
+				0A000430 /* RateLimiter.swift in Sources */,
 				0A000416 /* LNURLService.swift in Sources */,
 				0A000045 /* GeohashService.swift in Sources */,
 				0A000046 /* MeshTopologyTracker.swift in Sources */,
