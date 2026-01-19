@@ -946,7 +946,10 @@ struct CodeBubble: View {
         // Haptic feedback
         HapticManager.shared.notify(.success)
 
-        UIPasteboard.general.string = code
+        // SECURITY: Use ClipboardManager with auto-clear for code snippets
+        // Code may contain sensitive information (API keys, credentials, etc.)
+        ClipboardManager.shared.copy(code, sensitive: true)
+
         withAnimation {
             copied = true
         }

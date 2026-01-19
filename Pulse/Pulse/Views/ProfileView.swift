@@ -438,7 +438,8 @@ struct ProfileView: View {
                             .foregroundStyle(themeManager.colors.text)
 
                         Button {
-                            UIPasteboard.general.string = nostrIdentity.npub
+                            // SECURITY: Use ClipboardManager with auto-clear for Nostr public key
+                            ClipboardManager.shared.copy(nostrIdentity.npub, sensitive: true)
                             HapticManager.shared.notify(.success)
                         } label: {
                             Image(systemName: "doc.on.doc")
@@ -475,7 +476,9 @@ struct ProfileView: View {
                             .foregroundStyle(themeManager.colors.text)
 
                         Button {
-                            UIPasteboard.general.string = identity.did
+                            // SECURITY: Use ClipboardManager with auto-clear for DID
+                            ClipboardManager.shared.copy(identity.did, sensitive: true)
+                            HapticManager.shared.notify(.success)
                         } label: {
                             Image(systemName: "doc.on.doc")
                                 .font(.caption)

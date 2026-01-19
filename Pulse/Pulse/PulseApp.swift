@@ -15,6 +15,14 @@ struct PulseApp: App {
     private let persistenceManager = PersistenceManager.shared
     private let voiceNoteManager = VoiceNoteManager.shared
 
+    init() {
+        // SECURITY: Register ClipboardManager for app lifecycle notifications
+        // This ensures clipboard is cleared when app enters background
+        Task { @MainActor in
+            ClipboardManager.shared.registerForAppLifecycleNotifications()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
