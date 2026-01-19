@@ -30,13 +30,20 @@ final class LinkPreviewService {
     // A simple in-memory cache for preview data.
     private let cache = NSCache<NSString, NSData>()
 
-    private init() {}
+    /// Secure URLSession with certificate validation for link preview fetching
+    /// Protects against MITM attacks when fetching external metadata
+    private let session: URLSession
+
+    private init() {
+        // Use secure session with certificate validation
+        self.session = SecureNetworkSession.createSession()
+    }
 
     /// Fetches preview data for a given URL.
     /// It first checks the cache, and if not available, fetches the data from the network.
     func fetchPreview(for url: URL) async -> LinkPreviewData? {
         let urlString = url.absoluteString
-        
+
         // Check cache first
         if let cachedData = cache.object(forKey: urlString as NSString) {
             if let previewData = try? JSONDecoder().decode(LinkPreviewData.self, from: cachedData as Data) {
@@ -44,8 +51,8 @@ final class LinkPreviewService {
             }
         }
 
-        // Fetch from network
-        guard let (data, response) = try? await URLSession.shared.data(for: .init(url: url)),
+        // Fetch from network using secure session
+        guard let (data, response) = try? await session.data(for: .init(url: url)),
               let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200,
               let htmlString = String(data: data, encoding: .utf8) else {

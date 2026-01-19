@@ -177,7 +177,10 @@ enum NostrRelayMessage {
 final class NostrRelay: ObservableObject {
     let url: URL
     private var webSocket: URLSessionWebSocketTask?
-    private let session = URLSession.shared
+
+    /// Secure URLSession with certificate validation for WebSocket connections
+    /// Protects against MITM attacks on relay connections
+    private let session: URLSession
 
     @Published var isConnected = false
     @Published var lastError: String?
@@ -190,6 +193,8 @@ final class NostrRelay: ObservableObject {
 
     init(url: URL) {
         self.url = url
+        // Use secure session with certificate validation
+        self.session = SecureNetworkSession.createWebSocketSession()
     }
 
     func connect() {
