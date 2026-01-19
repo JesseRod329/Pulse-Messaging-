@@ -153,7 +153,6 @@ class ChatManager: ObservableObject {
 
     private init() {
         // Placeholder - will be initialized later
-        print("🔧 ChatManager: Placeholder created")
     }
 
     /// Full initializer with peer and meshManager
@@ -167,11 +166,12 @@ class ChatManager: ObservableObject {
     /// Deferred initialization for use with @StateObject placeholder pattern
     func initialize(peer: PulsePeer, meshManager: MeshManager) {
         guard !isInitialized else {
-            print("⚠️ ChatManager: Already initialized")
             return
         }
 
-        print("🔧 ChatManager: Initializing for \(peer.handle)")
+        #if DEBUG
+        DebugLogger.log("ChatManager initializing", category: .general)
+        #endif
         self.peer = peer
         self.meshManager = meshManager
         self.isInitialized = true
@@ -199,7 +199,9 @@ class ChatManager: ObservableObject {
         // Send read receipts for unread messages
         sendReadReceiptsForUnreadMessages()
 
-        print("✅ ChatManager: Fully initialized for \(peer.handle)")
+        #if DEBUG
+        DebugLogger.success("ChatManager fully initialized", category: .general)
+        #endif
     }
 
     private func loadPersistedMessages() {
@@ -217,15 +219,12 @@ class ChatManager: ObservableObject {
             .receive(on: DispatchQueue.main)  // Ensure main thread
             .sink { [weak self] envelopes in
                 guard let self = self, let peer = self.peer else {
-                    print("⚠️ ChatManager: self or peer is nil in sink!")
                     return
                 }
 
                 let myPeerId = UserDefaults.standard.string(forKey: "myPeerID") ?? ""
 
-                print("🔍 ChatManager[\(peer.handle)]: Checking \(envelopes.count) envelopes")
-                print("🔍 My peer ID: \(myPeerId)")
-                print("🔍 Target peer ID: \(peer.id)")
+                // NOTE: Don't log peer IDs or envelope counts in production
 
                 // Filter messages for this chat (from this peer to me, or from me to this peer)
                 for envelope in envelopes {
@@ -236,19 +235,15 @@ class ChatManager: ObservableObject {
                         continue
                     }
 
-                    print("🔍 Envelope: from=\(envelope.senderId) to=\(envelope.recipientId) type=\(envelope.messageType)")
+                    // NOTE: Don't log sender/recipient IDs in production
 
                     let isFromThisPeer = envelope.senderId == peer.id && envelope.recipientId == myPeerId
                     let isToThisPeer = envelope.senderId == myPeerId && envelope.recipientId == peer.id
 
-                    print("🔍 isFromThisPeer=\(isFromThisPeer), isToThisPeer=\(isToThisPeer)")
-
                     if isFromThisPeer {
-                        print("📬 ChatManager: Received message FROM \(peer.handle)")
                         self.processReceivedMessage(envelope)
-                    } else if isToThisPeer {
-                        print("📬 ChatManager: This is my own sent message, skipping")
                     }
+                    // Skip own sent messages
                 }
             }
             .store(in: &cancellables)
@@ -256,7 +251,7 @@ class ChatManager: ObservableObject {
 
     func sendMessage(_ content: String, type: Message.MessageType = .text, language: String? = nil) {
         guard let peer = peer, let meshManager = meshManager else {
-            print("❌ ChatManager: Not initialized, cannot send message")
+            DebugLogger.error("ChatManager not initialized, cannot send message", category: .general)
             return
         }
 
@@ -264,7 +259,7 @@ class ChatManager: ObservableObject {
         SoundManager.shared.messageSent()
 
         guard let recipientPublicKey = peer.publicKey else {
-            print("Cannot send: peer has no public key - waiting for key exchange")
+            DebugLogger.warning("Cannot send: peer has no public key", category: .crypto)
             SoundManager.shared.playErrorSound()
 
             // Add a system message to indicate the issue
@@ -281,7 +276,7 @@ class ChatManager: ObservableObject {
 
         // Encrypt the message
         guard let encryptedData = IdentityManager.shared.encryptMessage(content, for: recipientPublicKey) else {
-            print("Failed to encrypt message")
+            DebugLogger.error("Failed to encrypt message", category: .crypto)
             return
         }
 
@@ -300,11 +295,11 @@ class ChatManager: ObservableObject {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ ChatManager: Failed to sign message")
+            DebugLogger.error("Failed to sign message", category: .crypto)
             return
         }
 
-        print("📤 ChatManager: Sending message from \(myPeerId) to \(peer.id)")
+        // NOTE: Don't log sender/recipient IDs in production
 
         // Send via mesh
         meshManager.sendEncryptedMessage(signedEnvelope, to: peer)
@@ -318,12 +313,9 @@ class ChatManager: ObservableObject {
             type: type,
             codeLanguage: language
         )
-        let previousCount = messages.count
-
         // Explicitly notify before change to ensure SwiftUI updates
         objectWillChange.send()
         messages.append(message)
-        print("✅ Sent message added to local array! Count: \(previousCount) → \(messages.count)")
 
         // Fetch link previews if any
         fetchPreviews(for: message)
@@ -344,7 +336,7 @@ class ChatManager: ObservableObject {
     /// Send a voice note message
     func sendVoiceNote(audioURL: URL, audioData: Data, duration: TimeInterval) {
         guard let peer = peer, let meshManager = meshManager else {
-            print("❌ ChatManager: Not initialized, cannot send voice note")
+            DebugLogger.error("ChatManager not initialized, cannot send voice note", category: .general)
             return
         }
 
@@ -352,7 +344,7 @@ class ChatManager: ObservableObject {
         SoundManager.shared.messageSent()
 
         guard let recipientPublicKey = peer.publicKey else {
-            print("Cannot send: peer has no public key")
+            DebugLogger.warning("Cannot send: peer has no public key", category: .crypto)
             SoundManager.shared.playErrorSound()
             
             let errorMessage = Message(
@@ -372,7 +364,7 @@ class ChatManager: ObservableObject {
 
         // Encrypt the audio data
         guard let encryptedData = IdentityManager.shared.encryptMessage(audioBase64, for: recipientPublicKey) else {
-            print("Failed to encrypt voice note")
+            DebugLogger.error("Failed to encrypt voice note", category: .crypto)
             return
         }
 
@@ -393,11 +385,11 @@ class ChatManager: ObservableObject {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ ChatManager: Failed to sign voice note")
+            DebugLogger.error("Failed to sign voice note", category: .crypto)
             return
         }
 
-        print("🎤 ChatManager: Sending voice note (\(String(format: "%.1f", duration))s) to \(peer.id)")
+        // NOTE: Don't log recipient IDs in production
 
         // Send via mesh
         meshManager.sendEncryptedMessage(signedEnvelope, to: peer)
@@ -432,7 +424,7 @@ class ChatManager: ObservableObject {
 
     func sendImageMessage(imageData: Data, width: Int, height: Int, thumbnail: Data?) async {
         guard let peer = peer, let meshManager = meshManager else {
-            print("❌ ChatManager: Not initialized, cannot send image")
+            DebugLogger.error("ChatManager not initialized, cannot send image", category: .general)
             return
         }
 
@@ -440,7 +432,7 @@ class ChatManager: ObservableObject {
         SoundManager.shared.messageSent()
 
         guard let recipientPublicKey = peer.publicKey else {
-            print("Cannot send: peer has no public key")
+            DebugLogger.warning("Cannot send: peer has no public key", category: .crypto)
             SoundManager.shared.playErrorSound()
             
             let errorMessage = Message(
@@ -460,7 +452,7 @@ class ChatManager: ObservableObject {
 
         // Encrypt the image data
         guard let encryptedData = IdentityManager.shared.encryptMessage(imageBase64, for: recipientPublicKey) else {
-            print("Failed to encrypt image")
+            DebugLogger.error("Failed to encrypt image", category: .crypto)
             return
         }
 
@@ -485,11 +477,11 @@ class ChatManager: ObservableObject {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ ChatManager: Failed to sign image message")
+            DebugLogger.error("Failed to sign image message", category: .crypto)
             return
         }
 
-        print("🖼️ ChatManager: Sending image (\(width)x\(height)) to \(peer.id)")
+        // NOTE: Don't log recipient IDs or image dimensions in production
 
         // Send via mesh
         meshManager.sendEncryptedMessage(signedEnvelope, to: peer)
@@ -523,22 +515,30 @@ class ChatManager: ObservableObject {
     }
 
     private func processReceivedMessage(_ envelope: MessageEnvelope) {
-        print("🔓 Processing received message: \(envelope.id)")
+        // NOTE: Don't log message IDs in production - can be used for traffic analysis
+        #if DEBUG
+        DebugLogger.log("Processing received message", category: .crypto)
+        #endif
 
         // Decrypt the message
         guard let encryptedData = Data(base64Encoded: envelope.encryptedContent) else {
-            print("❌ Failed to decode base64 content")
+            DebugLogger.error("Failed to decode base64 content", category: .crypto)
             return
         }
 
-        print("🔓 Encrypted data size: \(encryptedData.count) bytes")
+        #if DEBUG
+        DebugLogger.log("Encrypted data size: \(encryptedData.count) bytes", category: .crypto)
+        #endif
 
         guard let decryptedContent = IdentityManager.shared.decryptMessage(encryptedData) else {
-            print("❌ Failed to decrypt message")
+            DebugLogger.error("Failed to decrypt message", category: .crypto)
             return
         }
 
-        print("✅ Decryption successful: \(decryptedContent.prefix(50))...")
+        // NOTE: Never log decrypted content - security risk
+        #if DEBUG
+        DebugLogger.success("Decryption successful", category: .crypto)
+        #endif
 
         // Create message
         let messageType = Message.MessageType(rawValue: envelope.messageType) ?? .text
@@ -549,7 +549,7 @@ class ChatManager: ObservableObject {
         if messageType == .voice {
             audioData = Data(base64Encoded: decryptedContent)
             content = "" // Voice messages don't have text content
-            print("🎤 Received voice note: \(envelope.audioDuration ?? 0)s")
+            // NOTE: Don't log audio duration in production
         }
 
         let message = Message(
@@ -565,12 +565,9 @@ class ChatManager: ObservableObject {
 
         // Add if not already exists
         if !messages.contains(where: { $0.id == message.id }) {
-            let previousCount = messages.count
-
             // Explicitly notify before change to ensure SwiftUI updates
             objectWillChange.send()
             messages.append(message)
-            print("✅ Message added to array! Count: \(previousCount) → \(messages.count)")
             
             // Fetch link previews if any
             fetchPreviews(for: message)
@@ -585,9 +582,8 @@ class ChatManager: ObservableObject {
 
             // Send read receipt since chat is open
             sendReceipt(for: message.id, type: .read)
-        } else {
-            print("⚠️ Message already exists, skipping")
         }
+        // Silently skip duplicates
     }
 
     // MARK: - Link Preview Handling
@@ -616,7 +612,7 @@ class ChatManager: ObservableObject {
             let matches = detector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
             return matches.compactMap { $0.url }
         } catch {
-            print("Failed to create URL detector: \(error)")
+            DebugLogger.error("Failed to create URL detector", category: .general)
             return []
         }
     }
@@ -638,10 +634,8 @@ class ChatManager: ObservableObject {
     }
 
     private func handleReceipt(_ envelope: MessageEnvelope) {
-        print("🧾 Handling receipt...")
         guard let originalId = envelope.originalMessageId,
               let receiptType = envelope.receiptType else {
-            print("🧾 Receipt missing originalId or receiptType.")
             return
         }
 
@@ -652,10 +646,8 @@ class ChatManager: ObservableObject {
             } else if receiptType == "delivered" {
                 messages[index].isDelivered = true
             }
-            print("🧾 Receipt processed for message \(originalId).")
-        } else {
-            print("🧾 Original message \(originalId) not found for receipt.")
         }
+        // NOTE: Don't log message IDs in production
     }
 
     // MARK: - Group Chat Support
@@ -663,7 +655,7 @@ class ChatManager: ObservableObject {
     /// Send a message to multiple recipients (group chat)
     func sendGroupMessage(_ content: String, groupId: String, recipientPeers: [PulsePeer], type: Message.MessageType = .text, language: String? = nil) {
         guard !recipientPeers.isEmpty else {
-            print("❌ ChatManager: No recipients for group message")
+            DebugLogger.error("No recipients for group message", category: .general)
             return
         }
 
@@ -676,13 +668,13 @@ class ChatManager: ObservableObject {
         // Encrypt message for each recipient and send
         for recipientPeer in recipientPeers {
             guard let recipientPublicKey = recipientPeer.publicKey else {
-                print("⚠️ ChatManager: Peer \(recipientPeer.handle) has no public key, skipping")
+                // Skip peers without public keys
                 continue
             }
 
             // Encrypt for this specific recipient
             guard let encryptedData = IdentityManager.shared.encryptMessage(content, for: recipientPublicKey) else {
-                print("❌ ChatManager: Failed to encrypt message for \(recipientPeer.handle)")
+                DebugLogger.error("Failed to encrypt group message for recipient", category: .crypto)
                 continue
             }
 
@@ -699,7 +691,7 @@ class ChatManager: ObservableObject {
                 recipientIds: recipientPeers.map { $0.id }
             )
 
-            print("📤 ChatManager: Sending group message to \(recipientPeer.handle)")
+            // NOTE: Don't log recipient handles in production
 
             // Send via mesh
             if let meshManager = meshManager {
@@ -722,7 +714,6 @@ class ChatManager: ObservableObject {
 
         objectWillChange.send()
         messages.append(message)
-        print("✅ Group message added to local array!")
 
         // Fetch link previews if any
         fetchPreviews(for: message)
@@ -830,7 +821,6 @@ class ChatManager: ObservableObject {
 
     func addReaction(_ emoji: String, toMessageId messageId: String) {
         guard let index = messages.firstIndex(where: { $0.id == messageId }) else {
-            print("⚠️ ChatManager: Message not found for reaction")
             return
         }
 
@@ -843,7 +833,6 @@ class ChatManager: ObservableObject {
 
     func removeReaction(_ emoji: String, fromMessageId messageId: String) {
         guard let index = messages.firstIndex(where: { $0.id == messageId }) else {
-            print("⚠️ ChatManager: Message not found for reaction removal")
             return
         }
 

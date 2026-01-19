@@ -24,7 +24,7 @@ class IdentityManager: ObservableObject {
         let identity = PulseIdentity.create(handle: handle)
 
         guard identity.saveToKeychain() else {
-            print("Failed to save identity to Keychain")
+            DebugLogger.error("Failed to save identity to Keychain", category: .crypto)
             return false
         }
 
@@ -54,28 +54,28 @@ class IdentityManager: ObservableObject {
 
     func encryptMessage(_ message: String, for recipientPublicKey: Data) -> Data? {
         guard let identity = currentIdentity else {
-            print("No identity available for encryption")
+            DebugLogger.error("No identity available for encryption", category: .crypto)
             return nil
         }
 
         do {
             return try identity.encrypt(message, for: recipientPublicKey)
         } catch {
-            print("Encryption failed: \(error)")
+            DebugLogger.error("Encryption failed", category: .crypto)
             return nil
         }
     }
 
     func decryptMessage(_ ciphertext: Data) -> String? {
         guard let identity = currentIdentity else {
-            print("No identity available for decryption")
+            DebugLogger.error("No identity available for decryption", category: .crypto)
             return nil
         }
 
         do {
             return try identity.decrypt(ciphertext)
         } catch {
-            print("Decryption failed: \(error)")
+            DebugLogger.error("Decryption failed", category: .crypto)
             return nil
         }
     }
@@ -102,7 +102,7 @@ class IdentityManager: ObservableObject {
 
     func signMessage(_ message: String) throws -> Data {
         guard let identity = currentIdentity else {
-            print("No identity available for signing")
+            DebugLogger.error("No identity available for signing", category: .crypto)
             throw CryptoError.invalidCiphertext
         }
         return try identity.sign(message: message)
@@ -110,7 +110,7 @@ class IdentityManager: ObservableObject {
 
     func signPayload(_ payload: Data) throws -> Data {
         guard let identity = currentIdentity else {
-            print("No identity available for signing")
+            DebugLogger.error("No identity available for signing", category: .crypto)
             throw CryptoError.invalidCiphertext
         }
         return try identity.sign(data: payload)
@@ -118,7 +118,7 @@ class IdentityManager: ObservableObject {
 
     func verifySignature(signature: Data, for message: String, from publicKey: Data) throws -> Bool {
         guard let identity = currentIdentity else {
-            print("No identity available for verification")
+            DebugLogger.error("No identity available for verification", category: .crypto)
             throw CryptoError.invalidSignature
         }
         return try identity.verify(message: message, signature: signature, from: publicKey)
