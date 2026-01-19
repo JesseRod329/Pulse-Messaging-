@@ -76,8 +76,21 @@ class MeshManager: NSObject, ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard self?.isAdvertising == true else { return }
-                self?.refreshAdvertising()
+                guard let self else { return }
+                let meshEnabled = UserDefaults.standard.object(forKey: "meshEnabled") as? Bool ?? true
+                if !meshEnabled {
+                    if self.isAdvertising {
+                        self.stopAdvertising()
+                    }
+                    return
+                }
+
+                if !self.isAdvertising {
+                    self.startAdvertising()
+                    return
+                }
+
+                self.refreshAdvertising()
             }
         }
     }

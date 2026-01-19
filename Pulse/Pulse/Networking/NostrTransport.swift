@@ -97,7 +97,7 @@ struct NostrEvent: Codable, Identifiable {
     }
 
     /// Compute event ID as SHA256 of serialized event
-    private static func computeEventId(
+    static func computeEventId(
         pubkey: String,
         createdAt: Int,
         kind: Int,
@@ -115,6 +115,30 @@ struct NostrEvent: Codable, Identifiable {
         }
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+}
+
+extension NostrEvent {
+    var isValidSignature: Bool {
+        let computedId = NostrEvent.computeEventId(
+            pubkey: pubkey,
+            createdAt: created_at,
+            kind: kind,
+            tags: tags,
+            content: content
+        )
+
+        guard computedId == id,
+              let signatureData = Data(hex: sig),
+              let messageData = Data(hex: id) else {
+            return false
+        }
+
+        return NostrIdentity.verify(
+            signature: signatureData,
+            message: messageData,
+            publicKeyHex: pubkey
+        )
     }
 }
 
@@ -642,6 +666,10 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     }
 
     private func handleEvent(_ event: NostrEvent, subscriptionId: String) {
+        guard event.isValidSignature else {
+            return
+        }
+
         // Handle zap receipts (kind 9735)
         if event.kind == NostrEventKind.zapReceipt.rawValue {
             onZapReceived?(event)

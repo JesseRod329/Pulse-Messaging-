@@ -59,6 +59,14 @@ final class PersistenceManager {
         return String(data: decrypted, encoding: .utf8)
     }
 
+    private func storeSentMessage(_ messageId: String, plaintext: String) {
+        SentMessageCache.shared.store(messageId: messageId, plaintext: plaintext)
+    }
+
+    private func retrieveSentMessage(_ messageId: String) -> String? {
+        SentMessageCache.shared.retrieve(messageId: messageId)
+    }
+
     private init() {
         let schema = Schema([
             PersistedMessage.self,
