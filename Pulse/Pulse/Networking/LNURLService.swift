@@ -17,16 +17,16 @@ final class LNURLService: ObservableObject {
     @Published var isProcessing = false
     @Published var lastError: String?
 
+    /// Secure URLSession with certificate validation
+    /// Protects against MITM attacks on Lightning Address resolution
     private let session: URLSession
     private var requestLimiter = RateLimiter(maxEvents: 5, interval: 1)
     private let maxRetries = 3
     private let baseRetryDelay: TimeInterval = 0.4
 
     private init() {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 60
-        self.session = URLSession(configuration: config)
+        // Use secure session with certificate validation
+        self.session = SecureNetworkSession.createLNURLSession()
     }
 
     // MARK: - Lightning Address Resolution

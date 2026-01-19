@@ -42,6 +42,9 @@ final class UnifiedTransportManager: ObservableObject {
     var onPeerLost: ((String) -> Void)?
 
     private var cancellables = Set<AnyCancellable>()
+    private var currentPeerId: String?
+    private var currentHandle: String?
+    private var currentPublicKey: String?
 
     private init() {
         setupCallbacks()
@@ -52,7 +55,10 @@ final class UnifiedTransportManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.applyUserDefaultsConfig()
+            Task { @MainActor in
+                self?.applyUserDefaultsConfig()
+                await self?.updateTransportState()
+            }
         }
     }
 
@@ -70,6 +76,26 @@ final class UnifiedTransportManager: ObservableObject {
             preferredTransport = .nostr
         } else {
             preferredTransport = .hybrid
+        }
+    }
+
+    private func updateTransportState() async {
+        if config.nostrEnabled {
+            if !isNostrConnected,
+               let peerId = currentPeerId,
+               let handle = currentHandle,
+               let publicKey = currentPublicKey {
+                await startNostrIfNeeded(myPeerId: peerId, handle: handle, publicKey: publicKey)
+            }
+        } else if isNostrConnected {
+            await nostrTransport.disconnect()
+            isNostrConnected = false
+            activeTransports.remove(.nostr)
+        }
+
+        if !config.meshEnabled {
+            isMeshConnected = false
+            activeTransports.remove(.mesh)
         }
     }
 
@@ -99,6 +125,10 @@ final class UnifiedTransportManager: ObservableObject {
 
     /// Start all enabled transports
     func start(myPeerId: String, handle: String, publicKey: String) async {
+        currentPeerId = myPeerId
+        currentHandle = handle
+        currentPublicKey = publicKey
+
         // Configure sub-managers
         topologyTracker.configure(myNodeId: myPeerId, handle: handle)
         nostrTransport.configure(publicKey: publicKey)
@@ -111,17 +141,21 @@ final class UnifiedTransportManager: ObservableObject {
 
         // Start Nostr if enabled
         if config.nostrEnabled {
-            guard NostrTransport.supportsSigning else {
-                print("Nostr disabled: signing support not available")
-                return
-            }
-            do {
-                try await nostrTransport.connect()
-                activeTransports.insert(.nostr)
-                isNostrConnected = true
-            } catch {
-                print("Failed to connect Nostr: \(error)")
-            }
+            await startNostrIfNeeded(myPeerId: myPeerId, handle: handle, publicKey: publicKey)
+        }
+    }
+
+    private func startNostrIfNeeded(myPeerId: String, handle: String, publicKey: String) async {
+        guard NostrTransport.supportsSigning else {
+            print("Nostr disabled: signing support not available")
+            return
+        }
+        do {
+            try await nostrTransport.connect()
+            activeTransports.insert(.nostr)
+            isNostrConnected = true
+        } catch {
+            print("Failed to connect Nostr: \(error)")
         }
     }
 

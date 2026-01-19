@@ -15,6 +15,14 @@ struct PulseApp: App {
     private let persistenceManager = PersistenceManager.shared
     private let voiceNoteManager = VoiceNoteManager.shared
 
+    init() {
+        // SECURITY: Register ClipboardManager for app lifecycle notifications
+        // This ensures clipboard is cleared when app enters background
+        Task { @MainActor in
+            ClipboardManager.shared.registerForAppLifecycleNotifications()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -44,7 +52,11 @@ struct PulseApp: App {
             forTaskWithIdentifier: "com.jesse.pulse-mesh.discovery",
             using: nil
         ) { task in
-            handleBackgroundDiscoveryTask(task as! BGProcessingTask)
+            guard let processingTask = task as? BGProcessingTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            handleBackgroundDiscoveryTask(processingTask)
         }
 
         // Schedule the background discovery task

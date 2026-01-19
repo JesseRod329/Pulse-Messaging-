@@ -132,6 +132,7 @@ struct PendingZap: Identifiable, Codable {
     let id: String              // UUID for tracking
     var zapRequestId: String    // The kind 9734 event ID
     let recipientPubkey: String
+    let providerPubkey: String? // LNURL provider pubkey for receipt verification
     let messageId: String?
     let amount: Int             // millisats
     let comment: String?

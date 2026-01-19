@@ -53,3 +53,12 @@ struct Group: Identifiable, Codable {
         members.contains(peerId)
     }
 }
+
+/// Payload for inviting peers to a group over the mesh
+struct GroupInvitePayload: Codable {
+    let id: String
+    let name: String
+    let creatorId: String
+    let members: [String]
+    let createdAt: Date
+}

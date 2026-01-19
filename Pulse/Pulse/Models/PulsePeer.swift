@@ -18,8 +18,17 @@ struct PulsePeer: Identifiable, Codable {
     var signingPublicKey: Data? // For message authenticity
     var lastSeen: Date = Date()
 
+    // NIP-57 Lightning/Zap support
+    var lightningAddress: String?  // lud16 from Nostr kind 0 metadata (e.g., user@getalby.com)
+    var nostrPubkey: String?       // 32-byte hex pubkey for Nostr protocol
+
     var isActive: Bool {
         status == .active
+    }
+
+    /// Whether this peer can receive zaps
+    var canReceiveZaps: Bool {
+        lightningAddress != nil && !lightningAddress!.isEmpty
     }
 }
 

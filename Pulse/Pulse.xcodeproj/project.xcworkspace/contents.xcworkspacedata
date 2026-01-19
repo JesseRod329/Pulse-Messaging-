@@ -4,4 +4,46 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:LNURLService.swift">
+   </FileRef>
+   <FileRef
+      location = "group:LNURLService 2.swift">
+   </FileRef>
+   <FileRef
+      location = "group:EventNormalization.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Bolt11Validator.swift">
+   </FileRef>
+   <FileRef
+      location = "group:AmountGuard.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Package.swift">
+   </FileRef>
+   <FileRef
+      location = "group:ProductionSecurityTests.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Bolt11Parser.swift">
+   </FileRef>
+   <FileRef
+      location = "group:NostrNormalization.swift">
+   </FileRef>
+   <FileRef
+      location = "group:ZapSecurityGuard.swift">
+   </FileRef>
+   <FileRef
+      location = "group:WalletURISanitizer.swift">
+   </FileRef>
+   <FileRef
+      location = "group:PrivacyExtensions.swift">
+   </FileRef>
+   <FileRef
+      location = "group:SecurityTests.swift">
+   </FileRef>
+   <FileRef
+      location = "group:BITCOIN_PLAN.md">
+   </FileRef>
 </Workspace>

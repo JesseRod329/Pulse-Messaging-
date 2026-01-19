@@ -38,6 +38,26 @@ final class ZapManager: ObservableObject {
         loadPreferences()
     }
 
+    enum ZapManagerError: Error, LocalizedError {
+        case invoiceMissingAmount
+        case invoiceAmountMismatch(expected: Int, actual: Int)
+        case receiptSignatureInvalid
+        case receiptPubkeyMismatch
+
+        var errorDescription: String? {
+            switch self {
+            case .invoiceMissingAmount:
+                return "Invoice does not include an amount."
+            case .invoiceAmountMismatch(let expected, let actual):
+                return "Invoice amount mismatch. Expected \(expected) msats, got \(actual) msats."
+            case .receiptSignatureInvalid:
+                return "Zap receipt signature is invalid."
+            case .receiptPubkeyMismatch:
+                return "Zap receipt signer does not match the LNURL provider."
+            }
+        }
+    }
+
     // MARK: - Zap Flow
 
     /// Initiate a zap on a message
@@ -60,6 +80,7 @@ final class ZapManager: ObservableObject {
             id: zapId,
             zapRequestId: "",
             recipientPubkey: recipientPubkey,
+            providerPubkey: nil,
             messageId: messageId,
             amount: amountMillisats,
             comment: comment,
@@ -90,6 +111,7 @@ final class ZapManager: ObservableObject {
 
             // Update pending zap with request ID
             pendingZap.zapRequestId = zapRequestEvent.id
+            pendingZap.providerPubkey = payResponse.nostrPubkey
             pendingZaps[zapId] = pendingZap
 
             // Step 3: Request invoice with zap request
@@ -99,6 +121,17 @@ final class ZapManager: ObservableObject {
                 zapRequest: zapRequestEvent,
                 comment: comment
             )
+
+            let parsedInvoice = try Bolt11Validator.validate(invoiceResponse.pr)
+            guard let invoiceAmount = parsedInvoice.amountMillisats else {
+                throw ZapManagerError.invoiceMissingAmount
+            }
+            guard invoiceAmount == amountMillisats else {
+                throw ZapManagerError.invoiceAmountMismatch(
+                    expected: amountMillisats,
+                    actual: invoiceAmount
+                )
+            }
 
             // Update status
             pendingZap.bolt11 = invoiceResponse.pr
@@ -173,6 +206,7 @@ final class ZapManager: ObservableObject {
     }
 
     private func handleZapReceipt(_ event: NostrEvent) {
+        // Validate zap receipt using dedicated validator (includes signature check)
         do {
             try NostrEventValidator.validateZapReceipt(event)
         } catch {
@@ -187,6 +221,11 @@ final class ZapManager: ObservableObject {
         // Update pending zap if we have one matching
         for (zapId, var pendingZap) in pendingZaps {
             if pendingZap.zapRequestId == receipt.zapRequestId {
+                // Verify the receipt is from the expected provider
+                if let providerPubkey = pendingZap.providerPubkey,
+                   providerPubkey.lowercased() != event.pubkey.lowercased() {
+                    return
+                }
                 pendingZap.status = .confirmed
                 pendingZaps[zapId] = pendingZap
 

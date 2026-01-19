@@ -30,13 +30,26 @@ final class LinkPreviewService {
     // A simple in-memory cache for preview data.
     private let cache = NSCache<NSString, NSData>()
 
-    private init() {}
+    /// Secure URLSession with certificate validation for link preview fetching
+    /// Protects against MITM attacks when fetching external metadata
+    private let session: URLSession
+
+    private init() {
+        // Use secure session with certificate validation
+        self.session = SecureNetworkSession.createSession()
+    }
 
     /// Fetches preview data for a given URL.
     /// It first checks the cache, and if not available, fetches the data from the network.
     func fetchPreview(for url: URL) async -> LinkPreviewData? {
+        // SECURITY: Validate URL before fetching
+        guard isValidPreviewURL(url) else {
+            DebugLogger.error("Blocked invalid URL for preview: \(url.absoluteString)", category: .security)
+            return nil
+        }
+
         let urlString = url.absoluteString
-        
+
         // Check cache first
         if let cachedData = cache.object(forKey: urlString as NSString) {
             if let previewData = try? JSONDecoder().decode(LinkPreviewData.self, from: cachedData as Data) {
@@ -44,21 +57,31 @@ final class LinkPreviewService {
             }
         }
 
-        // Fetch from network
-        guard let (data, response) = try? await URLSession.shared.data(for: .init(url: url)),
+        // Fetch from network using secure session
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10  // Prevent long-running fetches
+
+        // SECURITY: Limit response size to prevent memory exhaustion
+        guard let (data, response) = try? await session.data(for: request),
               let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200,
+              data.count <= 5_000_000,  // Max 5MB
               let htmlString = String(data: data, encoding: .utf8) else {
             return nil
         }
         
         let metadata = parseHTMLForMetadata(htmlString: htmlString, url: url)
-        
+
+        // SECURITY: Sanitize all metadata to prevent XSS
+        let title = metadata["og:title"] ?? metadata["title"]
+        let description = metadata["og:description"] ?? metadata["description"]
+        let imageURL = metadata["og:image"]
+
         let previewData = LinkPreviewData(
             url: urlString,
-            title: metadata["og:title"] ?? metadata["title"],
-            description: metadata["og:description"] ?? metadata["description"],
-            imageURL: metadata["og:image"]
+            title: title.map { sanitizeMetadata($0) },
+            description: description.map { sanitizeMetadata($0) },
+            imageURL: imageURL.flatMap { validateImageURL($0) }
         )
 
         // Don't cache incomplete previews
@@ -77,13 +100,21 @@ final class LinkPreviewService {
     /// A simple parser to extract Open Graph and standard metadata tags from HTML.
     private func parseHTMLForMetadata(htmlString: String, url: URL) -> [String: String] {
         var metadata = [String: String]()
-        
+
         // Regex to find <meta> tags
-        let metaTagRegex = try! NSRegularExpression(pattern: "<meta[^>]+>", options: .caseInsensitive)
+        // NOTE: Use try? instead of try! to prevent crashes on malformed HTML
+        guard let metaTagRegex = try? NSRegularExpression(pattern: "<meta[^>]+>", options: .caseInsensitive) else {
+            DebugLogger.error("Failed to create meta tag regex", category: .general)
+            return metadata
+        }
         let matches = metaTagRegex.matches(in: htmlString, range: NSRange(htmlString.startIndex..., in: htmlString))
-        
+
         for match in matches {
-            let tag = String(htmlString[Range(match.range, in: htmlString)!])
+            // Safely convert NSRange to Range to prevent crashes on malformed HTML
+            guard let range = Range(match.range, in: htmlString) else {
+                continue
+            }
+            let tag = String(htmlString[range])
             
             // Extract property/name and content
             if let property = extractAttribute(from: tag, attribute: "property"),
@@ -103,9 +134,10 @@ final class LinkPreviewService {
             metadata["title"] = String(htmlString[titleRange].dropFirst(7).dropLast(8))
         }
 
-        // Ensure image URL is absolute
+        // SECURITY: Convert relative image URLs to absolute, then validate
         if let imageURL = metadata["og:image"] {
             if imageURL.starts(with: "/") {
+                // Convert relative URL to absolute
                 var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                 components?.path = imageURL
                 components?.query = nil
@@ -115,17 +147,180 @@ final class LinkPreviewService {
                 }
             }
         }
-        
+
         return metadata
     }
 
     private func extractAttribute(from tag: String, attribute: String) -> String? {
         let pattern = "\(attribute)=[\"']([^\"']+)[\"']"
-        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
-        if let match = regex.firstMatch(in: tag, range: NSRange(tag.startIndex..., in: tag)) {
-            return String(tag[Range(match.range(at: 1), in: tag)!])
+
+        // NOTE: Use try? instead of try! to prevent crashes on malformed patterns
+        // If attribute contains regex special chars, pattern creation could fail
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+            DebugLogger.error("Failed to create attribute extraction regex", category: .general)
+            return nil
+        }
+
+        if let match = regex.firstMatch(in: tag, range: NSRange(tag.startIndex..., in: tag)),
+           let range = Range(match.range(at: 1), in: tag) {
+            return String(tag[range])
         }
         return nil
+    }
+
+    // MARK: - Security: URL Validation
+
+    /// Validates that a URL is safe to fetch for link previews
+    /// Blocks: file://, javascript:, data:, blob:, about:, and other dangerous schemes
+    private func isValidPreviewURL(_ url: URL) -> Bool {
+        // Only allow http and https schemes
+        guard let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return false
+        }
+
+        // Block localhost and private IP ranges
+        if let host = url.host?.lowercased() {
+            // Block localhost variations
+            if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+                return false
+            }
+
+            // Block private IP ranges (RFC 1918)
+            if host.hasPrefix("10.") ||
+               host.hasPrefix("192.168.") ||
+               (host.hasPrefix("172.") && isPrivateIPv4Class(host)) {
+                return false
+            }
+
+            // Block link-local addresses
+            if host.hasPrefix("169.254.") || host.hasPrefix("fe80:") {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    /// Check if IP is in 172.16.0.0 - 172.31.255.255 range
+    private func isPrivateIPv4Class(_ host: String) -> Bool {
+        let parts = host.split(separator: ".")
+        guard parts.count >= 2,
+              let second = Int(parts[1]) else {
+            return false
+        }
+        return second >= 16 && second <= 31
+    }
+
+    // MARK: - Security: Metadata Sanitization
+
+    /// Sanitizes metadata strings to prevent XSS and HTML injection
+    /// Removes HTML tags, decodes entities, and limits length
+    private func sanitizeMetadata(_ text: String) -> String {
+        var sanitized = text
+
+        // Remove HTML tags
+        sanitized = sanitized.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+
+        // Decode HTML entities
+        sanitized = decodeHTMLEntities(sanitized)
+
+        // Remove control characters and zero-width spaces
+        sanitized = sanitized.filter { char in
+            !char.isNewline && !char.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 0x200B })
+        }
+
+        // Trim whitespace
+        sanitized = sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Limit length to prevent UI issues
+        if sanitized.count > 500 {
+            sanitized = String(sanitized.prefix(500)) + "..."
+        }
+
+        return sanitized
+    }
+
+    /// Decodes common HTML entities (&amp;, &lt;, &gt;, &quot;, &#39;, etc.)
+    private func decodeHTMLEntities(_ text: String) -> String {
+        var decoded = text
+        let entities = [
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": "\"",
+            "&#39;": "'",
+            "&apos;": "'",
+            "&nbsp;": " "
+        ]
+
+        for (entity, replacement) in entities {
+            decoded = decoded.replacingOccurrences(of: entity, with: replacement)
+        }
+
+        // Decode numeric entities (&#123; or &#xAB;)
+        let numericPattern = "&#(x?[0-9a-fA-F]+);"
+        if let regex = try? NSRegularExpression(pattern: numericPattern) {
+            let matches = regex.matches(in: decoded, range: NSRange(decoded.startIndex..., in: decoded))
+            for match in matches.reversed() {
+                guard let range = Range(match.range, in: decoded),
+                      let codeRange = Range(match.range(at: 1), in: decoded) else {
+                    continue
+                }
+
+                let codeStr = String(decoded[codeRange])
+                let code: Int?
+
+                if codeStr.hasPrefix("x") {
+                    code = Int(codeStr.dropFirst(), radix: 16)
+                } else {
+                    code = Int(codeStr)
+                }
+
+                if let code = code, let scalar = UnicodeScalar(code) {
+                    decoded.replaceSubrange(range, with: String(Character(scalar)))
+                }
+            }
+        }
+
+        return decoded
+    }
+
+    /// Validates image URLs to ensure they're safe to load
+    /// Returns nil for invalid/dangerous URLs
+    private func validateImageURL(_ urlString: String) -> String? {
+        // Prevent empty or excessively long URLs
+        guard !urlString.isEmpty, urlString.count <= 2048 else {
+            return nil
+        }
+
+        // Try to parse as URL
+        guard let url = URL(string: urlString),
+              let scheme = url.scheme?.lowercased() else {
+            return nil
+        }
+
+        // Only allow http/https for images
+        guard scheme == "http" || scheme == "https" else {
+            DebugLogger.error("Blocked non-HTTP image URL: \(urlString)", category: .security)
+            return nil
+        }
+
+        // Block localhost and private IPs
+        if let host = url.host?.lowercased() {
+            if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+                return nil
+            }
+
+            if host.hasPrefix("10.") ||
+               host.hasPrefix("192.168.") ||
+               host.hasPrefix("169.254.") ||
+               (host.hasPrefix("172.") && isPrivateIPv4Class(host)) {
+                return nil
+            }
+        }
+
+        return urlString
     }
 }
 
@@ -153,7 +348,6 @@ class ChatManager: ObservableObject {
 
     private init() {
         // Placeholder - will be initialized later
-        print("🔧 ChatManager: Placeholder created")
     }
 
     /// Full initializer with peer and meshManager
@@ -167,11 +361,12 @@ class ChatManager: ObservableObject {
     /// Deferred initialization for use with @StateObject placeholder pattern
     func initialize(peer: PulsePeer, meshManager: MeshManager) {
         guard !isInitialized else {
-            print("⚠️ ChatManager: Already initialized")
             return
         }
 
-        print("🔧 ChatManager: Initializing for \(peer.handle)")
+        #if DEBUG
+        DebugLogger.log("ChatManager initializing", category: .general)
+        #endif
         self.peer = peer
         self.meshManager = meshManager
         self.isInitialized = true
@@ -199,7 +394,9 @@ class ChatManager: ObservableObject {
         // Send read receipts for unread messages
         sendReadReceiptsForUnreadMessages()
 
-        print("✅ ChatManager: Fully initialized for \(peer.handle)")
+        #if DEBUG
+        DebugLogger.success("ChatManager fully initialized", category: .general)
+        #endif
     }
 
     private func loadPersistedMessages() {
@@ -217,15 +414,12 @@ class ChatManager: ObservableObject {
             .receive(on: DispatchQueue.main)  // Ensure main thread
             .sink { [weak self] envelopes in
                 guard let self = self, let peer = self.peer else {
-                    print("⚠️ ChatManager: self or peer is nil in sink!")
                     return
                 }
 
                 let myPeerId = UserDefaults.standard.string(forKey: "myPeerID") ?? ""
 
-                print("🔍 ChatManager[\(peer.handle)]: Checking \(envelopes.count) envelopes")
-                print("🔍 My peer ID: \(myPeerId)")
-                print("🔍 Target peer ID: \(peer.id)")
+                // NOTE: Don't log peer IDs or envelope counts in production
 
                 // Filter messages for this chat (from this peer to me, or from me to this peer)
                 for envelope in envelopes {
@@ -236,19 +430,15 @@ class ChatManager: ObservableObject {
                         continue
                     }
 
-                    print("🔍 Envelope: from=\(envelope.senderId) to=\(envelope.recipientId) type=\(envelope.messageType)")
+                    // NOTE: Don't log sender/recipient IDs in production
 
                     let isFromThisPeer = envelope.senderId == peer.id && envelope.recipientId == myPeerId
                     let isToThisPeer = envelope.senderId == myPeerId && envelope.recipientId == peer.id
 
-                    print("🔍 isFromThisPeer=\(isFromThisPeer), isToThisPeer=\(isToThisPeer)")
-
                     if isFromThisPeer {
-                        print("📬 ChatManager: Received message FROM \(peer.handle)")
                         self.processReceivedMessage(envelope)
-                    } else if isToThisPeer {
-                        print("📬 ChatManager: This is my own sent message, skipping")
                     }
+                    // Skip own sent messages
                 }
             }
             .store(in: &cancellables)
@@ -256,7 +446,7 @@ class ChatManager: ObservableObject {
 
     func sendMessage(_ content: String, type: Message.MessageType = .text, language: String? = nil) {
         guard let peer = peer, let meshManager = meshManager else {
-            print("❌ ChatManager: Not initialized, cannot send message")
+            DebugLogger.error("ChatManager not initialized, cannot send message", category: .general)
             return
         }
 
@@ -264,7 +454,7 @@ class ChatManager: ObservableObject {
         SoundManager.shared.messageSent()
 
         guard let recipientPublicKey = peer.publicKey else {
-            print("Cannot send: peer has no public key - waiting for key exchange")
+            DebugLogger.warning("Cannot send: peer has no public key", category: .crypto)
             SoundManager.shared.playErrorSound()
 
             // Add a system message to indicate the issue
@@ -281,7 +471,7 @@ class ChatManager: ObservableObject {
 
         // Encrypt the message
         guard let encryptedData = IdentityManager.shared.encryptMessage(content, for: recipientPublicKey) else {
-            print("Failed to encrypt message")
+            DebugLogger.error("Failed to encrypt message", category: .crypto)
             return
         }
 
@@ -300,11 +490,11 @@ class ChatManager: ObservableObject {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ ChatManager: Failed to sign message")
+            DebugLogger.error("Failed to sign message", category: .crypto)
             return
         }
 
-        print("📤 ChatManager: Sending message from \(myPeerId) to \(peer.id)")
+        // NOTE: Don't log sender/recipient IDs in production
 
         // Send via mesh
         meshManager.sendEncryptedMessage(signedEnvelope, to: peer)
@@ -318,12 +508,9 @@ class ChatManager: ObservableObject {
             type: type,
             codeLanguage: language
         )
-        let previousCount = messages.count
-
         // Explicitly notify before change to ensure SwiftUI updates
         objectWillChange.send()
         messages.append(message)
-        print("✅ Sent message added to local array! Count: \(previousCount) → \(messages.count)")
 
         // Fetch link previews if any
         fetchPreviews(for: message)
@@ -344,7 +531,7 @@ class ChatManager: ObservableObject {
     /// Send a voice note message
     func sendVoiceNote(audioURL: URL, audioData: Data, duration: TimeInterval) {
         guard let peer = peer, let meshManager = meshManager else {
-            print("❌ ChatManager: Not initialized, cannot send voice note")
+            DebugLogger.error("ChatManager not initialized, cannot send voice note", category: .general)
             return
         }
 
@@ -352,7 +539,7 @@ class ChatManager: ObservableObject {
         SoundManager.shared.messageSent()
 
         guard let recipientPublicKey = peer.publicKey else {
-            print("Cannot send: peer has no public key")
+            DebugLogger.warning("Cannot send: peer has no public key", category: .crypto)
             SoundManager.shared.playErrorSound()
             
             let errorMessage = Message(
@@ -372,7 +559,7 @@ class ChatManager: ObservableObject {
 
         // Encrypt the audio data
         guard let encryptedData = IdentityManager.shared.encryptMessage(audioBase64, for: recipientPublicKey) else {
-            print("Failed to encrypt voice note")
+            DebugLogger.error("Failed to encrypt voice note", category: .crypto)
             return
         }
 
@@ -393,11 +580,11 @@ class ChatManager: ObservableObject {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ ChatManager: Failed to sign voice note")
+            DebugLogger.error("Failed to sign voice note", category: .crypto)
             return
         }
 
-        print("🎤 ChatManager: Sending voice note (\(String(format: "%.1f", duration))s) to \(peer.id)")
+        // NOTE: Don't log recipient IDs in production
 
         // Send via mesh
         meshManager.sendEncryptedMessage(signedEnvelope, to: peer)
@@ -432,7 +619,7 @@ class ChatManager: ObservableObject {
 
     func sendImageMessage(imageData: Data, width: Int, height: Int, thumbnail: Data?) async {
         guard let peer = peer, let meshManager = meshManager else {
-            print("❌ ChatManager: Not initialized, cannot send image")
+            DebugLogger.error("ChatManager not initialized, cannot send image", category: .general)
             return
         }
 
@@ -440,7 +627,7 @@ class ChatManager: ObservableObject {
         SoundManager.shared.messageSent()
 
         guard let recipientPublicKey = peer.publicKey else {
-            print("Cannot send: peer has no public key")
+            DebugLogger.warning("Cannot send: peer has no public key", category: .crypto)
             SoundManager.shared.playErrorSound()
             
             let errorMessage = Message(
@@ -460,7 +647,7 @@ class ChatManager: ObservableObject {
 
         // Encrypt the image data
         guard let encryptedData = IdentityManager.shared.encryptMessage(imageBase64, for: recipientPublicKey) else {
-            print("Failed to encrypt image")
+            DebugLogger.error("Failed to encrypt image", category: .crypto)
             return
         }
 
@@ -485,11 +672,11 @@ class ChatManager: ObservableObject {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ ChatManager: Failed to sign image message")
+            DebugLogger.error("Failed to sign image message", category: .crypto)
             return
         }
 
-        print("🖼️ ChatManager: Sending image (\(width)x\(height)) to \(peer.id)")
+        // NOTE: Don't log recipient IDs or image dimensions in production
 
         // Send via mesh
         meshManager.sendEncryptedMessage(signedEnvelope, to: peer)
@@ -523,22 +710,30 @@ class ChatManager: ObservableObject {
     }
 
     private func processReceivedMessage(_ envelope: MessageEnvelope) {
-        print("🔓 Processing received message: \(envelope.id)")
+        // NOTE: Don't log message IDs in production - can be used for traffic analysis
+        #if DEBUG
+        DebugLogger.log("Processing received message", category: .crypto)
+        #endif
 
         // Decrypt the message
         guard let encryptedData = Data(base64Encoded: envelope.encryptedContent) else {
-            print("❌ Failed to decode base64 content")
+            DebugLogger.error("Failed to decode base64 content", category: .crypto)
             return
         }
 
-        print("🔓 Encrypted data size: \(encryptedData.count) bytes")
+        #if DEBUG
+        DebugLogger.log("Encrypted data size: \(encryptedData.count) bytes", category: .crypto)
+        #endif
 
         guard let decryptedContent = IdentityManager.shared.decryptMessage(encryptedData) else {
-            print("❌ Failed to decrypt message")
+            DebugLogger.error("Failed to decrypt message", category: .crypto)
             return
         }
 
-        print("✅ Decryption successful: \(decryptedContent.prefix(50))...")
+        // NOTE: Never log decrypted content - security risk
+        #if DEBUG
+        DebugLogger.success("Decryption successful", category: .crypto)
+        #endif
 
         // Create message
         let messageType = Message.MessageType(rawValue: envelope.messageType) ?? .text
@@ -549,7 +744,7 @@ class ChatManager: ObservableObject {
         if messageType == .voice {
             audioData = Data(base64Encoded: decryptedContent)
             content = "" // Voice messages don't have text content
-            print("🎤 Received voice note: \(envelope.audioDuration ?? 0)s")
+            // NOTE: Don't log audio duration in production
         }
 
         let message = Message(
@@ -565,12 +760,9 @@ class ChatManager: ObservableObject {
 
         // Add if not already exists
         if !messages.contains(where: { $0.id == message.id }) {
-            let previousCount = messages.count
-
             // Explicitly notify before change to ensure SwiftUI updates
             objectWillChange.send()
             messages.append(message)
-            print("✅ Message added to array! Count: \(previousCount) → \(messages.count)")
             
             // Fetch link previews if any
             fetchPreviews(for: message)
@@ -585,9 +777,8 @@ class ChatManager: ObservableObject {
 
             // Send read receipt since chat is open
             sendReceipt(for: message.id, type: .read)
-        } else {
-            print("⚠️ Message already exists, skipping")
         }
+        // Silently skip duplicates
     }
 
     // MARK: - Link Preview Handling
@@ -616,7 +807,7 @@ class ChatManager: ObservableObject {
             let matches = detector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
             return matches.compactMap { $0.url }
         } catch {
-            print("Failed to create URL detector: \(error)")
+            DebugLogger.error("Failed to create URL detector", category: .general)
             return []
         }
     }
@@ -638,10 +829,8 @@ class ChatManager: ObservableObject {
     }
 
     private func handleReceipt(_ envelope: MessageEnvelope) {
-        print("🧾 Handling receipt...")
         guard let originalId = envelope.originalMessageId,
               let receiptType = envelope.receiptType else {
-            print("🧾 Receipt missing originalId or receiptType.")
             return
         }
 
@@ -652,10 +841,8 @@ class ChatManager: ObservableObject {
             } else if receiptType == "delivered" {
                 messages[index].isDelivered = true
             }
-            print("🧾 Receipt processed for message \(originalId).")
-        } else {
-            print("🧾 Original message \(originalId) not found for receipt.")
         }
+        // NOTE: Don't log message IDs in production
     }
 
     // MARK: - Group Chat Support
@@ -663,7 +850,7 @@ class ChatManager: ObservableObject {
     /// Send a message to multiple recipients (group chat)
     func sendGroupMessage(_ content: String, groupId: String, recipientPeers: [PulsePeer], type: Message.MessageType = .text, language: String? = nil) {
         guard !recipientPeers.isEmpty else {
-            print("❌ ChatManager: No recipients for group message")
+            DebugLogger.error("No recipients for group message", category: .general)
             return
         }
 
@@ -676,13 +863,13 @@ class ChatManager: ObservableObject {
         // Encrypt message for each recipient and send
         for recipientPeer in recipientPeers {
             guard let recipientPublicKey = recipientPeer.publicKey else {
-                print("⚠️ ChatManager: Peer \(recipientPeer.handle) has no public key, skipping")
+                // Skip peers without public keys
                 continue
             }
 
             // Encrypt for this specific recipient
             guard let encryptedData = IdentityManager.shared.encryptMessage(content, for: recipientPublicKey) else {
-                print("❌ ChatManager: Failed to encrypt message for \(recipientPeer.handle)")
+                DebugLogger.error("Failed to encrypt group message for recipient", category: .crypto)
                 continue
             }
 
@@ -699,7 +886,7 @@ class ChatManager: ObservableObject {
                 recipientIds: recipientPeers.map { $0.id }
             )
 
-            print("📤 ChatManager: Sending group message to \(recipientPeer.handle)")
+            // NOTE: Don't log recipient handles in production
 
             // Send via mesh
             if let meshManager = meshManager {
@@ -722,7 +909,6 @@ class ChatManager: ObservableObject {
 
         objectWillChange.send()
         messages.append(message)
-        print("✅ Group message added to local array!")
 
         // Fetch link previews if any
         fetchPreviews(for: message)
@@ -830,7 +1016,6 @@ class ChatManager: ObservableObject {
 
     func addReaction(_ emoji: String, toMessageId messageId: String) {
         guard let index = messages.firstIndex(where: { $0.id == messageId }) else {
-            print("⚠️ ChatManager: Message not found for reaction")
             return
         }
 
@@ -843,7 +1028,6 @@ class ChatManager: ObservableObject {
 
     func removeReaction(_ emoji: String, fromMessageId messageId: String) {
         guard let index = messages.firstIndex(where: { $0.id == messageId }) else {
-            print("⚠️ ChatManager: Message not found for reaction removal")
             return
         }
 

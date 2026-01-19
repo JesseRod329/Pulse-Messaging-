@@ -25,6 +25,11 @@ struct SettingsView: View {
     @AppStorage("shareProfileInDiscovery") private var shareProfileInDiscovery = true
     @AppStorage("autoAcceptInvites") private var autoAcceptInvites = true
 
+    // Lightning settings
+    @AppStorage("preferredWallet") private var preferredWallet: String = LightningWallet.automatic.rawValue
+    @AppStorage("defaultZapAmount") private var defaultZapAmount = 1000
+    @AppStorage("lightningAddress") private var lightningAddress = ""
+
     // Animation state
     @State private var showContent = false
 
@@ -54,6 +59,12 @@ struct SettingsView: View {
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 20)
                         .animation(.easeOut(duration: 0.4).delay(0.15), value: showContent)
+
+                    // Lightning Section
+                    lightningSection
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(.easeOut(duration: 0.4).delay(0.175), value: showContent)
 
                     // About Section
                     aboutSection
@@ -315,29 +326,143 @@ struct SettingsView: View {
     
     private func clearAllData() {
         HapticManager.shared.notify(.warning)
-        
+
         // Reset UserDefaults
         if let bundleID = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
-        
+
         // Reset Keychain
         _ = IdentityManager.shared.deleteIdentity()
-        
+
         // Reset Files
         VoiceNoteManager.shared.cleanupOrphanedFiles()
-        
+
         // Reset Database
         PersistenceManager.shared.deleteAllData()
 
         // Reset Places
         PlaceManager.shared.clearPlace()
-        
+
         // Success feedback
         HapticManager.shared.notify(.success)
-        
+
         // Dismiss to restart/onboarding (in a real app, might need a hard reset or state update)
         dismiss()
+    }
+
+    // MARK: - Lightning Section
+
+    private var lightningSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Lightning", icon: "bolt.fill")
+
+            VStack(spacing: 0) {
+                // Lightning Address display
+                HStack(spacing: 12) {
+                    Image(systemName: "bolt.circle.fill")
+                        .foregroundStyle(.yellow)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Lightning Address")
+                            .foregroundStyle(themeManager.colors.text)
+                        if lightningAddress.isEmpty {
+                            Text("Set in Profile to receive zaps")
+                                .font(.pulseCaption)
+                                .foregroundStyle(themeManager.colors.textSecondary)
+                        } else {
+                            Text(lightningAddress)
+                                .font(.pulseCaption)
+                                .foregroundStyle(themeManager.colors.accent)
+                        }
+                    }
+
+                    Spacer()
+
+                    if !lightningAddress.isEmpty {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(themeManager.colors.success)
+                    }
+                }
+                .padding(.vertical, 8)
+
+                Divider().background(themeManager.colors.textSecondary.opacity(0.2))
+
+                // Preferred Wallet
+                HStack(spacing: 12) {
+                    Image(systemName: "wallet.pass.fill")
+                        .foregroundStyle(themeManager.colors.accent)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Preferred Wallet")
+                            .foregroundStyle(themeManager.colors.text)
+                        Text("App to open for payments")
+                            .font(.pulseCaption)
+                            .foregroundStyle(themeManager.colors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Picker("", selection: $preferredWallet) {
+                        ForEach(LightningWallet.allCases, id: \.rawValue) { wallet in
+                            Text(wallet.rawValue).tag(wallet.rawValue)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(themeManager.colors.accent)
+                }
+                .padding(.vertical, 8)
+
+                Divider().background(themeManager.colors.textSecondary.opacity(0.2))
+
+                // Default Zap Amount
+                HStack(spacing: 12) {
+                    Image(systemName: "number.circle.fill")
+                        .foregroundStyle(themeManager.colors.accent)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Default Zap Amount")
+                            .foregroundStyle(themeManager.colors.text)
+                        Text("For quick zaps")
+                            .font(.pulseCaption)
+                            .foregroundStyle(themeManager.colors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Picker("", selection: $defaultZapAmount) {
+                        ForEach(ZapAmount.allCases, id: \.rawValue) { amount in
+                            Text(amount.displayName).tag(amount.rawValue)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(themeManager.colors.accent)
+                }
+                .padding(.vertical, 8)
+            }
+
+            // Info about zaps
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(themeManager.colors.accent)
+                    .font(.caption)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Zaps are Bitcoin micropayments sent via Lightning Network.")
+                        .font(.pulseCaption)
+                        .foregroundStyle(themeManager.colors.textSecondary)
+                    Text("You need a Lightning wallet to send and receive zaps.")
+                        .font(.pulseCaption)
+                        .foregroundStyle(themeManager.colors.textSecondary)
+                }
+            }
+            .padding(.top, 4)
+        }
+        .padding()
+        .background(themeManager.colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - About Section
@@ -377,6 +502,7 @@ struct SettingsView: View {
                 featureRow("Multi-hop Mesh", description: "Up to 7 relay hops")
                 featureRow("Nostr Fallback", description: "Global internet relay")
                 featureRow("Location Channels", description: "Geohash-based rooms")
+                featureRow("Lightning Zaps", description: "NIP-57 micropayments")
             }
             .padding(.top, 8)
         }

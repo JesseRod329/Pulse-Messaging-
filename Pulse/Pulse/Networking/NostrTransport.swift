@@ -97,7 +97,7 @@ struct NostrEvent: Codable, Identifiable {
     }
 
     /// Compute event ID as SHA256 of serialized event
-    private static func computeEventId(
+    static func computeEventId(
         pubkey: String,
         createdAt: Int,
         kind: Int,
@@ -115,6 +115,30 @@ struct NostrEvent: Codable, Identifiable {
         }
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+}
+
+extension NostrEvent {
+    var isValidSignature: Bool {
+        let computedId = NostrEvent.computeEventId(
+            pubkey: pubkey,
+            createdAt: created_at,
+            kind: kind,
+            tags: tags,
+            content: content
+        )
+
+        guard computedId == id,
+              let signatureData = Data(hex: sig),
+              let messageData = Data(hex: id) else {
+            return false
+        }
+
+        return NostrIdentity.verify(
+            signature: signatureData,
+            message: messageData,
+            publicKeyHex: pubkey
+        )
     }
 }
 
@@ -177,7 +201,10 @@ enum NostrRelayMessage {
 final class NostrRelay: ObservableObject {
     let url: URL
     private var webSocket: URLSessionWebSocketTask?
-    private let session = URLSession.shared
+
+    /// Secure URLSession with certificate validation for WebSocket connections
+    /// Protects against MITM attacks on relay connections
+    private let session: URLSession
 
     @Published var isConnected = false
     @Published var lastError: String?
@@ -190,6 +217,8 @@ final class NostrRelay: ObservableObject {
 
     init(url: URL) {
         self.url = url
+        // Use secure session with certificate validation
+        self.session = SecureNetworkSession.createWebSocketSession()
     }
 
     func connect() {
@@ -638,7 +667,13 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     }
 
     private func handleEvent(_ event: NostrEvent, subscriptionId: String) {
+        // Rate limit incoming events to prevent DoS
         guard relayEventLimiter.shouldAllow() else {
+            return
+        }
+
+        // Validate event signature
+        guard event.isValidSignature else {
             return
         }
 
