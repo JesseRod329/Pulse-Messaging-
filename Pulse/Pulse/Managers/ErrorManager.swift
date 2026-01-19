@@ -129,7 +129,8 @@ final class ErrorManager: ObservableObject {
     // MARK: - Show Error Alert (Modal)
 
     func showError(_ error: PulseError, retryAction: (() -> Void)? = nil) {
-        let alert = ErrorAlert(error: error, timestamp: Date(), retryAction: retryAction)
+        let sanitizedError = sanitize(error)
+        let alert = ErrorAlert(error: sanitizedError, timestamp: Date(), retryAction: retryAction)
         currentAlert = alert
         recentErrors.append(alert)
 
@@ -146,7 +147,7 @@ final class ErrorManager: ObservableObject {
     // MARK: - Show Banner (Non-blocking)
 
     func showBanner(_ message: String, duration: TimeInterval = 3.0) {
-        bannerMessage = message
+        bannerMessage = sanitize(message)
         withAnimation(.spring(response: 0.3)) {
             showBanner = true
         }
@@ -180,5 +181,49 @@ final class ErrorManager: ObservableObject {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
+    }
+
+    // MARK: - Logging Hygiene
+
+    private func sanitize(_ message: String) -> String {
+        #if DEBUG
+        return message
+        #else
+        return Self.scrubSensitiveStrings(message)
+        #endif
+    }
+
+    private func sanitize(_ error: PulseError) -> PulseError {
+        switch error {
+        case .connectionFailed(let reason):
+            return .connectionFailed(reason: sanitize(reason))
+        case .sendFailed(let reason):
+            return .sendFailed(reason: sanitize(reason))
+        case .recordingFailed(let reason):
+            return .recordingFailed(reason: sanitize(reason))
+        case .playbackFailed(let reason):
+            return .playbackFailed(reason: sanitize(reason))
+        case .unknown(let message):
+            return .unknown(message: sanitize(message))
+        default:
+            return error
+        }
+    }
+
+    static func scrubSensitiveStrings(_ message: String) -> String {
+        let patterns = [
+            "(?:lightning:)?ln(?:bc|tb|bcrt|sb)[0-9a-z]+",
+            "lnurl1[0-9a-z]+",
+            "\\b[a-f0-9]{64}\\b"
+        ]
+
+        var sanitized = message
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) {
+                let range = NSRange(sanitized.startIndex..., in: sanitized)
+                sanitized = regex.stringByReplacingMatches(in: sanitized, options: [], range: range, withTemplate: "[redacted]")
+            }
+        }
+        return sanitized
     }
 }
