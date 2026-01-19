@@ -79,12 +79,8 @@ class MeshManager: NSObject, ObservableObject {
     }
     
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if granted {
-                print("✅ Notification permission granted")
-            } else if let error = error {
-                print("❌ Notification permission denied: \(error.localizedDescription)")
-            }
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
+            // Permission result handled silently
         }
     }
     
@@ -105,7 +101,6 @@ class MeshManager: NSObject, ObservableObject {
     }
     
     private func refreshAdvertising() {
-        print("🔄 MeshManager: Restarting advertising to update context")
         stopAdvertising()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.startAdvertising()
@@ -156,7 +151,7 @@ class MeshManager: NSObject, ObservableObject {
         do {
             try session.send(packetData, toPeers: targetPeers, with: .reliable)
         } catch {
-            print("Failed to forward packet: \(error)")
+            DebugLogger.error("Failed to forward packet", category: .mesh)
         }
     }
 
@@ -168,7 +163,7 @@ class MeshManager: NSObject, ObservableObject {
         do {
             try session.send(packetData, toPeers: session.connectedPeers, with: .reliable)
         } catch {
-            print("Failed to broadcast packet: \(error)")
+            DebugLogger.error("Failed to broadcast packet", category: .mesh)
         }
     }
 
@@ -268,8 +263,7 @@ class MeshManager: NSObject, ObservableObject {
     func requestBluetoothPermission() {
         // Triggering any Bluetooth-related activity will prompt the OS permission dialog
         // MCNearbyServiceAdvertiser/Browser already do this on start, but we can call it explicitly
-        print("🔓 Requesting Bluetooth permissions...")
-        
+
         // Starting advertising/browsing triggers the system prompt
         if !isAdvertising {
             startAdvertising()
@@ -385,8 +379,6 @@ class MeshManager: NSObject, ObservableObject {
     /// Refresh peer discovery during background execution
     /// Called periodically by BGTaskScheduler for continuous peer detection
     func refreshPeerDiscovery() {
-        print("🔄 MeshManager: Refreshing peer discovery in background")
-
         // Restart discovery to find new peers
         stopAdvertising()
 
@@ -397,23 +389,19 @@ class MeshManager: NSObject, ObservableObject {
 
         // Update distances for currently visible peers
         startDistanceUpdates()
-
-        print("✅ MeshManager: Peer discovery refreshed")
     }
 
     func sendEncryptedMessage(_ envelope: MessageEnvelope, to peer: PulsePeer) {
-        print("📤 Attempting to send message to \(peer.handle) (ID: \(peer.id))")
+        // NOTE: Don't log peer handles or IDs in production
 
         guard envelope.signature != nil, envelope.senderSigningPublicKey != nil else {
-            print("❌ Refusing to send unsigned message envelope")
+            DebugLogger.error("Refusing to send unsigned message envelope", category: .crypto)
             return
         }
 
         // In Simulator, simulate success for demo peers
         #if targetEnvironment(simulator)
         if ["1", "2", "3", "4"].contains(peer.id) {
-            print("✅ [SIMULATOR] Simulated message send to demo peer \(peer.handle)")
-            
             // If it's a message (not typing/receipt), simulate a reply after delay
             if envelope.messageType == "text" {
                 let senderId = peer.id
@@ -425,18 +413,10 @@ class MeshManager: NSObject, ObservableObject {
         }
         #endif
 
-        print("📤 Connected peers count: \(session.connectedPeers.count)")
-        print("📤 Connected peer IDs: \(session.connectedPeers.map { $0.displayName })")
+        // NOTE: Don't log connected peer counts or IDs in production
 
         guard let peerConnection = session.connectedPeers.first(where: { $0.displayName == peer.id }) else {
-            print("❌ Peer \(peer.handle) not in connected peers list!")
-            print("❌ Looking for ID: '\(peer.id)'")
-            print("❌ Available IDs: \(session.connectedPeers.map { "'\($0.displayName)'" })")
-
-            // Browser exists but peer not connected yet
-            if browser != nil {
-                print("🔄 Peer discovered but not connected yet. Wait for connection...")
-            }
+            // NOTE: Don't log peer handles or IDs in production
 
             // Post notification about failed send
             NotificationCenter.default.post(name: .messageSendFailed, object: nil, userInfo: ["reason": "Peer not connected - please wait for connection"])
@@ -446,9 +426,8 @@ class MeshManager: NSObject, ObservableObject {
         do {
             let data = try JSONEncoder().encode(envelope)
             try session.send(data, toPeers: [peerConnection], with: .reliable)
-            print("✅ Message sent successfully to \(peer.handle)")
         } catch {
-            print("❌ Failed to send message: \(error)")
+            DebugLogger.error("Failed to send message", category: .mesh)
             NotificationCenter.default.post(name: .messageSendFailed, object: nil, userInfo: ["reason": error.localizedDescription])
         }
     }
@@ -497,7 +476,6 @@ class MeshManager: NSObject, ObservableObject {
         let senderIdentity = PulseIdentity.create(handle: handle)
         
         guard let encryptedData = try? senderIdentity.encrypt(content, for: myPublicKey) else {
-             print("❌ Failed to encrypt demo reply")
              return
         }
         
@@ -516,8 +494,6 @@ class MeshManager: NSObject, ObservableObject {
             envelope.signature = signature
             envelope.senderSigningPublicKey = senderIdentity.signingPublicKey
         }
-        
-        print("🤖 [SIMULATOR] Simulating reply from \(handle)")
         
         Task { @MainActor in
             receivedMessages.append(envelope)
@@ -563,7 +539,7 @@ extension MeshManager: MCNearbyServiceAdvertiserDelegate {
         if autoAccept {
             invitationHandler(true, session)
         } else {
-            print("⚠️ Invitation auto-accept disabled, rejecting \(peerID.displayName)")
+            // NOTE: Don't log peer display names in production
             invitationHandler(false, nil)
         }
     }
@@ -614,7 +590,7 @@ extension MeshManager: MCNearbyServiceBrowserDelegate {
                 
                 // Check for key change (crucial for reinstall/reset scenarios)
                 if existingPeer.publicKey != peer.publicKey {
-                    print("🔑 Public key changed for peer \(peer.handle)")
+                    // NOTE: Don't log peer handles in production - security sensitive
                     existingPeer.publicKey = peer.publicKey
                     
                     // Update routing info with new key if needed
@@ -634,7 +610,7 @@ extension MeshManager: MCNearbyServiceBrowserDelegate {
                 }
 
                 if existingPeer.signingPublicKey != peer.signingPublicKey {
-                    print("🔑 Signing key changed for peer \(peer.handle)")
+                    // NOTE: Don't log peer handles in production - security sensitive
                     existingPeer.signingPublicKey = peer.signingPublicKey
                 }
                 
@@ -711,9 +687,7 @@ extension MeshManager: MCSessionDelegate {
         @unknown default:
             stateString = "UNKNOWN"
         }
-        print("📡 Peer \(peerID.displayName) state: \(stateString)")
-        print("📡 Total connected peers: \(session.connectedPeers.count)")
-        print("📡 Connected peer IDs: \(session.connectedPeers.map { $0.displayName })")
+        // NOTE: Don't log peer IDs, states, or connected peer counts in production
 
         let peerIdCopy = peerID.displayName
         Task { @MainActor in
@@ -721,20 +695,13 @@ extension MeshManager: MCSessionDelegate {
             if state == .connected {
                 SoundManager.shared.connected()
 
-                // Make sure we have this peer in our list with updated info
-                if let index = nearbyPeers.firstIndex(where: { $0.id == peerIdCopy }) {
-                    print("✅ Peer \(nearbyPeers[index].handle) is now connected and ready to chat")
-                }
-                
                 // Send handshake with current public key
                 // Look up the MCPeerID from session.connectedPeers to avoid capturing non-Sendable peerID parameter
                 if let targetPeerID = self.session.connectedPeers.first(where: { $0.displayName == peerIdCopy }) {
                     self.sendHandshake(to: targetPeerID)
                 }
-            } else if state == .notConnected {
-                // Peer disconnected
-                print("❌ Peer \(peerIdCopy) disconnected")
             }
+            // Silently handle disconnection
         }
     }
 
@@ -762,16 +729,16 @@ extension MeshManager: MCSessionDelegate {
         )
 
         guard let signedEnvelope = signEnvelope(envelope) else {
-            print("❌ Failed to sign handshake envelope")
+            DebugLogger.error("Failed to sign handshake envelope", category: .crypto)
             return
         }
 
         do {
             let data = try JSONEncoder().encode(signedEnvelope)
             try session.send(data, toPeers: [peerID], with: .reliable)
-            print("🤝 Sent handshake with public key to \(peerID.displayName)")
+            // NOTE: Don't log peer display names in production
         } catch {
-            print("❌ Failed to send handshake: \(error)")
+            DebugLogger.error("Failed to send handshake", category: .mesh)
         }
     }
 
@@ -791,11 +758,10 @@ extension MeshManager: MCSessionDelegate {
         didReceive data: Data,
         fromPeer peerID: MCPeerID
     ) {
-        print("📥 Received \(data.count) bytes from \(peerID.displayName)")
+        // NOTE: Never log data size, peer IDs, or raw data in production
 
         // Try to decode as routable packet first (new format)
         if let packet = try? JSONDecoder().decode(RoutablePacket.self, from: data) {
-            print("📥 Decoded as RoutablePacket")
             Task { @MainActor in
                 // Route through unified transport
                 unifiedTransport.handleIncomingPacket(packet, via: .mesh)
@@ -805,25 +771,28 @@ extension MeshManager: MCSessionDelegate {
 
         // Fallback to legacy MessageEnvelope for backwards compatibility
         guard let envelope = try? JSONDecoder().decode(MessageEnvelope.self, from: data) else {
-            print("❌ Failed to decode data as MessageEnvelope")
-            if let rawString = String(data: data, encoding: .utf8) {
-                print("❌ Raw data: \(rawString.prefix(200))...")
-            }
+            // NOTE: NEVER log raw data - could contain sensitive encrypted content
+            #if DEBUG
+            DebugLogger.error("Failed to decode data as MessageEnvelope", category: .mesh)
+            #endif
             return
         }
 
-        print("📥 Decoded MessageEnvelope: type=\(envelope.messageType), from=\(envelope.senderId)")
+        // NOTE: Don't log message types or sender IDs in production
 
         Task { @MainActor in
             guard isEnvelopeSignatureValid(envelope) else {
-                print("❌ Invalid or missing signature for message \(envelope.id) from \(envelope.senderId)")
+                // NOTE: Don't log message IDs or sender IDs in production - security risk
+                #if DEBUG
+                DebugLogger.error("Invalid or missing signature for message", category: .crypto)
+                #endif
                 return
             }
 
             // Handle different message types
             switch envelope.messageType {
             case "handshake":
-                print("🤝 Received handshake from \(envelope.senderId)")
+                // NOTE: Don't log sender IDs in production
                 let payload = decodeHandshakePayload(from: envelope.encryptedContent)
                 self.updatePeerKeys(
                     peerId: envelope.senderId,
@@ -832,8 +801,7 @@ extension MeshManager: MCSessionDelegate {
                 )
 
             case "receipt":
-                // Delivery/read receipt
-                print("📥 Processing receipt for message: \(envelope.originalMessageId ?? "unknown")")
+                // Delivery/read receipt - don't log message IDs
                 NotificationCenter.default.post(name: .didReceiveReceipt, object: envelope)
 
             case "typing":
@@ -850,11 +818,11 @@ extension MeshManager: MCSessionDelegate {
                 // Regular message (text or code)
                 // Check for duplicates
                 if deduplicationService.isDuplicate(envelope) {
-                    print("📥 Duplicate message ignored: \(envelope.id)")
+                    // Silently ignore duplicates
                     return
                 }
 
-                print("✅ New message received! Adding to receivedMessages")
+                // NOTE: Don't log message receipt in production
                 receivedMessages.append(envelope)
                 NotificationCenter.default.post(name: .didReceiveMessage, object: envelope)
 
@@ -885,7 +853,8 @@ extension MeshManager: MCSessionDelegate {
         let storedKey = nearbyPeers.first(where: { $0.id == envelope.senderId })?.signingPublicKey
 
         if let storedKey = storedKey, let advertisedKey = advertisedKey, storedKey != advertisedKey {
-            print("❌ Signature key mismatch for \(envelope.senderId)")
+            // NOTE: Don't log sender IDs in production - security sensitive
+            DebugLogger.error("Signature key mismatch detected", category: .crypto)
             return false
         }
 
@@ -900,12 +869,12 @@ extension MeshManager: MCSessionDelegate {
         var updated = nearbyPeers[index]
         if let publicKey = publicKey, updated.publicKey != publicKey {
             updated.publicKey = publicKey
-            print("🔑 Updated public key for peer \(peerId) via handshake")
+            // NOTE: Don't log peer IDs in production
         }
 
         if let signingPublicKey = signingPublicKey, updated.signingPublicKey != signingPublicKey {
             updated.signingPublicKey = signingPublicKey
-            print("🔑 Updated signing key for peer \(peerId) via handshake")
+            // NOTE: Don't log peer IDs in production
         }
 
         nearbyPeers[index] = updated
@@ -944,13 +913,12 @@ extension MeshManager: MCSessionDelegate {
 
         // Find the peer to send to
         if let peer = nearbyPeers.first(where: { $0.id == envelope.senderId }) {
-            print("📤 Sending delivery receipt to \(peer.handle)")
+            // NOTE: Don't log peer handles in production
             if let signedReceipt = signEnvelope(receipt) {
                 sendEncryptedMessage(signedReceipt, to: peer)
             }
-        } else {
-            print("❌ Could not find peer to send delivery receipt")
         }
+        // Silently skip if peer not found
     }
 
     nonisolated func session(
