@@ -40,6 +40,13 @@ class MeshManager: NSObject, ObservableObject {
     private let topologyTracker = MeshTopologyTracker.shared
     private let unifiedTransport = UnifiedTransportManager.shared
 
+    // SECURITY: Rate limiting to prevent DoS attacks
+    private let rateLimiter = RateLimiter(
+        config: .default,  // 100 msgs per 60s
+        maxViolationsBeforeBlock: 5  // Block after 5 violations
+    )
+    private var rateLimiterCleanupTimer: Timer?
+
     override init() {
         // Load or create peer ID
         let savedID = UserDefaults.standard.string(forKey: "myPeerID") ?? UUID().uuidString
@@ -58,6 +65,7 @@ class MeshManager: NSObject, ObservableObject {
         setupPowerAwareDiscovery()
         setupRoutingCallbacks()
         requestNotificationPermission()
+        setupRateLimiterCleanup()
         
         // Listen for place updates
         NotificationCenter.default.addObserver(
@@ -760,14 +768,29 @@ extension MeshManager: MCSessionDelegate {
     ) {
         // NOTE: Never log data size, peer IDs, or raw data in production
 
-        // Try to decode as routable packet first (new format)
-        if let packet = try? JSONDecoder().decode(RoutablePacket.self, from: data) {
-            Task { @MainActor in
+        // SECURITY: Check rate limit before processing message
+        Task { @MainActor in
+            guard rateLimiter.shouldAllowMessage(from: peerID.displayName) else {
+                #if DEBUG
+                DebugLogger.warning("Rate-limited message from peer: \(peerID.displayName)", category: .security)
+                #endif
+                return
+            }
+
+            // Try to decode as routable packet first (new format)
+            if let packet = try? JSONDecoder().decode(RoutablePacket.self, from: data) {
                 // Route through unified transport
                 unifiedTransport.handleIncomingPacket(packet, via: .mesh)
+                return
             }
-            return
+
+            // Process legacy format below
+            await processLegacyMessage(data)
         }
+    }
+
+    /// Process legacy MessageEnvelope format (backward compatibility)
+    private func processLegacyMessage(_ data: Data) async {
 
         // Fallback to legacy MessageEnvelope for backwards compatibility
         guard let envelope = try? JSONDecoder().decode(MessageEnvelope.self, from: data) else {
@@ -969,5 +992,20 @@ private extension MeshManager {
         }
 
         return nil
+    }
+
+    // MARK: - Rate Limiting
+
+    /// Setup periodic cleanup for rate limiter
+    private func setupRateLimiterCleanup() {
+        // Clean up rate limiter history every 5 minutes
+        rateLimiterCleanupTimer = Timer.scheduledTimer(
+            withTimeInterval: 300.0,  // 5 minutes
+            repeats: true
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.rateLimiter.cleanup()
+            }
+        }
     }
 }
