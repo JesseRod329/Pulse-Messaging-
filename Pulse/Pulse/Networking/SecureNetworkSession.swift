@@ -205,23 +205,6 @@ enum SecureNetworkSession {
         )
     }
 
-    /// Create a secure URLSession for LNURL requests
-    static func createLNURLSession() -> URLSession {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 60
-
-        // LNURL servers are distributed, so we allow unpinned but validate certificates
-        let pinningConfig = CertificatePinningConfig(
-            pinnedPublicKeyHashes: [:],
-            allowUnpinnedDomains: true,
-            minimumTLSVersion: .TLSv12,
-            requireCertificateTransparency: false
-        )
-
-        return createSession(configuration: config, pinningConfig: pinningConfig)
-    }
-
     /// Create a secure URLSession for WebSocket connections (Nostr relays)
     static func createWebSocketSession() -> URLSession {
         let config = URLSessionConfiguration.default

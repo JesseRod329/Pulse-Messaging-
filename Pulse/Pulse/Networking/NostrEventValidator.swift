@@ -2,7 +2,7 @@
 //  NostrEventValidator.swift
 //  Pulse
 //
-//  Validation for Nostr events and zap-specific checks.
+//  Validation for Nostr event signatures.
 //
 
 import Foundation
@@ -13,8 +13,6 @@ enum NostrEventValidationError: Error, LocalizedError {
     case invalidSignatureFormat
     case invalidEventId
     case signatureMismatch
-    case invalidKind
-    case missingAmount
 
     var errorDescription: String? {
         switch self {
@@ -26,32 +24,11 @@ enum NostrEventValidationError: Error, LocalizedError {
             return "Invalid Nostr event id"
         case .signatureMismatch:
             return "Nostr signature verification failed"
-        case .invalidKind:
-            return "Unexpected Nostr event kind"
-        case .missingAmount:
-            return "Zap request missing amount"
         }
     }
 }
 
 struct NostrEventValidator {
-    static func validateZapRequest(_ event: NostrEvent) throws {
-        guard event.kind == NostrEventKind.zapRequest.rawValue else {
-            throw NostrEventValidationError.invalidKind
-        }
-        try validateEventSignature(event)
-        guard extractZapAmount(event) != nil else {
-            throw NostrEventValidationError.missingAmount
-        }
-    }
-
-    static func validateZapReceipt(_ event: NostrEvent) throws {
-        guard event.kind == NostrEventKind.zapReceipt.rawValue else {
-            throw NostrEventValidationError.invalidKind
-        }
-        try validateEventSignature(event)
-    }
-
     static func validateEventSignature(_ event: NostrEvent) throws {
         guard isValidHex(event.pubkey, length: 64) else {
             throw NostrEventValidationError.invalidPubkey
@@ -88,15 +65,6 @@ struct NostrEventValidator {
         guard verified else {
             throw NostrEventValidationError.signatureMismatch
         }
-    }
-
-    private static func extractZapAmount(_ event: NostrEvent) -> Int? {
-        for tag in event.tags where tag.count >= 2 {
-            if tag[0] == "amount", let amount = Int(tag[1]) {
-                return amount
-            }
-        }
-        return nil
     }
 
     private static func isValidHex(_ value: String, length: Int) -> Bool {
