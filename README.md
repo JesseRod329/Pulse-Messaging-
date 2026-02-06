@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="media/logo.png" width="600" alt="Pulse ZERO" />
+</p>
+
 <h1 align="center">Pulse ZERO v1</h1>
 
 <p align="center"><strong>Decentralized messaging for iOS.</strong></p>
