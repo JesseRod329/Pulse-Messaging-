@@ -21,8 +21,6 @@ enum NostrEventKind: Int, Codable {
     case repost = 6
     case reaction = 7
     case giftWrap = 1059          // NIP-17 gift-wrapped private messages
-    case zapRequest = 9734        // NIP-57 zap request
-    case zapReceipt = 9735        // NIP-57 zap receipt
     case auth = 22242             // NIP-42 auth challenge response
     case pulseMessage = 30078     // Custom kind for Pulse mesh messages
     case pulseChannel = 30079     // Custom kind for Pulse location channels
@@ -389,7 +387,6 @@ final class NostrTransport: ObservableObject, TransportProtocol {
     var onPacketReceived: ((RoutablePacket) -> Void)?
     var onPeerDiscovered: ((DiscoveredPeer) -> Void)?
     var onPeerLost: ((String) -> Void)?
-    var onZapReceived: ((NostrEvent) -> Void)?  // NIP-57 zap receipt handler
 
     // Default Pulse-friendly relays
     private let defaultRelays = [
@@ -406,7 +403,6 @@ final class NostrTransport: ObservableObject, TransportProtocol {
 
     // Active subscriptions
     private var channelSubscriptions: [String: String] = [:] // geohash -> subscriptionId
-    private var zapReceiptSubscriptionId: String?
 
     private init() {}
 
@@ -510,74 +506,7 @@ final class NostrTransport: ObservableObject, TransportProtocol {
         }
     }
 
-    // MARK: - NIP-57 Zap Support
-
-    /// Publish a zap request (kind 9734)
-    func publishZapRequest(
-        recipientPubkey: String,
-        lightningAddress: String,
-        amount: Int,  // millisats
-        messageEventId: String?,
-        comment: String?
-    ) async throws -> NostrEvent {
-        guard let identity = NostrIdentityManager.shared.nostrIdentity else {
-            throw NostrError.notConfigured
-        }
-
-        // Build tags per NIP-57
-        var tags: [[String]] = [
-            ["p", recipientPubkey],
-            ["amount", String(amount)],
-            ["relays"] + defaultRelays,
-            ["lnurl", lightningAddress]  // Will be encoded by caller
-        ]
-
-        // Optional: reference the message being zapped
-        if let eventId = messageEventId {
-            tags.append(["e", eventId])
-        }
-
-        let event = try NostrEvent.createSigned(
-            identity: identity,
-            kind: .zapRequest,
-            content: comment ?? "",
-            tags: tags
-        )
-
-        // Publish to relays
-        for relay in relays where relay.isConnected {
-            relay.publish(event)
-        }
-
-        return event
-    }
-
-    /// Subscribe to zap receipts (kind 9735) for a pubkey
-    func subscribeToZapReceipts(for pubkey: String) {
-        let subscriptionId = "zap-\(pubkey.prefix(8))"
-        zapReceiptSubscriptionId = subscriptionId
-
-        var filter = NostrFilter()
-        filter.kinds = [NostrEventKind.zapReceipt.rawValue]
-        filter.tagFilters["p"] = [pubkey]
-        filter.since = Int(Date().addingTimeInterval(-86400).timeIntervalSince1970)  // Last 24 hours
-
-        for relay in relays where relay.isConnected {
-            relay.subscribe(filter: filter, subscriptionId: subscriptionId)
-        }
-    }
-
-    /// Unsubscribe from zap receipts
-    func unsubscribeFromZapReceipts() {
-        guard let subscriptionId = zapReceiptSubscriptionId else { return }
-
-        for relay in relays where relay.isConnected {
-            relay.unsubscribe(subscriptionId)
-        }
-        zapReceiptSubscriptionId = nil
-    }
-
-    /// Fetch peer metadata (kind 0) to get lightning address
+    /// Fetch peer metadata (kind 0)
     func fetchPeerMetadata(pubkey: String) async throws -> [String: Any]? {
         // Create a one-time subscription for kind 0
         let subscriptionId = "meta-\(pubkey.prefix(8))"
@@ -599,10 +528,9 @@ final class NostrTransport: ObservableObject, TransportProtocol {
         return nil
     }
 
-    /// Publish profile metadata (kind 0) with lightning address
+    /// Publish profile metadata (kind 0)
     func publishMetadata(
         name: String,
-        lightningAddress: String?,
         about: String? = nil,
         picture: String? = nil
     ) async throws {
@@ -611,9 +539,6 @@ final class NostrTransport: ObservableObject, TransportProtocol {
         }
 
         var metadata: [String: Any] = ["name": name]
-        if let lud16 = lightningAddress {
-            metadata["lud16"] = lud16
-        }
         if let about = about {
             metadata["about"] = about
         }
@@ -674,12 +599,6 @@ final class NostrTransport: ObservableObject, TransportProtocol {
 
         // Validate event signature
         guard event.isValidSignature else {
-            return
-        }
-
-        // Handle zap receipts (kind 9735)
-        if event.kind == NostrEventKind.zapReceipt.rawValue {
-            onZapReceived?(event)
             return
         }
 

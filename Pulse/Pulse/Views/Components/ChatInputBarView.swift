@@ -59,8 +59,8 @@ struct ChatInputBarView: View {
             Color.black
                 .shadow(color: .black.opacity(0.5), radius: 10, y: -5)
         )
-        .animation(.spring(response: 0.3, value: voiceManager.isRecording)
-        .animation(.spring(response: 0.3, value: pendingVoiceNote != nil)
+        .animation(.spring(response: 0.3), value: voiceManager.isRecording)
+        .animation(.spring(response: 0.3), value: pendingVoiceNote != nil)
     }
 
     @ViewBuilder

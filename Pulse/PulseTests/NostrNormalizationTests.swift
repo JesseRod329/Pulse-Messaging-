@@ -11,7 +11,7 @@ final class NostrNormalizationTests: XCTestCase {
     func testCanonicalEventJSON() throws {
         let pubkey = "abcdef0123456789"
         let createdAt = 123
-        let kind = NostrEventKind.zapRequest.rawValue
+        let kind = NostrEventKind.textNote.rawValue
         let tags = [["p", "recipient"], ["amount", "1000"], ["relays", "wss://relay.example"]]
         let content = "hello"
 
@@ -23,7 +23,7 @@ final class NostrNormalizationTests: XCTestCase {
             content: content
         )
 
-        let expected = "[0,\"abcdef0123456789\",123,9734,[[\"p\",\"recipient\"],[\"amount\",\"1000\"],[\"relays\",\"wss://relay.example\"]],\"hello\"]"
+        let expected = "[0,\"abcdef0123456789\",123,1,[[\"p\",\"recipient\"],[\"amount\",\"1000\"],[\"relays\",\"wss:\\/\\/relay.example\"]],\"hello\"]"
         XCTAssertEqual(canonical, expected)
     }
 
@@ -32,7 +32,7 @@ final class NostrNormalizationTests: XCTestCase {
             id: "",
             pubkey: "abcdef0123456789",
             created_at: 123,
-            kind: NostrEventKind.zapRequest.rawValue,
+            kind: NostrEventKind.textNote.rawValue,
             tags: [["p", "recipient"], ["amount", "1000"]],
             content: "hello",
             sig: ""

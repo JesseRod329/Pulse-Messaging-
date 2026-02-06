@@ -19,12 +19,14 @@ enum DebugLogger {
     private static let networkLog = OSLog(subsystem: subsystem, category: "network")
     private static let cryptoLog = OSLog(subsystem: subsystem, category: "crypto")
     private static let meshLog = OSLog(subsystem: subsystem, category: "mesh")
+    private static let securityLog = OSLog(subsystem: subsystem, category: "security")
 
     enum Category {
         case general
         case network
         case crypto
         case mesh
+        case security
 
         var osLog: OSLog {
             switch self {
@@ -32,6 +34,7 @@ enum DebugLogger {
             case .network: return networkLog
             case .crypto: return cryptoLog
             case .mesh: return meshLog
+            case .security: return securityLog
             }
         }
     }
