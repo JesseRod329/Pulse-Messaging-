@@ -1,12 +1,21 @@
-# Pulse ZERO v1
+<h1 align="center">Pulse ZERO v1</h1>
 
-**Decentralized messaging for iOS.**
+<p align="center"><strong>Decentralized messaging for iOS.</strong></p>
 
-![Swift](https://img.shields.io/badge/Swift-5.0-orange) ![Platform](https://img.shields.io/badge/Platform-iOS_26-blue) ![Status](https://img.shields.io/badge/Status-Alpha-yellow) ![License](https://img.shields.io/badge/License-MIT-green)
+<p align="center">
+  <img src="https://img.shields.io/badge/Swift-5.0-orange" />
+  <img src="https://img.shields.io/badge/Platform-iOS_26-blue" />
+  <img src="https://img.shields.io/badge/Status-Alpha-yellow" />
+  <img src="https://img.shields.io/badge/License-MIT-green" />
+</p>
 
-A high-performance iOS messaging engine written 100% in **Swift**. Pulse ZERO facilitates peer-to-peer, decentralized communication without reliance on centralized servers. Built for the 2026 iOS ecosystem with secure key management, mesh networking, and real-time data streaming via Nostr relays.
+<p align="center">
+A high-performance iOS messaging engine written 100% in <strong>Swift</strong>.<br/>
+Pulse ZERO facilitates peer-to-peer, decentralized communication without reliance on centralized servers.<br/>
+Built for the 2026 iOS ecosystem with secure key management, mesh networking, and real-time data streaming via Nostr relays.
+</p>
 
-> No servers. No silos. Just Pulse.
+<p align="center"><em>No servers. No silos. Just Pulse.</em></p>
 
 ---
 
