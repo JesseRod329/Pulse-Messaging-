@@ -1,4 +1,4 @@
-# Pulse
+# Pulse ZERO v1
 
 **Decentralized messaging for iOS.**
 
@@ -10,7 +10,7 @@ A high-performance iOS messaging engine written 100% in **Swift**. Pulse facilit
 
 ## The Vision
 
-Pulse is inspired by **Bitchat** and the broader **Nostr** ecosystem—protocols championed by Jack Dorsey and the open-source community. The goal is to move away from "platforms" and toward "protocols," ensuring that your identity and your conversations remain yours, regardless of who owns the network.
+Pulse ZERO is inspired by **Bitchat** and the broader **Nostr** ecosystem—protocols championed by Jack Dorsey and the open-source community. The goal is to move away from "platforms" and toward "protocols," ensuring that your identity and your conversations remain yours, regardless of who owns the network.
 
 This isn't just an app; it's a step toward sovereign communication—private, censorship-resistant, and entirely user-owned.
 
@@ -107,8 +107,8 @@ This isn't just an app; it's a step toward sovereign communication—private, ce
 4. Run the `Pulse` scheme
 
 ```bash
-git clone https://github.com/JesseRod329/Pulse-Messaging-.git
-cd Pulse-Messaging-/Pulse
+git clone https://github.com/joeynyc/Pulse-Messaging.git
+cd Pulse-Messaging/Pulse
 open Pulse.xcodeproj
 ```
 
@@ -119,7 +119,7 @@ open Pulse.xcodeproj
 ```bash
 xcodebuild -project Pulse.xcodeproj -scheme PulseTests \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,OS=26.0,name=iPhone 17' \
+  -destination 'platform=iOS Simulator,OS=26.2,name=iPhone 17' \
   test
 ```
 
@@ -132,6 +132,8 @@ xcodebuild -project Pulse.xcodeproj -scheme PulseTests \
 | `NostrEventValidatorTests` | Event signature validation |
 | `SecurityHardeningTests` | Rate limiting |
 | `ProductionSecurityTests` | End-to-end security scenarios |
+| `ErrorManagerTests` | Sensitive string scrubbing |
+| `RateLimiterTests` | Rate limiter window and reset logic |
 | `MeshSimulatorTests` | Virtual peer network testing |
 
 ---
@@ -144,6 +146,7 @@ xcodebuild -project Pulse.xcodeproj -scheme PulseTests \
 | [PULSE_AUDIT_REPORT.md](PULSE_AUDIT_REPORT.md) | Security audit findings and remediations |
 | [IMPROVEMENTS_SUMMARY.md](IMPROVEMENTS_SUMMARY.md) | Changelog of major improvements |
 | [QUICK_START.md](QUICK_START.md) | Fast-track setup guide |
+| [PRIVACY_POLICY.md](Pulse/PRIVACY_POLICY.md) | Privacy policy |
 
 ---
 
@@ -169,7 +172,7 @@ xcodebuild -project Pulse.xcodeproj -scheme PulseTests \
 
 ## Inspiration & Credits
 
-Pulse draws heavily from:
+Pulse ZERO draws heavily from:
 - **[Nostr](https://nostr.com/)** — The decentralized social protocol
 - **Bitchat** — Jack Dorsey's vision for open, censorship-resistant messaging
 - **[secp256k1](https://github.com/bitcoin-core/secp256k1)** — Elliptic curve cryptography
