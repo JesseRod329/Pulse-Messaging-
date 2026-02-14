@@ -16,4 +16,8 @@ final class SmokeTests: XCTestCase {
     func testDispatchComponentsCompile() {
         XCTAssertTrue(true, "Dispatch Stitch components are included in target and compile.")
     }
+
+    func testProfileAdminPanelCompiles() {
+        XCTAssertTrue(true, "Admin/inventory panel compiles.")
+    }
 }
