@@ -13,45 +13,50 @@ struct FeedView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                FeedHeaderStrip(
-                    title: selectedChannelTitle,
-                    subtitle: "Owner Channel"
-                )
-
-                if let user = coordinator.user, user.role == .follower {
-                    inviteJoinCard
-                }
-
-                if coordinator.user?.role == .owner {
-                    ownerChannelBuilder
-                }
-
-                channelPicker
-
-                if let user = coordinator.user, user.role == .owner {
-                    ownerComposer
-                }
-
-                if coordinator.posts.isEmpty {
-                    ContentUnavailableView(
-                        "No Posts",
-                        systemImage: "text.bubble",
-                        description: Text("Owner posts will appear here.")
+            ScrollView {
+                VStack(spacing: 12) {
+                    FeedHeaderStrip(
+                        title: selectedChannelTitle,
+                        subtitle: "Owner Channel"
                     )
-                } else {
-                    List(coordinator.posts) { post in
-                        FeedPostCard(post: post, showsFollowerHint: coordinator.user?.role == .follower)
-                            .padding(.vertical, 6)
-                        .onLongPressGesture {
-                            coordinator.openOrderSheet(for: post)
+
+                    if let user = coordinator.user, user.role == .follower {
+                        inviteJoinCard
+                    }
+
+                    if coordinator.user?.role == .owner {
+                        ownerChannelBuilder
+                    }
+
+                    channelPicker
+
+                    if let user = coordinator.user, user.role == .owner {
+                        ownerComposer
+                    }
+
+                    if coordinator.posts.isEmpty {
+                        ContentUnavailableView(
+                            "No Posts",
+                            systemImage: "text.bubble",
+                            description: Text("Owner posts will appear here.")
+                        )
+                    } else {
+                        LazyVStack(spacing: 10) {
+                            ForEach(coordinator.posts) { post in
+                                FeedPostCard(post: post, showsFollowerHint: coordinator.user?.role == .follower)
+                                    .onLongPressGesture {
+                                        coordinator.openOrderSheet(for: post)
+                                    }
+                            }
                         }
                     }
-                    .listStyle(.plain)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 120)
             }
-            .padding(.horizontal, 16)
             .navigationTitle("Channels")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
