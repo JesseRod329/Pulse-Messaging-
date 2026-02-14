@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBox Global - Follower Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<!-- Top Header -->
+<header class="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md border-b border-white/10 px-4 py-3">
+<div class="max-w-2xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">package_2</span>
+</div>
+<div>
+<h1 class="text-white text-lg font-bold leading-none tracking-tight">BeamBox Global</h1>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Owner Channel</p>
+</div>
+</div>
+</div>
+<div class="inline-flex items-center px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10">
+<span class="material-symbols-outlined text-[14px] text-primary mr-1">lock</span>
+<span class="text-primary text-[10px] font-bold uppercase tracking-widest">Invite Only</span>
+</div>
+</div>
+</header>
+<!-- Navigation Tabs -->
+<nav class="sticky top-[65px] z-40 bg-background-dark border-b border-white/5">
+<div class="max-w-2xl mx-auto flex">
+<a class="flex-1 flex flex-col items-center justify-center pt-3 pb-2.5 border-b-2 border-primary text-primary transition-colors" href="#">
+<span class="text-sm font-bold">Feed</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center pt-3 pb-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors" href="#">
+<span class="text-sm font-bold">Orders</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center pt-3 pb-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors" href="#">
+<span class="text-sm font-bold">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Main Feed Content -->
+<main class="max-w-2xl mx-auto p-4 pb-24 space-y-6">
+<!-- Feed Item 1 -->
+<article class="bg-slate-900/50 border border-white/5 rounded-xl overflow-hidden shadow-xl">
+<div class="p-4 flex items-center gap-2">
+<span class="text-xs text-slate-500 font-medium">Dubai Hub • Today, 10:45 AM</span>
+</div>
+<div class="px-4">
+<div class="aspect-[16/9] w-full rounded-lg bg-slate-800 overflow-hidden relative group">
+<img alt="Apple MacBooks and iPhones" class="w-full h-full object-cover" data-alt="Collection of premium silver Apple laptops and iPhones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH4ZZAVKgioAM9bYytDmN6IzLqNtVUXFSwu0JK3Jj_U6E8xOEou8JeCynrdk9n2G8WGxtMvbeU145rZgP9aqG5NBzk2_w3rHPa2mE1Ug57dWaWDFLl5Ib-sxkfEhVEdJbv8DXF5a4yPtiqwBPwVCG1cw1GnfxlshtWpJ-TjhGNI4-cGPcyQ0ZL6yi6keDUnmbo9AkSCge39rFTW7rqnr_fFmwEVkSGp1qkW7PhswMxwOe6X8pRd90Jb_RLiV87jrj2__55lHRzyeZh"/>
+<div class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-tighter">
+                        12 Slots Left
+                    </div>
+</div>
+</div>
+<div class="p-4 space-y-3">
+<h3 class="text-white text-lg font-bold leading-snug">New Electronics Batch: Laptops &amp; iPhones</h3>
+<p class="text-slate-400 text-sm leading-relaxed">
+                    Secure shipping confirmed from Dubai DXB to Lagos LOS. Premium handling for fragile electronics. Limited slots available for immediate dispatch. Insurance included in base quote.
+                </p>
+<div class="pt-2 flex items-center justify-between border-t border-white/5">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-background-dark bg-slate-700 flex items-center justify-center text-[10px] text-white">JD</div>
+<div class="w-6 h-6 rounded-full border-2 border-background-dark bg-slate-600 flex items-center justify-center text-[10px] text-white">MK</div>
+<div class="w-6 h-6 rounded-full border-2 border-background-dark bg-primary flex items-center justify-center text-[10px] text-white font-bold">+5</div>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/10 flex items-center gap-2">
+                        Request Quote
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Feed Item 2 -->
+<article class="bg-slate-900/50 border border-white/5 rounded-xl overflow-hidden shadow-xl">
+<div class="p-4 flex items-center gap-2">
+<span class="text-xs text-slate-500 font-medium">Paris Office • Yesterday, 4:20 PM</span>
+</div>
+<div class="px-4">
+<div class="aspect-[16/9] w-full rounded-lg bg-slate-800 overflow-hidden relative">
+<img alt="Luxury handbags and accessories" class="w-full h-full object-cover" data-alt="Display of high-end luxury designer leather handbags" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrxnJeMRwqyNYIlsI3fn0DkfcHFMNTjn10dU3juBZwS0lfJa48BoONQl7i22RFELjk31OUcQ_mKHfya3vUfduJV_ffr7vXenk-ojMvfScysA21NpmKLwTei9_18qMD70FFmC7Fl7bT2eUhB35dupHCcpN1MhK9nK_4I-6vqxnp3wEWdZ-Z9joiOvs-fTv2OZqP0EWkBXIZAtQp4peBCsLJ_9rC4EoMfFP25HwvBpzRIPVs7rqrtyeYDwAadvg8cmDdjDs6Xny-lt_T"/>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-tighter">
+                        Consolidated Ship
+                    </div>
+</div>
+</div>
+<div class="p-4 space-y-3">
+<h3 class="text-white text-lg font-bold leading-snug">Luxury Apparel &amp; Accessories</h3>
+<p class="text-slate-400 text-sm leading-relaxed">
+                    Consolidated shipment arriving next week at our central processing facility. Guaranteed temperature-controlled storage and premium white-glove handling for all designer goods.
+                </p>
+<div class="pt-2 flex items-center justify-between border-t border-white/5">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-500 text-sm">schedule</span>
+<span class="text-slate-500 text-xs font-medium">ETA 4 Days</span>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/10 flex items-center gap-2">
+                        Request Quote
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Feed Item 3 (Small Notification Style) -->
+<div class="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-4">
+<div class="mt-0.5">
+<span class="material-symbols-outlined text-primary">info</span>
+</div>
+<div class="flex-1">
+<h4 class="text-white text-sm font-bold">New Shipping Policy Update</h4>
+<p class="text-slate-400 text-xs mt-1 leading-relaxed">Effective immediately, all electronics require original receipt verification before hub intake. Please update your profile documents.</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 z-50">
+<div class="max-w-2xl mx-auto flex items-center bg-slate-900/95 backdrop-blur-lg border-t border-white/10 px-4 pb-6 pt-2">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary group" href="#">
+<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 transition-colors group-active:scale-95">
+<span class="material-symbols-outlined fill-1">feed</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest">Feed</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 group" href="#">
+<div class="flex h-10 w-10 items-center justify-center rounded-xl transition-colors group-active:scale-95">
+<span class="material-symbols-outlined">package</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest">Orders</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 group" href="#">
+<div class="flex h-10 w-10 items-center justify-center rounded-xl transition-colors group-active:scale-95">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

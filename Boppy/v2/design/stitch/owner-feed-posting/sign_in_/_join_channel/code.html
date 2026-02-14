@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 - Secure Auth</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .otp-input:focus {
+            box-shadow: 0 0 0 2px rgba(60, 131, 246, 0.4);
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2390a7cb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center p-4">
+<!-- Container for Auth Flow -->
+<div class="w-full max-w-md bg-white dark:bg-[#182334] rounded-xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+<!-- Step 1: Phone Number Input -->
+<div class="flex flex-col p-8" id="step-1">
+<div class="flex flex-col items-center mb-8">
+<div class="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-4xl">local_shipping</span>
+</div>
+<h1 class="text-2xl font-bold tracking-tight text-center">BeamBoxV2</h1>
+<p class="text-slate-500 dark:text-slate-400 text-center mt-2 text-sm leading-relaxed">
+                    Please confirm your country code and enter your phone number.
+                </p>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col space-y-1.5">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 ml-1">Country</label>
+<select class="w-full h-12 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#101722] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none">
+<option value="+1">United States (+1)</option>
+<option value="+44">United Kingdom (+44)</option>
+<option value="+49">Germany (+49)</option>
+<option value="+91">India (+91)</option>
+<option value="+81">Japan (+81)</option>
+</select>
+</div>
+<div class="flex flex-col space-y-1.5">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 ml-1">Phone Number</label>
+<input class="w-full h-12 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#101722] text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="000 000 0000" type="tel"/>
+</div>
+</div>
+<div class="mt-10">
+<button class="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center group">
+                    Continue
+                    <span class="material-symbols-outlined ml-2 text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<div class="mt-8 p-4 bg-primary/5 border border-primary/10 rounded-lg">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-xl mt-0.5">verified_user</span>
+<p class="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                        BeamBoxV2 is an <span class="text-primary font-medium">invite-only</span> logistics network. Entry is strictly restricted to verified cargo partners and fulfillment agents.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Divider Line (Only visible if we were showing both, hidden for single flow) -->
+<hr class="border-slate-200 dark:border-slate-800 opacity-0 h-0"/>
+<!-- Step 2: OTP Verification (Stylistically part of the same flow) -->
+<!-- In a real app, this would be toggled via JS -->
+<div class="hidden flex flex-col p-8 border-t border-slate-200 dark:border-slate-800" id="step-2">
+<div class="flex items-center mb-6">
+<button class="size-10 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-2">
+<span class="material-symbols-outlined text-slate-400">arrow_back</span>
+</button>
+<h2 class="text-xl font-bold">Verification</h2>
+</div>
+<div class="text-center mb-8">
+<h3 class="text-lg font-semibold">Enter OTP</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    We've sent a 6-digit code to <span class="text-slate-900 dark:text-white font-medium">+1 (555) 0123</span>
+</p>
+</div>
+<div class="flex justify-between gap-2 mb-8">
+<input class="otp-input size-12 text-center text-xl font-bold bg-white dark:bg-[#101722] border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary outline-none transition-all" maxlength="1" type="text"/>
+<input class="otp-input size-12 text-center text-xl font-bold bg-white dark:bg-[#101722] border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary outline-none transition-all" maxlength="1" type="text"/>
+<input class="otp-input size-12 text-center text-xl font-bold bg-white dark:bg-[#101722] border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary outline-none transition-all" maxlength="1" type="text"/>
+<input class="otp-input size-12 text-center text-xl font-bold bg-white dark:bg-[#101722] border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary outline-none transition-all" maxlength="1" type="text"/>
+<input class="otp-input size-12 text-center text-xl font-bold bg-white dark:bg-[#101722] border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary outline-none transition-all" maxlength="1" type="text"/>
+<input class="otp-input size-12 text-center text-xl font-bold bg-white dark:bg-[#101722] border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary outline-none transition-all" maxlength="1" type="text"/>
+</div>
+<div class="space-y-4">
+<button class="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-lg shadow-primary/20">
+                    Verify &amp; Join
+                </button>
+<div class="text-center">
+<button class="text-sm text-primary font-medium hover:underline">
+                        Didn't get the code? Resend in 00:59
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer decoration -->
+<div class="fixed bottom-6 text-center w-full">
+<div class="flex items-center justify-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">Encrypted</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">shield</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">Verified</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">BeamBox v2.0.4</span>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Request - BeamBox V2 Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0b0e14",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex items-end sm:items-center justify-center p-0 sm:p-4">
+<!-- Bottom Sheet Container -->
+<div class="relative w-full max-w-lg bg-white dark:bg-[#111827] rounded-t-xl sm:rounded-xl shadow-2xl border-t border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-[90vh] sm:h-auto">
+<!-- BottomSheetHandle -->
+<div class="flex flex-col items-center pt-3 pb-2">
+<div class="h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+<div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-8">
+<!-- Hero Header -->
+<div class="flex items-center gap-4 py-6">
+<div class="h-24 w-24 rounded-lg bg-cover bg-center shrink-0 shadow-inner border border-slate-200 dark:border-slate-800" data-alt="High-tech modular industrial enclosure unit" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjvEbzFMPLsOY-a45WEPMLth7G6gDJ4bCoKNyqDpBmt6ArliEjo5SQtDcQ5IRmI-QviPF49QKj5NmsB8U-XjDKjqUZipJfYr9lxywBQmHR8I6B8xrzai93zL5D4c75AnQaN_qTH43nKfqnJgN8VbATnu-gq7GezEGbsCcg3RCCmk_eArPl2jiLLoSu6ezyc4gkG-N4d8-Y8e0PfDT11XU3uQL_491hAggc-V52oVr29AYFKFFgJCzZWiyr7S_8Uirr-kPyuUMTLo0y');">
+</div>
+<div class="flex flex-col gap-1">
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">BeamBox V2 Pro</h1>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-snug">High-performance modular enclosure for advanced manufacturing.</p>
+<p class="text-base font-semibold text-primary mt-1">$499.00 - $899.00</p>
+</div>
+</div>
+<!-- Status Badge (Requested) -->
+<div class="mb-6">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="text-xs font-semibold uppercase tracking-wider">Requested on Oct 24</span>
+</div>
+</div>
+<!-- Main Form -->
+<div class="space-y-6">
+<!-- Delivery Address -->
+<div class="space-y-2">
+<label class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+<span class="material-symbols-outlined text-[20px]">location_on</span>
+                        Delivery Address
+                    </label>
+<div class="relative group">
+<textarea class="w-full min-h-[100px] p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none" placeholder="Enter full address or building name...">Industrial Park 4, Suite 202, San Francisco, CA 94103</textarea>
+</div>
+</div>
+<!-- Quantity Selector -->
+<div class="space-y-3">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Quantity</label>
+<div class="flex items-center justify-between p-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 max-w-[160px]">
+<button class="w-10 h-10 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 active:scale-95 transition-all">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<span class="text-lg font-bold w-12 text-center text-slate-900 dark:text-white">1</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-md bg-white dark:bg-slate-800 text-primary shadow-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<!-- Specs/Details (Subtle friction reducer) -->
+<div class="pt-2">
+<div class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-500 font-medium">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                            Verified Seller
+                        </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">local_shipping</span>
+                            Ships in 3-5 days
+                        </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer CTA -->
+<div class="p-6 bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-slate-800">
+<div class="grid grid-cols-2 gap-3 mb-4">
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400 mb-1">Retail</span>
+<span class="text-lg font-bold text-primary">$899.00</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400 mb-1">Wholesale</span>
+<span class="text-lg font-bold text-primary">$749.00</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400 mb-1">Distributor</span>
+<span class="text-lg font-bold text-primary">$599.00</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400 mb-1">Bulk</span>
+<span class="text-lg font-bold text-primary">$499.00</span>
+</button>
+</div>
+<p class="text-center text-[11px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-medium">
+    Select a tier to request quote
+</p>
+</div>
+</div>
+</body></html>

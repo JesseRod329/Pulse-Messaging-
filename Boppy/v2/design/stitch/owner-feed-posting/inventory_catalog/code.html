@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 Inventory Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #223149;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto border-x border-primary/10 bg-background-light dark:bg-background-dark">
+<!-- Header Section -->
+<header class="bg-background-light dark:bg-background-dark/95 backdrop-blur-md pt-6 px-4 pb-2 z-20 sticky top-0 border-b border-primary/5">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl">box_edit</span>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Inventory</h1>
+<p class="text-xs font-medium text-primary/70">142 SKUs Active</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">sync</span>
+</button>
+<button class="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- High-Speed Search & Filter -->
+<div class="flex gap-2 mb-2">
+<div class="relative flex-1 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800 transition-all placeholder:text-slate-500" placeholder="Search items, SKUs..." type="text"/>
+</div>
+<button class="bg-slate-200/50 dark:bg-slate-800/50 px-3 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400">tune</span>
+</button>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold shadow-lg shadow-primary/20">All Items</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-semibold">Low Stock (8)</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-200/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 text-xs font-semibold">Electronics</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-200/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 text-xs font-semibold">Cables</button>
+</div>
+</header>
+<!-- Catalog List -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+<!-- Item Row: Low Stock Example -->
+<div class="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex gap-4 relative group">
+<div class="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-800 flex-shrink-0 overflow-hidden border border-amber-500/30">
+<img class="w-full h-full object-cover" data-alt="Ultra-Beam X1 professional spotlight product photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8_w8p96FlRpkwsbhTj5wBsP_raBwa0HQvQQtQ5_DE7JZHM3JLAdioeWT2uc1rIx9ja-J1gItay3Si1b2zndz8DJA6GMq7668ETxGP5mz7qSv8MOLAJXDxSKGlpc0UAtWp-8BMH7Ky_RvXU9u9gPdP5fTm9DMUgzKD0ouYi4M3M1UTZspxLQMpNGIQHZIYfGv1uzYtTFgvHhJ7njuS53MV199HcgIePu4Bt5mN-_1x2sq58M8t81pL1Ab3pJfDCEh-Z36Rj4lmtpyB"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Ultra-Beam X1</h3>
+<div class="text-right">
+<p class="text-lg font-mono font-bold text-amber-500">3</p>
+<p class="text-[10px] uppercase tracking-wider text-amber-500/70 font-bold">Units</p>
+</div>
+</div>
+<p class="text-xs text-slate-500 font-mono">SKU: BB-001</p>
+<div class="mt-2 flex items-center">
+<button class="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors uppercase">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+                            3 Active Orders
+                        </button>
+</div>
+</div>
+</div>
+<!-- Item Row: Normal Stock -->
+<div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 flex gap-4 relative group hover:border-primary/30 transition-all">
+<div class="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-800 flex-shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700/50">
+<img class="w-full h-full object-cover" data-alt="Fiber-Optic Cable 5m high-speed data transmission" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJcN7Ynq_9zRiQdXLI9A9RF_ovnlQPKDnXUTNtboWbN3hk1sEne0CgIJORjatkbGua3A4vl_VIcJnfb-Y_mdfipeVTg5D_0FmXZTXCdDpOjR5SX4nnRw-E8MQm-3j-hd1nQg3WEptpU7UeLa5aw61ZM5UA6qqwu80kpfBP7-aRPa1M1Djb-yyXKMEFadoQCSIlaKvEgB0_nzD7HiPv3m4UeCbWG5wmEX6v3c-UZmLCJnODH4bKa56zXcs9XFBrar3EuZKQkiq5c6sB"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Fiber-Optic 5m</h3>
+<div class="text-right">
+<p class="text-lg font-mono font-bold text-primary">84</p>
+<p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Units</p>
+</div>
+</div>
+<p class="text-xs text-slate-500 font-mono">SKU: FO-500-M</p>
+<div class="mt-2 flex items-center">
+<button class="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors uppercase">
+<span class="material-symbols-outlined text-sm">visibility</span>
+                            No Active Orders
+                        </button>
+</div>
+</div>
+</div>
+<!-- Item Row: Normal Stock -->
+<div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 flex gap-4 relative group hover:border-primary/30 transition-all">
+<div class="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-800 flex-shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700/50">
+<img class="w-full h-full object-cover" data-alt="Titanium Mounting Bracket heavy-duty industrial part" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnVzoofER9OngKCqCnlMzYNhdoOdjurvUf9akmGQSU39jFDeluvbmN6kpxIoanAMEM9rLkgXg0XPWWcrLkRsqEGArnNX9c5zRZ8OBBSTAOgfLfPS5qQ0XCpDu5XQ6LFTdL2-0IQbN7nP62odadAf7h0KYaiPsQd4R0lqKNTMlT2XX6itqsxCwfDqN2dvyiuFktBfx0KTJW_se-HIVKjPhkuLKZHpDCt91pgO9ir67fx2uQwSKcVM7KEbsxzZzoXgVTPLXDco9arFNT"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Titanium Bracket</h3>
+<div class="text-right">
+<p class="text-lg font-mono font-bold text-primary">12</p>
+<p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Units</p>
+</div>
+</div>
+<p class="text-xs text-slate-500 font-mono">SKU: MB-TIT-22</p>
+<div class="mt-2 flex items-center">
+<button class="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors uppercase">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+                            1 Active Order
+                        </button>
+</div>
+</div>
+</div>
+<!-- Item Row: Low Stock Example 2 -->
+<div class="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex gap-4 relative group">
+<div class="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-800 flex-shrink-0 overflow-hidden border border-amber-500/30">
+<img class="w-full h-full object-cover" data-alt="Beam-Control Unit v2 compact electronics hub" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSLTU0vlADVJsYjCJcmXdq8IbQ2Fj5z_25SSeiFvMT2uM-Pz6JiNc6JYfDvGp9G2I50YgJKCLmBNZzXsJ_q0IYKvemSVCo623lUGSYjbbsxHOx3nBKMS9E-Tm097OjDWvCoMayBfyUltSrEiXPZRfS6TiOhL3ETAE66z3h5GooxrOeuWY8EcNeFfSQz3pSjghD5wcq8sW6402jCsvQrnhkYJQWxiOuLbThFa-8xPjWFvV29qgXMAgra762YzeYaplVSFvKXg65M9AU"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Beam-Control v2</h3>
+<div class="text-right">
+<p class="text-lg font-mono font-bold text-amber-500">1</p>
+<p class="text-[10px] uppercase tracking-wider text-amber-500/70 font-bold">Unit</p>
+</div>
+</div>
+<p class="text-xs text-slate-500 font-mono">SKU: BC-V2-88</p>
+<div class="mt-2 flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors uppercase">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+                            5 Active Orders
+                        </button>
+<span class="text-[10px] text-amber-500 font-bold animate-pulse flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">priority_high</span> Critical
+                        </span>
+</div>
+</div>
+</div>
+<!-- Item Row: Normal Stock -->
+<div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 flex gap-4 relative group hover:border-primary/30 transition-all">
+<div class="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-800 flex-shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700/50">
+<img class="w-full h-full object-cover" data-alt="Safety Shield Clear protective polycarbonate sheet" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvEjGD95O0V8btuK4MWHGZTqnMSN7Pz8Ro1ygwZWnjbw4n_9G1lqJFLKEOrBsw771voLpEk59OYIQdS3itZ51AakW9nhNrEKxvFp3VLlMZ3VSL1v0BwXvxkkIPOVn6RgxQKYev8mm6NanVQhPpbeEGQCkOHCZCLottVnOXZHHnK-7t1UmCdDtjTHesXANb0okoJDKbzBjDLifTWvSy4KswanXvfj-5l740R13M39rULIYt_I-TKnVZ1hgGL-b5zyeXWO6S_2GthNK0"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Safety Shield Clear</h3>
+<div class="text-right">
+<p class="text-lg font-mono font-bold text-primary">242</p>
+<p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Units</p>
+</div>
+</div>
+<p class="text-xs text-slate-500 font-mono">SKU: SHLD-CLR-1</p>
+<div class="mt-2 flex items-center">
+<button class="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors uppercase">
+<span class="material-symbols-outlined text-sm">visibility</span>
+                            No Active Orders
+                        </button>
+</div>
+</div>
+</div>
+<div class="h-24"></div> <!-- Bottom spacer for FAB -->
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-background-light dark:bg-background-dark/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-6 pt-2 pb-6 flex justify-between items-center z-40 sticky bottom-0">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-icon">inventory_2</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Stock</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Orders</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Trends</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Setup</span>
+</a>
+</nav>
+</div>
+</body></html>

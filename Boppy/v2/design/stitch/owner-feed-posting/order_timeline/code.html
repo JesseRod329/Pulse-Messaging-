@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 | Order Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0b0e14",
+                        "card-dark": "#161b22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .timeline-line {
+            width: 2px;
+            background: linear-gradient(to bottom, #3c83f6 0%, #3c83f6 75%, #223149 75%, #223149 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<!-- Mobile Container Wrapper -->
+<div class="relative mx-auto min-h-screen max-w-md bg-background-light dark:bg-background-dark shadow-2xl flex flex-col">
+<!-- Header Card -->
+<header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<div>
+<h1 class="text-sm font-mono font-bold tracking-tight text-primary uppercase">#BXB-8829</h1>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-semibold">Immutable Ledger</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors">
+                    SUPPORT
+                </button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto p-6 space-y-8">
+<!-- Summary Card -->
+<section class="bg-white dark:bg-card-dark rounded-xl p-5 border border-slate-200 dark:border-white/5 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest">Current Status</span>
+<h2 class="text-xl font-bold mt-0.5">In Transit</h2>
+</div>
+<div class="bg-primary/20 text-primary px-2.5 py-1 rounded-full text-[10px] font-black uppercase">
+                        Priority
+                    </div>
+</div>
+<div class="flex items-center gap-4 py-3 border-t border-slate-100 dark:border-white/5">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up of a metallic shipping box" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfXF8CGuyXRPwDTfWydpB-xbxSQEWG42BdVrRSLrT_BhlQpFpnP8SbP47KkxV2RudCVEgDI9grM9WmeknzMQT5D0XCIf17JMOZ59T7ba7MkHn_iWZS-DX7JJPQhqfABI35p65ZVEta9xPztWavwEQDlom2QPuDMJqqeZsXr9DWPeyodnyraELPitM76RQKCtZtsMKGJ2Rkwk7zTdonzkXbSEbuvCwopgw5s_oHdI2hTIljnRwDA94uRD3nmJ7XY1hpKpPbyMXevoBg"/>
+</div>
+<div class="flex-1">
+<p class="text-xs text-slate-400 dark:text-slate-500">Estimated Arrival</p>
+<p class="text-sm font-semibold italic text-primary">Today, 2:30 PM (PST)</p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 dark:text-slate-500">Total Value</p>
+<p class="text-sm font-bold font-mono">$1,240.00</p>
+</div>
+</div>
+</section>
+<!-- The Ledger Timeline -->
+<section class="relative">
+<div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-white/5"></div>
+<!-- Active line overlay -->
+<div class="absolute left-[19px] top-4 h-[78%] w-0.5 bg-primary shadow-[0_0_10px_rgba(60,131,246,0.3)]"></div>
+<div class="space-y-10">
+<!-- Event: Requested -->
+<div class="relative flex gap-6 group">
+<div class="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white ring-4 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[20px] filled-icon">inventory_2</span>
+</div>
+<div class="flex flex-1 flex-col pt-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Order Requested</h3>
+<span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">09:12 AM</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">BeamBox system received digital manifest and verified cryptographic signatures.</p>
+<span class="text-[10px] mt-2 text-primary font-bold uppercase tracking-tighter">Verified • Oct 12</span>
+</div>
+</div>
+<!-- Event: Quoted -->
+<div class="relative flex gap-6 group">
+<div class="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white ring-4 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[20px] filled-icon">request_quote</span>
+</div>
+<div class="flex flex-1 flex-col pt-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Price Quoted</h3>
+<span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">10:05 AM</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Dynamic logistics pricing confirmed. Invoice #INV-8829 generated automatically.</p>
+</div>
+</div>
+<!-- Event: Assigned -->
+<div class="relative flex gap-6 group">
+<div class="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white ring-4 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[20px] filled-icon">engineering</span>
+</div>
+<div class="flex flex-1 flex-col pt-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Logistics Assigned</h3>
+<span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">11:42 AM</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Partner <span class="text-primary font-medium">ExpressCo Global</span> assigned to courier node.</p>
+</div>
+</div>
+<!-- Event: Out for Delivery (Current) -->
+<div class="relative flex gap-6 group">
+<div class="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white ring-4 ring-background-light dark:ring-background-dark shadow-[0_0_15px_rgba(60,131,246,0.5)]">
+<span class="material-symbols-outlined text-[20px] filled-icon">local_shipping</span>
+</div>
+<div class="flex flex-1 flex-col pt-1">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Out for Delivery</h3>
+<span class="text-[10px] font-mono text-primary animate-pulse">LIVE NOW</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Package is in transit. Driver <span class="text-white">John Doe</span> is 4.2 miles away.</p>
+<!-- Tracking Map Snippet -->
+<div class="mt-3 rounded-lg overflow-hidden border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-white/5 h-24 w-full relative">
+<img class="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-500" data-alt="Abstract stylized map view with route line" data-location="San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBYvRM3tbh0mGSch9zFkanTHLuqt08ywyhHiCiVxmOTCqpqoyKBlM6Lc0ausw9RfRuiQeYYmybySA-Ug4DsHWxvC5ek7jef9sl2Zzu7NEWg9OaIsjQH4Td1gakxwEpYknh9OuLcQvpzwqljtyz3kQfBZwB5vYQvCiDBuWl7zJCMtWC_5gaMrtXUYtbJLTny0J-0RbqI2NUhGAR4vSgY5O2NfPqUFotmgLjuaHsdtp4dtmSIT_HBw-As0BoKRYdD_jmtUfajUfjm9Jx"/>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-3 h-3 bg-primary rounded-full animate-ping"></div>
+<div class="w-2 h-2 bg-primary rounded-full absolute"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Event: Delivered (Pending) -->
+<div class="relative flex gap-6 group">
+<div class="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-600 ring-4 ring-background-light dark:ring-background-dark border border-dashed border-slate-300 dark:border-white/20">
+<span class="material-symbols-outlined text-[20px]">package_2</span>
+</div>
+<div class="flex flex-1 flex-col pt-1 opacity-50">
+<div class="flex justify-between items-start">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Delivered</h3>
+<span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">EST. 2:30 PM</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Awaiting final handover confirmation and signature.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation / Actions -->
+<footer class="mt-auto border-t border-slate-200 dark:border-white/5 bg-white dark:bg-card-dark p-4 pb-8">
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                    VIEW INVOICE
+                </button>
+<button class="w-14 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</footer>
+<!-- Custom Bottom Nav (Component) -->
+<nav class="flex gap-2 border-t border-slate-200 dark:border-white/5 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pb-4 pt-2">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-600" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">home</span>
+</div>
+<p class="text-[10px] font-medium uppercase tracking-widest">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined filled-icon">receipt</span>
+</div>
+<p class="text-[10px] font-medium uppercase tracking-widest">Ledger</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-600" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<p class="text-[10px] font-medium uppercase tracking-widest">Wallet</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-600" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-[10px] font-medium uppercase tracking-widest">Profile</p>
+</a>
+</nav>
+</div>
+</body></html>
