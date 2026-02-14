@@ -43,6 +43,37 @@ Ground-up rebuild for one-way invite channels and quote-based delivery orders.
   - `FeedOwnerComposerView.swift`
   - `FeedPostCardView.swift`
 
+## Stitch Integration Status
+
+### Implemented
+
+- Feed surface refactor:
+  - header strip + invite badge
+  - post card styling and follower request affordance
+- Orders surface refactor:
+  - inbox-style order card
+  - status pill
+  - ledger timeline component
+- Dispatch surface refactor:
+  - route summary header
+  - stop card states (pending/in-progress/completed)
+  - action bar for refresh/build route
+- Owner profile admin entry cards:
+  - inventory catalog (planned)
+  - channels/access (planned)
+  - ledger controls (view-oriented entry)
+
+### Deferred
+
+- Inventory CRUD and stock mutation flows (V1.5 backend + UI).
+- Tiered pricing selection in order request sheet.
+- Full admin destructive operations (policy-gated endpoints + audit UX).
+
+### Next Backend Requirements
+
+- Inventory endpoints (`inventory-upsert-item`, `inventory-adjust-stock`, `inventory-list`).
+- Admin endpoints for archive/delete flows with strict policy gating and ledger audit.
+
 ## Quick Start
 
 ### Backend
