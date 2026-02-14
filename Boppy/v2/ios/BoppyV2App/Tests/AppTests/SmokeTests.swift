@@ -12,4 +12,8 @@ final class SmokeTests: XCTestCase {
     func testOrdersComponentsCompile() {
         XCTAssertTrue(true, "Orders Stitch components are included in target and compile.")
     }
+
+    func testDispatchComponentsCompile() {
+        XCTAssertTrue(true, "Dispatch Stitch components are included in target and compile.")
+    }
 }
