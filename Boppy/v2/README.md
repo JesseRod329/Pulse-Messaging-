@@ -106,3 +106,7 @@ Ground-up rebuild for one-way invite channels and quote-based delivery orders.
 - `cd v2/ios/BoppyV2App && xcodegen generate`
 - `cd v2/ios/BoppyV2App && swift test`
 - `cd v2/backend/supabase/functions && deno check */index.ts`
+
+## Git Workflow
+
+- Follow `/Users/jesse/pulse/Boppy/v2/docs/git-workflow.md` for branch naming, verification gates, and merge policy.
