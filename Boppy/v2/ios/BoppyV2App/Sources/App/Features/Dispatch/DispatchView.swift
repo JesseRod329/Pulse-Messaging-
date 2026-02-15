@@ -244,34 +244,45 @@ struct DispatchView: View {
 
     private var dispatchHeader: some View {
         let remainingStops = primaryRoute?.stops.filter { $0.completedAt == nil }.count ?? 0
+        let statusLine: String = {
+            if routeDurationLabel == "No active route" {
+                return remainingStops == 0 ? "No active route" : "\(remainingStops) Stops Remaining"
+            }
+            return "\(remainingStops) stops • \(routeDurationLabel)"
+        }()
 
         return HStack(alignment: .top, spacing: 12) {
-            HStack(spacing: 10) {
-                mapIconButton(systemName: "line.3.horizontal", identifier: "dispatch.map.refreshMenu") {
-                    Task { await coordinator.refreshAll() }
+            mapIconButton(systemName: "line.3.horizontal", identifier: "dispatch.map.refreshMenu") {
+                Task { await coordinator.refreshAll() }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Text("Route Management")
+                        .font(.system(size: 21, weight: .bold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.92)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text("Route Management")
-                            .font(.system(size: 34, weight: .bold))
-                            .foregroundStyle(AppTheme.textPrimary)
-                            .lineLimit(1)
-                        if coordinator.user?.role == .owner {
-                            Text("OWNER")
-                                .font(.system(size: 10, weight: .bold))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 3)
-                                .background(AppTheme.accentBlue.opacity(0.18), in: Capsule())
-                                .foregroundStyle(AppTheme.accentBlue)
-                        }
+                HStack(spacing: 8) {
+                    if coordinator.user?.role == .owner {
+                        Text("OWNER")
+                            .font(.system(size: 10, weight: .bold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(AppTheme.accentBlue.opacity(0.18), in: Capsule())
+                            .foregroundStyle(AppTheme.accentBlue)
                     }
 
-                    Text("\(remainingStops) Stops Remaining • \(routeDurationLabel)")
-                        .font(.system(size: 13, weight: .semibold))
+                    Text(statusLine)
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AppTheme.textSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.92)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer(minLength: 8)
 

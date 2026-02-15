@@ -152,6 +152,8 @@ struct OrdersView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(filter.rawValue)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                         Text("\(count(for: filter))")
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
@@ -165,14 +167,14 @@ struct OrdersView: View {
                     .font(.subheadline.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 9)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(selectedFilter == filter ? AppTheme.accentBlue.opacity(0.30) : AppTheme.surface.opacity(0.88))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1)
-                        )
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(selectedFilter == filter ? AppTheme.accentBlue.opacity(0.30) : AppTheme.surface.opacity(0.88))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1)
+                    )
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
