@@ -5,32 +5,42 @@ struct FeedHeaderStrip: View {
     let subtitle: String
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 12) {
             Circle()
-                .fill(Color(red: 60 / 255, green: 131 / 255, blue: 246 / 255))
-                .frame(width: 36, height: 36)
+                .fill(AppTheme.accentBlue)
+                .frame(width: 44, height: 44)
                 .overlay {
-                    Image(systemName: "shippingbox.fill")
-                        .foregroundStyle(.white)
-                        .font(.system(size: 14, weight: .bold))
+                    Image(systemName: AppTheme.brandSymbolName)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .font(.system(size: 16, weight: .bold))
                 }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.headline.weight(.bold))
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(AppTheme.textPrimary)
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(AppTheme.success)
+                        .frame(width: 6, height: 6)
+                    Text(subtitle.uppercased())
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(AppTheme.success)
+                }
             }
 
             Spacer()
 
             InviteOnlyBadge()
         }
-        .padding(12)
+        .padding(AppTheme.cardPadding)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .fill(AppTheme.cardGradient)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 1)
         )
     }
 }

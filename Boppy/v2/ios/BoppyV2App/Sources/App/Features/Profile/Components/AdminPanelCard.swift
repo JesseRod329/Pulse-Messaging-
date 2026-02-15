@@ -9,30 +9,42 @@ struct AdminPanelCard: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(red: 60 / 255, green: 131 / 255, blue: 246 / 255).opacity(0.14))
+                    .fill(iconColor.opacity(0.16))
                     .frame(width: 38, height: 38)
                 Image(systemName: icon)
-                    .foregroundStyle(Color(red: 60 / 255, green: 131 / 255, blue: 246 / 255))
+                    .foregroundStyle(iconColor)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.textPrimary)
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.textMuted)
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AppTheme.textMuted)
         }
-        .padding(12)
+        .padding(AppTheme.cardPadding)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .fill(AppTheme.cardGradient)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 1)
+        )
+    }
+
+    private var iconColor: Color {
+        if icon.contains("shield") {
+            return AppTheme.warning
+        }
+        return AppTheme.accentBlue
     }
 }

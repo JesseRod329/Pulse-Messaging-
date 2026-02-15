@@ -5,36 +5,57 @@ struct OrderStatusPill: View {
     let status: OrderStatus
 
     var body: some View {
-        Text(status.rawValue.replacingOccurrences(of: "_", with: " ").capitalized)
+        Text(title)
             .font(.caption2.weight(.bold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .foregroundStyle(foregroundColor)
             .background(backgroundColor, in: Capsule())
             .overlay(
                 Capsule()
-                    .stroke(foregroundColor.opacity(0.35), lineWidth: 1)
+                    .stroke(foregroundColor.opacity(0.38), lineWidth: 1)
             )
+    }
+
+    private var title: String {
+        switch status {
+        case .requested:
+            return "REQUESTED"
+        case .quoted:
+            return "QUOTED"
+        case .accepted:
+            return "ACCEPTED"
+        case .assigned:
+            return "ASSIGNED"
+        case .outForDelivery:
+            return "IN TRANSIT"
+        case .delivered:
+            return "DELIVERED"
+        case .cancelled:
+            return "CANCELLED"
+        case .addressReview:
+            return "REVIEW"
+        }
     }
 
     private var foregroundColor: Color {
         switch status {
         case .requested, .addressReview:
-            return .orange
+            return AppTheme.warning
         case .quoted:
-            return Color(red: 60 / 255, green: 131 / 255, blue: 246 / 255)
+            return AppTheme.accentBlue
         case .accepted, .assigned:
-            return .green
+            return AppTheme.success
         case .outForDelivery:
-            return .indigo
+            return AppTheme.accentBlueSoft
         case .delivered:
-            return .mint
+            return AppTheme.success
         case .cancelled:
-            return .red
+            return AppTheme.danger
         }
     }
 
     private var backgroundColor: Color {
-        foregroundColor.opacity(0.14)
+        foregroundColor.opacity(0.18)
     }
 }

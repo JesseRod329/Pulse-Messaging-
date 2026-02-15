@@ -62,17 +62,26 @@ Ground-up rebuild for one-way invite channels and quote-based delivery orders.
   - inventory catalog (planned)
   - channels/access (planned)
   - ledger controls (view-oriented entry)
+- Inventory + admin backend domain:
+  - schema + RLS for inventory, line items, admin audit
+  - inventory CRUD/list/adjust endpoints
+  - admin archive/delete/unassign/membership/audit listing endpoints
+  - order line-item replace-upsert with channel-scoped inventory reference validation
+  - order status to inventory linkage (reserve on accepted, restock on cancelled)
 
 ### Deferred
 
-- Inventory CRUD and stock mutation flows (V1.5 backend + UI).
 - Tiered pricing selection in order request sheet.
-- Full admin destructive operations (policy-gated endpoints + audit UX).
+- Inventory reservation strategy upgrades (backorder mode + hold expiry + reconciliation jobs).
+- Full admin destructive UX polish across iOS + admin web.
 
 ### Next Backend Requirements
 
-- Inventory endpoints (`inventory-upsert-item`, `inventory-adjust-stock`, `inventory-list`).
-- Admin endpoints for archive/delete flows with strict policy gating and ledger audit.
+- Expand backend automated tests for:
+  - status-transition legality
+  - route reorder and stop completion constraints
+  - inventory reserve/restock edge cases
+- Add endpoint-level rate limiting for sensitive mutations.
 
 ## Quick Start
 

@@ -1,0 +1,815 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		04121975BB398A5CEA486C7B /* OrderRequestSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDB9B043060E596553C3001B /* OrderRequestSheet.swift */; };
+		08265E2EA4D9386DC83544A6 /* DispatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F67D9727F22640996D9FE5 /* DispatchView.swift */; };
+		091CD5D87132ABA7F7BDED18 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02FE370B62968FBDC51835C9 /* AppEnvironment.swift */; };
+		0B675B70BD9A9BF44320ABC8 /* NoopAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7738BF3FB66A9312890B2D9 /* NoopAnalyticsService.swift */; };
+		1B0C1CCEDDEF4C78D28A5082 /* MainShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA0155D057E5DF18BBEC40D /* MainShellView.swift */; };
+		37526354B4C20D596A1276BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83F3359B9E9B2A10AE776629 /* Assets.xcassets */; };
+		3C77E648F333C08AE726B9B3 /* OrderStatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10FBD1B4837DEC7EC91C9D1E /* OrderStatusPill.swift */; };
+		4556DFECFDB196C394C3AA1B /* ScreenBackgroundModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F46566F24EAC76CB55ACCA8 /* ScreenBackgroundModifier.swift */; };
+		5494A09AD13CA3ABDE97E9E9 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401137F7FCBBA1CF323D1D3F /* AppRoute.swift */; };
+		5BCA30D7C32E5FFFA1CD33E2 /* PhoneAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E16CE200FBC01E052DA2442 /* PhoneAuthView.swift */; };
+		5C2D016A39213EC4DD8C1A45 /* AdminPanelCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939C1BF6F146DC40A1E574C2 /* AdminPanelCard.swift */; };
+		670EE4D1DC9283E2428E3520 /* OrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F02665F2FA7EE284629E051 /* OrdersView.swift */; };
+		6920C81B20D48D09107FB343 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159BF5993FFB0D2664AB53C6 /* ProfileView.swift */; };
+		6F37308D175B531830BE5FFE /* RouteSummaryHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE93C9612D3E8665B001005 /* RouteSummaryHeader.swift */; };
+		7FCB0E0B74CC1490CBEA2B71 /* InMemoryBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00211C602BCF6EDD2BA2C117 /* InMemoryBackend.swift */; };
+		83B5C1CE68141B28DA953E72 /* InviteOnlyBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDE83419208660629AFBD871 /* InviteOnlyBadge.swift */; };
+		847E22D7E54CF30136082D57 /* BoppyV2App.swift in Sources */ = {isa = PBXBuildFile; fileRef = D349B2F2ACAD6FD50A378968 /* BoppyV2App.swift */; };
+		88D902F959C0E7BF0DF70169 /* RouteStopCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332C9154B463C809092F3C29 /* RouteStopCard.swift */; };
+		8EC852C8D775E661D36EC30E /* LiveSupabaseBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349E9B1D52EEF549A0121717 /* LiveSupabaseBackend.swift */; };
+		9E0C4E1C163733B18C2DFB25 /* LedgerTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91389C37A5FFE874A58CE260 /* LedgerTimelineView.swift */; };
+		9F9C672C00FB659063043E5C /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F581E4BEDD9AB65E120B12 /* SupabaseConfig.swift */; };
+		A666E98C1686D5D1DDA27EA2 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DBA8EE59CD606678AD13B96 /* SmokeTests.swift */; };
+		AAD14BEC463C3C396F736677 /* FeedPostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBFDAD608EE9BD79AAB81B3E /* FeedPostCard.swift */; };
+		AAF7CA71C3C71BE535A6F8A8 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26997C75CD7DCC17CA248BE /* FeedView.swift */; };
+		AEECA90AE5E407AAB514C505 /* SupabaseRESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57D9A90B7616451C4865C44 /* SupabaseRESTClient.swift */; };
+		C02D1D412CE0A95EBC976A23 /* BoppyV2Core in Frameworks */ = {isa = PBXBuildFile; productRef = B3F672361D88A92AC66113B7 /* BoppyV2Core */; };
+		C417F95D12B488129F12E544 /* SupabaseSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F6AC291A75E687BEB40E3F6 /* SupabaseSessionStore.swift */; };
+		CB8A19E93738723ED3AB7DAA /* BoppyV2AppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C059BCD02780174D1D3B94 /* BoppyV2AppUITests.swift */; };
+		D8AE3EB916D1AB00BF4A134E /* DispatchActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB0BC0EA0E99A7250187FD81 /* DispatchActionBar.swift */; };
+		E6F73A28F8BB5AB34AC9017D /* OrderInboxCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C646D6B1E21A77B50B0ECC /* OrderInboxCard.swift */; };
+		EA88D623592534D2A0853C14 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D772819B3D18627ED9B297EC /* AppTheme.swift */; };
+		EF8912DAA57B9339C2B6FBAB /* FeedHeaderStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9AACDD76264F382A2550E4 /* FeedHeaderStrip.swift */; };
+		F1702D9915F649A4EC4C48F4 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9AD3F414631B8FF8B6388F /* AppCoordinator.swift */; };
+		F93E897325CA98B8A040F93F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 384666AFA701E74D3E71587B /* RootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA46DFF0EFEA025D60A14ADA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E5EAC7524EC443301E010529 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C6EA84AB97DA21AE31587903;
+			remoteInfo = BoppyV2App;
+		};
+		F076D2ADE510E5778A545532 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E5EAC7524EC443301E010529 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C6EA84AB97DA21AE31587903;
+			remoteInfo = BoppyV2App;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00211C602BCF6EDD2BA2C117 /* InMemoryBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryBackend.swift; sourceTree = "<group>"; };
+		02FE370B62968FBDC51835C9 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		03180072CB1D367CBA88738A /* BoppyV2App */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BoppyV2App; path = .; sourceTree = SOURCE_ROOT; };
+		10FBD1B4837DEC7EC91C9D1E /* OrderStatusPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderStatusPill.swift; sourceTree = "<group>"; };
+		159BF5993FFB0D2664AB53C6 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		2A9AD3F414631B8FF8B6388F /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		332C9154B463C809092F3C29 /* RouteStopCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteStopCard.swift; sourceTree = "<group>"; };
+		349E9B1D52EEF549A0121717 /* LiveSupabaseBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSupabaseBackend.swift; sourceTree = "<group>"; };
+		384666AFA701E74D3E71587B /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		3BA0155D057E5DF18BBEC40D /* MainShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainShellView.swift; sourceTree = "<group>"; };
+		3BE93C9612D3E8665B001005 /* RouteSummaryHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteSummaryHeader.swift; sourceTree = "<group>"; };
+		3EB13B7770F1A226DCDE7186 /* BoppyV2AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BoppyV2AppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		401137F7FCBBA1CF323D1D3F /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		47CADDBC86745427EA4910BE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4DBA8EE59CD606678AD13B96 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		4F02665F2FA7EE284629E051 /* OrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersView.swift; sourceTree = "<group>"; };
+		7F46566F24EAC76CB55ACCA8 /* ScreenBackgroundModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenBackgroundModifier.swift; sourceTree = "<group>"; };
+		7F6AC291A75E687BEB40E3F6 /* SupabaseSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseSessionStore.swift; sourceTree = "<group>"; };
+		83C411C3A3598B46CCCD9E51 /* BoppyV2AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BoppyV2AppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		83F3359B9E9B2A10AE776629 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		91389C37A5FFE874A58CE260 /* LedgerTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerTimelineView.swift; sourceTree = "<group>"; };
+		939C1BF6F146DC40A1E574C2 /* AdminPanelCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminPanelCard.swift; sourceTree = "<group>"; };
+		943DC77321F6DBE85FAB4619 /* xcconfig.template */ = {isa = PBXFileReference; lastKnownFileType = text; path = xcconfig.template; sourceTree = "<group>"; };
+		9E16CE200FBC01E052DA2442 /* PhoneAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneAuthView.swift; sourceTree = "<group>"; };
+		A8F67D9727F22640996D9FE5 /* DispatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchView.swift; sourceTree = "<group>"; };
+		B26997C75CD7DCC17CA248BE /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
+		BB9AACDD76264F382A2550E4 /* FeedHeaderStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedHeaderStrip.swift; sourceTree = "<group>"; };
+		C1B783AD1BD8F04CA9253360 /* Boppy V2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Boppy V2.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D349B2F2ACAD6FD50A378968 /* BoppyV2App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoppyV2App.swift; sourceTree = "<group>"; };
+		D772819B3D18627ED9B297EC /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		D7738BF3FB66A9312890B2D9 /* NoopAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopAnalyticsService.swift; sourceTree = "<group>"; };
+		E4C646D6B1E21A77B50B0ECC /* OrderInboxCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderInboxCard.swift; sourceTree = "<group>"; };
+		EB0BC0EA0E99A7250187FD81 /* DispatchActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchActionBar.swift; sourceTree = "<group>"; };
+		EBFDAD608EE9BD79AAB81B3E /* FeedPostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCard.swift; sourceTree = "<group>"; };
+		EDB9B043060E596553C3001B /* OrderRequestSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderRequestSheet.swift; sourceTree = "<group>"; };
+		F1F581E4BEDD9AB65E120B12 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		F4C059BCD02780174D1D3B94 /* BoppyV2AppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoppyV2AppUITests.swift; sourceTree = "<group>"; };
+		F57D9A90B7616451C4865C44 /* SupabaseRESTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseRESTClient.swift; sourceTree = "<group>"; };
+		FDE83419208660629AFBD871 /* InviteOnlyBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteOnlyBadge.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		92679E3F83AD747891E4570A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C02D1D412CE0A95EBC976A23 /* BoppyV2Core in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0343CFC90C40855539BA88B3 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				EB0BC0EA0E99A7250187FD81 /* DispatchActionBar.swift */,
+				332C9154B463C809092F3C29 /* RouteStopCard.swift */,
+				3BE93C9612D3E8665B001005 /* RouteSummaryHeader.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		05B2015DB620D29C349D8047 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				83723BE000FCC2D479C4DBCC /* App */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		05BE398B3457B44F33829043 = {
+			isa = PBXGroup;
+			children = (
+				B2AEF585752542DFF27F0BAF /* Config */,
+				0C1160E1F85E733375B949B8 /* Packages */,
+				05B2015DB620D29C349D8047 /* Sources */,
+				2F01ABC2AA71489FAF143046 /* Tests */,
+				32477C28E1791F4A6C3710C9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0C1160E1F85E733375B949B8 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				03180072CB1D367CBA88738A /* BoppyV2App */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		0C5847A76AB4FF5397CD5420 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				159BF5993FFB0D2664AB53C6 /* ProfileView.swift */,
+				6DF9C99215DAC6178379BAA2 /* Components */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		167CF41BAF13CBB249D2EE8F /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				F4C059BCD02780174D1D3B94 /* BoppyV2AppUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		251AA8B22A0E58AC5520CBBB /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				91389C37A5FFE874A58CE260 /* LedgerTimelineView.swift */,
+				E4C646D6B1E21A77B50B0ECC /* OrderInboxCard.swift */,
+				10FBD1B4837DEC7EC91C9D1E /* OrderStatusPill.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		2F01ABC2AA71489FAF143046 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				E758B9E2D27342FAA0D8283F /* AppTests */,
+				167CF41BAF13CBB249D2EE8F /* UITests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		32477C28E1791F4A6C3710C9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C1B783AD1BD8F04CA9253360 /* Boppy V2.app */,
+				3EB13B7770F1A226DCDE7186 /* BoppyV2AppTests.xctest */,
+				83C411C3A3598B46CCCD9E51 /* BoppyV2AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		376712A28518A4DA6AE8EFDE /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				9E16CE200FBC01E052DA2442 /* PhoneAuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		3CE4E27EC47CC26F8553FE80 /* Dispatch */ = {
+			isa = PBXGroup;
+			children = (
+				A8F67D9727F22640996D9FE5 /* DispatchView.swift */,
+				0343CFC90C40855539BA88B3 /* Components */,
+			);
+			path = Dispatch;
+			sourceTree = "<group>";
+		};
+		43D734BDC770D9D6C0344305 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				00211C602BCF6EDD2BA2C117 /* InMemoryBackend.swift */,
+				349E9B1D52EEF549A0121717 /* LiveSupabaseBackend.swift */,
+				D7738BF3FB66A9312890B2D9 /* NoopAnalyticsService.swift */,
+				F1F581E4BEDD9AB65E120B12 /* SupabaseConfig.swift */,
+				F57D9A90B7616451C4865C44 /* SupabaseRESTClient.swift */,
+				7F6AC291A75E687BEB40E3F6 /* SupabaseSessionStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		48FFF97639A73448D25D11A8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				EDB9B043060E596553C3001B /* OrderRequestSheet.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		577C26C9F90B00ACEE962D55 /* Environment */ = {
+			isa = PBXGroup;
+			children = (
+				02FE370B62968FBDC51835C9 /* AppEnvironment.swift */,
+			);
+			path = Environment;
+			sourceTree = "<group>";
+		};
+		58411473998FD446674D3968 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				376712A28518A4DA6AE8EFDE /* Auth */,
+				3CE4E27EC47CC26F8553FE80 /* Dispatch */,
+				B26CAF48A12DFDF14FC58BE9 /* Feed */,
+				962BF69B823E64F1AEF4C328 /* Orders */,
+				0C5847A76AB4FF5397CD5420 /* Profile */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		6DF9C99215DAC6178379BAA2 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				939C1BF6F146DC40A1E574C2 /* AdminPanelCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		7FF7BDDC13DEEBF3EF70AACE /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				D772819B3D18627ED9B297EC /* AppTheme.swift */,
+				7F46566F24EAC76CB55ACCA8 /* ScreenBackgroundModifier.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		83723BE000FCC2D479C4DBCC /* App */ = {
+			isa = PBXGroup;
+			children = (
+				83F3359B9E9B2A10AE776629 /* Assets.xcassets */,
+				D349B2F2ACAD6FD50A378968 /* BoppyV2App.swift */,
+				47CADDBC86745427EA4910BE /* Info.plist */,
+				3BA0155D057E5DF18BBEC40D /* MainShellView.swift */,
+				384666AFA701E74D3E71587B /* RootView.swift */,
+				48FFF97639A73448D25D11A8 /* Components */,
+				8395ECD09520544DB1EA64F8 /* Coordinator */,
+				7FF7BDDC13DEEBF3EF70AACE /* Design */,
+				577C26C9F90B00ACEE962D55 /* Environment */,
+				58411473998FD446674D3968 /* Features */,
+				43D734BDC770D9D6C0344305 /* Services */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		8395ECD09520544DB1EA64F8 /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				2A9AD3F414631B8FF8B6388F /* AppCoordinator.swift */,
+				401137F7FCBBA1CF323D1D3F /* AppRoute.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		962BF69B823E64F1AEF4C328 /* Orders */ = {
+			isa = PBXGroup;
+			children = (
+				4F02665F2FA7EE284629E051 /* OrdersView.swift */,
+				251AA8B22A0E58AC5520CBBB /* Components */,
+			);
+			path = Orders;
+			sourceTree = "<group>";
+		};
+		B26CAF48A12DFDF14FC58BE9 /* Feed */ = {
+			isa = PBXGroup;
+			children = (
+				B26997C75CD7DCC17CA248BE /* FeedView.swift */,
+				E2E873E0887EB2AD83150E14 /* Components */,
+			);
+			path = Feed;
+			sourceTree = "<group>";
+		};
+		B2AEF585752542DFF27F0BAF /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				943DC77321F6DBE85FAB4619 /* xcconfig.template */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		E2E873E0887EB2AD83150E14 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				BB9AACDD76264F382A2550E4 /* FeedHeaderStrip.swift */,
+				EBFDAD608EE9BD79AAB81B3E /* FeedPostCard.swift */,
+				FDE83419208660629AFBD871 /* InviteOnlyBadge.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		E758B9E2D27342FAA0D8283F /* AppTests */ = {
+			isa = PBXGroup;
+			children = (
+				4DBA8EE59CD606678AD13B96 /* SmokeTests.swift */,
+			);
+			path = AppTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2C8D657ED6D58AB980FF2F6B /* BoppyV2AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E53E3EB5FAC77B17CCEA961 /* Build configuration list for PBXNativeTarget "BoppyV2AppTests" */;
+			buildPhases = (
+				223CA82DE4D7EFA6E9810F39 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B14F2CA8AF884B16BCD99AD8 /* PBXTargetDependency */,
+			);
+			name = BoppyV2AppTests;
+			packageProductDependencies = (
+			);
+			productName = BoppyV2AppTests;
+			productReference = 3EB13B7770F1A226DCDE7186 /* BoppyV2AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B5CD2272415FD4327DA7823F /* BoppyV2AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 143E29A7796D029C3969F5BC /* Build configuration list for PBXNativeTarget "BoppyV2AppUITests" */;
+			buildPhases = (
+				E40D10EDC8E2CA2FAE9ACFFC /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5FF5EDC287D83455A3A9E3BE /* PBXTargetDependency */,
+			);
+			name = BoppyV2AppUITests;
+			packageProductDependencies = (
+			);
+			productName = BoppyV2AppUITests;
+			productReference = 83C411C3A3598B46CCCD9E51 /* BoppyV2AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		C6EA84AB97DA21AE31587903 /* BoppyV2App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0972B3C71A6908B6E4F5099 /* Build configuration list for PBXNativeTarget "BoppyV2App" */;
+			buildPhases = (
+				15E8030246A12F13DA3F33F5 /* Sources */,
+				E4AD3C3678C5568D6A0DBD50 /* Resources */,
+				92679E3F83AD747891E4570A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BoppyV2App;
+			packageProductDependencies = (
+				B3F672361D88A92AC66113B7 /* BoppyV2Core */,
+			);
+			productName = BoppyV2App;
+			productReference = C1B783AD1BD8F04CA9253360 /* Boppy V2.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E5EAC7524EC443301E010529 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					B5CD2272415FD4327DA7823F = {
+						TestTargetID = C6EA84AB97DA21AE31587903;
+					};
+					C6EA84AB97DA21AE31587903 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A2469526BB62B56B5A52684D /* Build configuration list for PBXProject "BoppyV2App" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 05BE398B3457B44F33829043;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2E8BB60C944B97A690043F63 /* XCLocalSwiftPackageReference "." */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C6EA84AB97DA21AE31587903 /* BoppyV2App */,
+				2C8D657ED6D58AB980FF2F6B /* BoppyV2AppTests */,
+				B5CD2272415FD4327DA7823F /* BoppyV2AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E4AD3C3678C5568D6A0DBD50 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37526354B4C20D596A1276BB /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		15E8030246A12F13DA3F33F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C2D016A39213EC4DD8C1A45 /* AdminPanelCard.swift in Sources */,
+				F1702D9915F649A4EC4C48F4 /* AppCoordinator.swift in Sources */,
+				091CD5D87132ABA7F7BDED18 /* AppEnvironment.swift in Sources */,
+				5494A09AD13CA3ABDE97E9E9 /* AppRoute.swift in Sources */,
+				EA88D623592534D2A0853C14 /* AppTheme.swift in Sources */,
+				847E22D7E54CF30136082D57 /* BoppyV2App.swift in Sources */,
+				D8AE3EB916D1AB00BF4A134E /* DispatchActionBar.swift in Sources */,
+				08265E2EA4D9386DC83544A6 /* DispatchView.swift in Sources */,
+				EF8912DAA57B9339C2B6FBAB /* FeedHeaderStrip.swift in Sources */,
+				AAD14BEC463C3C396F736677 /* FeedPostCard.swift in Sources */,
+				AAF7CA71C3C71BE535A6F8A8 /* FeedView.swift in Sources */,
+				7FCB0E0B74CC1490CBEA2B71 /* InMemoryBackend.swift in Sources */,
+				83B5C1CE68141B28DA953E72 /* InviteOnlyBadge.swift in Sources */,
+				9E0C4E1C163733B18C2DFB25 /* LedgerTimelineView.swift in Sources */,
+				8EC852C8D775E661D36EC30E /* LiveSupabaseBackend.swift in Sources */,
+				1B0C1CCEDDEF4C78D28A5082 /* MainShellView.swift in Sources */,
+				0B675B70BD9A9BF44320ABC8 /* NoopAnalyticsService.swift in Sources */,
+				E6F73A28F8BB5AB34AC9017D /* OrderInboxCard.swift in Sources */,
+				04121975BB398A5CEA486C7B /* OrderRequestSheet.swift in Sources */,
+				3C77E648F333C08AE726B9B3 /* OrderStatusPill.swift in Sources */,
+				670EE4D1DC9283E2428E3520 /* OrdersView.swift in Sources */,
+				5BCA30D7C32E5FFFA1CD33E2 /* PhoneAuthView.swift in Sources */,
+				6920C81B20D48D09107FB343 /* ProfileView.swift in Sources */,
+				F93E897325CA98B8A040F93F /* RootView.swift in Sources */,
+				88D902F959C0E7BF0DF70169 /* RouteStopCard.swift in Sources */,
+				6F37308D175B531830BE5FFE /* RouteSummaryHeader.swift in Sources */,
+				4556DFECFDB196C394C3AA1B /* ScreenBackgroundModifier.swift in Sources */,
+				9F9C672C00FB659063043E5C /* SupabaseConfig.swift in Sources */,
+				AEECA90AE5E407AAB514C505 /* SupabaseRESTClient.swift in Sources */,
+				C417F95D12B488129F12E544 /* SupabaseSessionStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		223CA82DE4D7EFA6E9810F39 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A666E98C1686D5D1DDA27EA2 /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E40D10EDC8E2CA2FAE9ACFFC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB8A19E93738723ED3AB7DAA /* BoppyV2AppUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5FF5EDC287D83455A3A9E3BE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C6EA84AB97DA21AE31587903 /* BoppyV2App */;
+			targetProxy = F076D2ADE510E5778A545532 /* PBXContainerItemProxy */;
+		};
+		B14F2CA8AF884B16BCD99AD8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C6EA84AB97DA21AE31587903 /* BoppyV2App */;
+			targetProxy = AA46DFF0EFEA025D60A14ADA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0A3A675911095A4976F6BBF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BoppyV2App.app/BoppyV2App";
+			};
+			name = Debug;
+		};
+		3742C53A51396A5141A0E827 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BoppyV2App;
+			};
+			name = Debug;
+		};
+		3E5FB2DCA98D5767127644C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BoppyV2App.app/BoppyV2App";
+			};
+			name = Release;
+		};
+		77CDB28A0351334E2B9E5162 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 943DC77321F6DBE85FAB4619 /* xcconfig.template */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 594DG4D7YR;
+				INFOPLIST_FILE = Sources/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2;
+				PRODUCT_NAME = "Boppy V2";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7D4D8D15BC6A38746A59EDC4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Debug;
+		};
+		A6A3E832D124ED420415B3BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BoppyV2App;
+			};
+			name = Release;
+		};
+		B07BAF4722D13ABE7686366F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Release;
+		};
+		B24A982E0DDF4E0C2D434202 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 943DC77321F6DBE85FAB4619 /* xcconfig.template */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 594DG4D7YR;
+				INFOPLIST_FILE = Sources/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2;
+				PRODUCT_NAME = "Boppy V2";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		143E29A7796D029C3969F5BC /* Build configuration list for PBXNativeTarget "BoppyV2AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3742C53A51396A5141A0E827 /* Debug */,
+				A6A3E832D124ED420415B3BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4E53E3EB5FAC77B17CCEA961 /* Build configuration list for PBXNativeTarget "BoppyV2AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A3A675911095A4976F6BBF7 /* Debug */,
+				3E5FB2DCA98D5767127644C8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A2469526BB62B56B5A52684D /* Build configuration list for PBXProject "BoppyV2App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D4D8D15BC6A38746A59EDC4 /* Debug */,
+				B07BAF4722D13ABE7686366F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C0972B3C71A6908B6E4F5099 /* Build configuration list for PBXNativeTarget "BoppyV2App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77CDB28A0351334E2B9E5162 /* Debug */,
+				B24A982E0DDF4E0C2D434202 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		2E8BB60C944B97A690043F63 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B3F672361D88A92AC66113B7 /* BoppyV2Core */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BoppyV2Core;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E5EAC7524EC443301E010529 /* Project object */;
+}

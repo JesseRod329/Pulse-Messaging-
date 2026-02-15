@@ -1,0 +1,14 @@
+# SwiftPM
+**/.build/
+
+# Xcode
+**/DerivedData/
+**/*.xcuserstate
+**/xcuserdata/
+
+# General
+.DS_Store
+
+# Supabase local metadata
+backend/supabase/.temp/
+backend/supabase/supabase/.temp/
