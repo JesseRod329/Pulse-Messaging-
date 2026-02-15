@@ -41,6 +41,10 @@ final class AppCoordinator: ObservableObject {
     func bootstrap() async {
         do {
             user = try await environment.authService.currentSession()
+            if user == nil, environment.backendMode == .localDemo {
+                try await environment.authService.requestOTP(phoneE164: "+15550000001")
+                user = try await environment.authService.verifyOTP(phoneE164: "+15550000001", code: "123456")
+            }
             if user != nil {
                 startPollingLoop()
                 await refreshAll()
