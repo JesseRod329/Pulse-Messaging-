@@ -7,15 +7,15 @@ struct MainShellView: View {
         ZStack(alignment: .bottom) {
             currentTabView
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.bottom, AppTheme.tabBarOverlayHeight + AppTheme.tabBarBottomInset)
                 .appScreenBackground()
-                .ignoresSafeArea(edges: .bottom)
+                .ignoresSafeArea(.container, edges: .bottom)
 
             customTabBar
                 .padding(.horizontal, 14)
                 .padding(.bottom, AppTheme.tabBarBottomInset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(.container, edges: .bottom)
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             normalizeSelectionIfNeeded()
