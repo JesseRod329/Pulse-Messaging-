@@ -23,18 +23,20 @@ struct FeedPostCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 11) {
             HStack {
                 Text("\(laneLabel) • \(dateLabel)")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(AppTheme.textMuted)
                 Spacer(minLength: 8)
-                Text(availabilityBadge)
-                    .font(.caption2.weight(.bold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(AppTheme.surface, in: Capsule())
-                    .foregroundStyle(AppTheme.textSecondary)
+                if post.postType != .text {
+                    Text(availabilityBadge)
+                        .font(.system(size: 9, weight: .bold))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 4)
+                        .background(AppTheme.surface, in: Capsule())
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
             }
 
             if post.postType != .text {
@@ -59,15 +61,15 @@ struct FeedPostCard: View {
                             .fill(AppTheme.surfaceElevated)
                     }
                 }
-                .frame(height: 170)
+                .frame(height: 186)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay(alignment: .topTrailing) {
                     if post.postType == .image || post.postType == .video {
                         Text(post.postType == .video ? "VIDEO" : "IMAGE")
-                            .font(.caption2.weight(.bold))
+                            .font(.system(size: 10, weight: .bold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(AppTheme.surface, in: Capsule())
+                            .background(Color.black.opacity(0.55), in: Capsule())
                             .foregroundStyle(AppTheme.textSecondary)
                             .padding(8)
                     }
@@ -76,14 +78,14 @@ struct FeedPostCard: View {
 
             if !headlineCaption.isEmpty {
                 Text(headlineCaption)
-                    .font(.title3.weight(.semibold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                     .lineLimit(2)
             }
 
             if let secondaryCaption {
                 Text(secondaryCaption)
-                    .font(.subheadline)
+                    .font(.system(size: 15, weight: .regular))
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(3)
             }
@@ -121,42 +123,39 @@ struct FeedPostCard: View {
                     }
 
                     HStack {
-                        Label(etaLabel, systemImage: "clock.fill")
-                            .font(.caption2.weight(.semibold))
+                        Label(etaLabel, systemImage: "clock")
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(AppTheme.textMuted)
                         Spacer()
                         Button {
                             onQuickOrder?()
                         } label: {
                             HStack(spacing: 4) {
-                                Text("Order")
-                                Image(systemName: "arrow.up.right.square")
+                                Text("Request Quote")
+                                Image(systemName: "arrow.right")
                             }
-                            .font(.caption.bold())
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(AppTheme.accentBlue, in: Capsule())
+                            .font(.system(size: 13, weight: .bold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(AppTheme.accentBlue)
+                            )
                             .foregroundStyle(AppTheme.textPrimary)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("feed.post.quickOrder")
                     }
-                    HStack(spacing: 4) {
-                        Text("Quick order card")
-                        Image(systemName: "chevron.up")
-                    }
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(AppTheme.textMuted)
                 }
             }
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AppTheme.cardGradient)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppTheme.surface.opacity(0.82))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
     }

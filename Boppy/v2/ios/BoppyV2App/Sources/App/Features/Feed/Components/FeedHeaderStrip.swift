@@ -8,23 +8,24 @@ struct FeedHeaderStrip: View {
         HStack(alignment: .center, spacing: 12) {
             Circle()
                 .fill(AppTheme.accentBlue)
-                .frame(width: 44, height: 44)
+                .frame(width: 42, height: 42)
                 .overlay {
                     Image(systemName: AppTheme.brandSymbolName)
                         .foregroundStyle(AppTheme.textPrimary)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                 }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.title3.weight(.bold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                 HStack(spacing: 6) {
                     Circle()
                         .fill(AppTheme.success)
                         .frame(width: 6, height: 6)
-                    Text(subtitle.uppercased())
-                        .font(.caption2.weight(.bold))
+                    Text(subtitle.uppercased().replacingOccurrences(of: "CHANNEL", with: "CHANNEL"))
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(0.7)
                         .foregroundStyle(AppTheme.success)
                 }
             }
@@ -36,7 +37,7 @@ struct FeedHeaderStrip: View {
         .padding(AppTheme.cardPadding)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.cardGradient)
+                .fill(AppTheme.surface.opacity(0.92))
         )
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)

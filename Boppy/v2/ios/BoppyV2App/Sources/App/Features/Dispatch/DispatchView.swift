@@ -54,6 +54,7 @@ struct DispatchView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
+                dispatchHeader
                 mapHero
                 routesContent
             }
@@ -82,14 +83,14 @@ struct DispatchView: View {
         GeometryReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 10) {
-                    RouteSummaryHeader(
-                        route: primaryRoute,
-                        isOwner: coordinator.user?.role == .owner,
-                        routeDurationLabel: routeDurationLabel,
-                        nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route"
-                    )
-
                     if coordinator.routes.isEmpty {
+                        RouteSummaryHeader(
+                            route: primaryRoute,
+                            isOwner: coordinator.user?.role == .owner,
+                            routeDurationLabel: routeDurationLabel,
+                            nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route"
+                        )
+
                         emptyStateCard
 
                         if coordinator.user?.role == .owner {
@@ -119,29 +120,6 @@ struct DispatchView: View {
         let sortedStops = route.stops.sorted(by: { $0.stopIndex < $1.stopIndex })
         let currentStopID = sortedStops.first(where: { $0.completedAt == nil })?.id
         return VStack(spacing: 10) {
-            HStack(spacing: 8) {
-                Text(route.id.prefix(8).uppercased())
-                    .font(.caption2.weight(.bold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(AppTheme.surface.opacity(0.90), in: Capsule())
-                    .foregroundStyle(AppTheme.textSecondary)
-
-                Text(route.status.rawValue.replacingOccurrences(of: "_", with: " ").capitalized)
-                    .font(.caption2.weight(.bold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(routeStatusColor(route.status).opacity(0.18), in: Capsule())
-                    .foregroundStyle(routeStatusColor(route.status))
-
-                Spacer()
-
-                Text("Driver \(route.driverID.suffix(4))")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppTheme.textMuted)
-            }
-            .padding(.horizontal, 4)
-
             ForEach(Array(sortedStops.enumerated()), id: \.element.id) { index, stop in
                 let stopOrder = coordinator.orders.first(where: { $0.id == stop.orderID })
                 RouteStopCard(
@@ -149,7 +127,7 @@ struct DispatchView: View {
                     route: route,
                     order: stopOrder,
                     canReorder: canReorder(route: route),
-                    canComplete: coordinator.user?.role == .driver || coordinator.user?.role == .owner,
+                    canComplete: coordinator.user?.role == .driver,
                     isCurrentStop: stop.id == currentStopID,
                     isLastStop: index == sortedStops.count - 1,
                     onMoveUp: {
@@ -175,15 +153,6 @@ struct DispatchView: View {
                 )
             }
         }
-        .padding(AppTheme.cardPadding)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.75))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
-        )
     }
 
     private func canReorder(route: DeliveryRoute) -> Bool {
@@ -273,20 +242,71 @@ struct DispatchView: View {
         )
     }
 
+    private var dispatchHeader: some View {
+        let remainingStops = primaryRoute?.stops.filter { $0.completedAt == nil }.count ?? 0
+
+        return HStack(alignment: .top, spacing: 12) {
+            HStack(spacing: 10) {
+                mapIconButton(systemName: "line.3.horizontal", identifier: "dispatch.map.refreshMenu") {
+                    Task { await coordinator.refreshAll() }
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("Route Management")
+                            .font(.system(size: 34, weight: .bold))
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .lineLimit(1)
+                        if coordinator.user?.role == .owner {
+                            Text("OWNER")
+                                .font(.system(size: 10, weight: .bold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(AppTheme.accentBlue.opacity(0.18), in: Capsule())
+                                .foregroundStyle(AppTheme.accentBlue)
+                        }
+                    }
+
+                    Text("\(remainingStops) Stops Remaining • \(routeDurationLabel)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            HStack(spacing: 8) {
+                mapIconButton(systemName: "scope", identifier: "dispatch.map.recenter") {
+                    syncMapCamera()
+                }
+                mapIconButton(systemName: "gearshape.fill", identifier: "dispatch.map.refreshSettings") {
+                    Task { await coordinator.refreshAll() }
+                }
+            }
+        }
+        .padding(.horizontal, AppTheme.screenHorizontalPadding)
+        .padding(.top, 8)
+        .padding(.bottom, 10)
+        .background(AppTheme.navBar.opacity(0.97))
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(AppTheme.border.opacity(0.5))
+                .frame(height: 1)
+        }
+    }
+
     private var mapHero: some View {
         let activeRoute = primaryRoute
-        let remainingStops = activeRoute?.stops.filter { $0.completedAt == nil }.count ?? 0
-        let activeStop = primaryActiveStop
         let activeOrder = primaryActiveOrder
 
-        return ZStack(alignment: .topLeading) {
+        return ZStack(alignment: .bottomLeading) {
             Map(position: $mapPosition) {
                 UserAnnotation()
 
                 ForEach(routePins(for: activeRoute), id: \.id) { order in
                     if let lat = order.lat, let lng = order.lng {
                         Marker(order.deliveryAddress.line1, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
-                            .tint(order.id == activeStop?.orderID ? AppTheme.accentBlue : AppTheme.textMuted)
+                            .tint(order.id == primaryActiveStop?.orderID ? AppTheme.accentBlue : AppTheme.textMuted)
                     }
                 }
 
@@ -306,101 +326,61 @@ struct DispatchView: View {
             .accessibilityIdentifier("dispatch.map")
 
             LinearGradient(
-                colors: [Color.black.opacity(0.42), Color.clear, Color.black.opacity(0.50)],
-                startPoint: .top,
+                colors: [Color.clear, Color.black.opacity(0.34), Color.black.opacity(0.52)],
+                startPoint: .center,
                 endPoint: .bottom
             )
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    HStack(spacing: 10) {
-                        mapIconButton(systemName: "line.3.horizontal", identifier: "dispatch.map.refreshMenu") {
-                            Task { await coordinator.refreshAll() }
-                        }
-                        Text("Route Management")
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(AppTheme.textPrimary)
-                    }
-                    Spacer()
-                    HStack(spacing: 8) {
-                        mapIconButton(systemName: "scope", identifier: "dispatch.map.recenter") {
-                            syncMapCamera()
-                        }
-                        mapIconButton(systemName: "gearshape.fill", identifier: "dispatch.map.refreshSettings") {
-                            Task { await coordinator.refreshAll() }
-                        }
-                    }
+            HStack(alignment: .bottom, spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("NEXT STOP")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.8)
+                        .foregroundStyle(AppTheme.accentBlue)
+                    Text(activeOrder.map(nextStopLabel(for:)) ?? "Waiting for route")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .lineLimit(1)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(AppTheme.navBar.opacity(0.92), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(AppTheme.border.opacity(0.8), lineWidth: 1)
+                )
 
-                HStack(spacing: 8) {
-                    if coordinator.user?.role == .owner {
-                        Text("OWNER")
-                            .font(.caption2.weight(.bold))
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(AppTheme.accentBlue.opacity(0.22), in: Capsule())
-                            .foregroundStyle(AppTheme.accentBlue)
-                    }
-                    Text("\(remainingStops) Stops Remaining • \(routeDurationLabel)")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary)
+                Button {
+                    buildOrOptimizeRoute()
+                } label: {
+                    Label("Optimize", systemImage: "sparkles")
+                        .font(.system(size: 12, weight: .bold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
                 }
+                .buttonStyle(.plain)
+                .foregroundStyle(AppTheme.textPrimary)
+                .background(AppTheme.navBar.opacity(0.92), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(AppTheme.border.opacity(0.8), lineWidth: 1)
+                )
+                .disabled(selectedDriverID.isEmpty || coordinator.user?.role != .owner)
+                .accessibilityIdentifier("dispatch.optimizeInline")
 
-                Spacer(minLength: 0)
-
-                HStack(alignment: .bottom, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("NEXT STOP")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(AppTheme.accentBlue)
-                        Text(activeOrder.map(nextStopLabel(for:)) ?? "Waiting for route")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(AppTheme.textPrimary)
-                            .lineLimit(1)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
-                    .background(AppTheme.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                    Button {
-                        buildOrOptimizeRoute()
-                    } label: {
-                        Label("Optimize", systemImage: "sparkles")
-                            .font(.caption.weight(.bold))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(AppTheme.surface.opacity(0.96))
-                    .disabled(selectedDriverID.isEmpty || coordinator.user?.role != .owner)
-                    .accessibilityIdentifier("dispatch.optimizeInline")
-
-                    Button {
-                        syncMapCamera()
-                    } label: {
-                        Image(systemName: "location.north.fill")
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.textPrimary)
-                            .frame(width: 42, height: 42)
-                            .background(AppTheme.accentBlue, in: Circle())
-                    }
-                    .accessibilityIdentifier("dispatch.recenterInline")
-
-                    Button {
-                        openActiveStopInMaps()
-                    } label: {
-                        Image(systemName: "car.fill")
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.textPrimary)
-                            .frame(width: 42, height: 42)
-                            .background(AppTheme.surface.opacity(0.90), in: Circle())
-                    }
-                    .disabled(activeOrder?.lat == nil || activeOrder?.lng == nil)
-                    .accessibilityIdentifier("dispatch.openAppleMaps")
+                Button {
+                    openActiveStopInMaps()
+                } label: {
+                    Image(systemName: "location.north.fill")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .frame(width: 48, height: 48)
+                        .background(AppTheme.accentBlue, in: Circle())
                 }
+                .disabled(activeOrder?.lat == nil || activeOrder?.lng == nil)
+                .accessibilityIdentifier("dispatch.openAppleMaps")
             }
             .padding(.horizontal, AppTheme.screenHorizontalPadding)
-            .padding(.top, 10)
             .padding(.bottom, 14)
 
             if isRoutePathLoading {
@@ -418,7 +398,7 @@ struct DispatchView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 270)
+        .frame(height: 300)
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(AppTheme.border.opacity(0.75))
@@ -447,10 +427,10 @@ struct DispatchView: View {
     private func mapIconButton(systemName: String, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.subheadline.weight(.bold))
+                .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(AppTheme.textPrimary)
-                .frame(width: 36, height: 36)
-                .background(AppTheme.surface.opacity(0.90), in: Circle())
+                .frame(width: 40, height: 40)
+                .background(AppTheme.surface.opacity(0.94), in: Circle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)

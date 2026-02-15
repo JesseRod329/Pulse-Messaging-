@@ -11,7 +11,6 @@ struct MainShellView: View {
                 .ignoresSafeArea(.container, edges: .bottom)
 
             customTabBar
-                .padding(.horizontal, 14)
                 .padding(.bottom, AppTheme.tabBarBottomInset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -48,47 +47,44 @@ struct MainShellView: View {
     }
 
     private var customTabBar: some View {
-        HStack(spacing: 8) {
-            ForEach(availableTabs, id: \.self) { tab in
-                Button {
-                    coordinator.selectedTab = tab
-                } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: tabIcon(tab))
-                            .font(.system(size: 20, weight: .semibold))
-                        Text(tabTitle(tab))
-                            .font(.caption.weight(.semibold))
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.border.opacity(0.6))
+                .frame(height: 1)
+
+            HStack(spacing: 0) {
+                ForEach(availableTabs, id: \.self) { tab in
+                    Button {
+                        coordinator.selectedTab = tab
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: tabIcon(tab))
+                                .font(.system(size: 19, weight: .semibold))
+                                .frame(width: 34, height: 28)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                        .fill(coordinator.selectedTab == tab ? AppTheme.accentBlue.opacity(0.18) : .clear)
+                                )
+
+                            Text(tabTitle(tab).uppercased())
+                                .font(.system(size: 10, weight: .bold))
+                                .tracking(0.6)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 6)
+                        .padding(.bottom, 6)
+                        .foregroundStyle(coordinator.selectedTab == tab ? AppTheme.accentBlue : AppTheme.textMuted)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 9)
-                    .foregroundStyle(coordinator.selectedTab == tab ? AppTheme.accentBlue : AppTheme.textMuted)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(coordinator.selectedTab == tab ? AppTheme.accentBlue.opacity(0.18) : .clear)
-                    )
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("tab.\(tabTitle(tab).lowercased())")
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("tab.\(tabTitle(tab).lowercased())")
             }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 6)
+            .background(AppTheme.tabBar.opacity(0.95))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .center)
-        .background(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.tabBar.opacity(0.94), AppTheme.navBar.opacity(0.90)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.28), radius: 14, x: 0, y: 8)
+        .background(AppTheme.tabBar.opacity(0.95))
     }
 
     private var availableTabs: [MainTab] {
@@ -128,13 +124,13 @@ struct MainShellView: View {
     private func tabIcon(_ tab: MainTab) -> String {
         switch tab {
         case .feed:
-            return "photo.stack"
+            return "square.stack.3d.up.fill"
         case .orders:
-            return "shippingbox"
+            return "shippingbox.fill"
         case .dispatch:
-            return "map"
+            return "map.fill"
         case .profile:
-            return "person.crop.circle"
+            return "person.crop.circle.fill"
         }
     }
 }

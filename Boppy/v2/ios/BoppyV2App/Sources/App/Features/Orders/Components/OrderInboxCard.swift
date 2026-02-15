@@ -9,14 +9,14 @@ struct OrderInboxCard<Actions: View, Timeline: View>: View {
     @ViewBuilder let timeline: () -> Timeline
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 12) {
                 timelineRail
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(titleLine)
-                            .font(.headline.weight(.semibold))
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(AppTheme.textPrimary)
                             .lineLimit(1)
 
@@ -33,14 +33,14 @@ struct OrderInboxCard<Actions: View, Timeline: View>: View {
                     }
 
                     Text(subtitleLine)
-                        .font(.subheadline)
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(AppTheme.textSecondary)
                         .lineLimit(1)
 
                     HStack(spacing: 8) {
                         OrderStatusPill(status: order.status)
                         Text(detailLine)
-                            .font(.caption.weight(.semibold))
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(AppTheme.textMuted)
                             .lineLimit(1)
                         Spacer(minLength: 4)
@@ -92,22 +92,18 @@ struct OrderInboxCard<Actions: View, Timeline: View>: View {
             }
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AppTheme.cardGradient)
-        )
+        .background(AppTheme.surface.opacity(0.20), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppTheme.border.opacity(0.55), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.18), radius: 10, x: 0, y: 5)
     }
 
     private var timelineRail: some View {
         VStack(spacing: 0) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(statusColor.opacity(0.20))
-                .frame(width: 44, height: 44)
+                .frame(width: 42, height: 42)
                 .overlay {
                     Image(systemName: statusSymbol)
                         .font(.system(size: 16, weight: .bold))

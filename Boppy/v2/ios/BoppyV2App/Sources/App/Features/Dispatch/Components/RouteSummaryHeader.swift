@@ -8,14 +8,14 @@ struct RouteSummaryHeader: View {
     let nextStopLabel: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Route Summary")
-                    .font(.headline.weight(.bold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                 if isOwner {
                     Text("OWNER")
-                        .font(.caption2.weight(.bold))
+                        .font(.system(size: 10, weight: .bold))
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(AppTheme.accentBlue.opacity(0.20), in: Capsule())
@@ -35,35 +35,27 @@ struct RouteSummaryHeader: View {
             if let route {
                 HStack(spacing: 10) {
                     Label("\(remainingStops(route)) stops remaining", systemImage: "flag.checkered")
-                        .font(.caption.weight(.semibold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AppTheme.textSecondary)
                     Text("•")
                         .foregroundStyle(AppTheme.textMuted)
                     Text(routeDurationLabel)
-                        .font(.caption.weight(.semibold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
                 HStack(spacing: 8) {
                     Label("NEXT", systemImage: "location.fill")
-                        .font(.caption2.weight(.bold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(AppTheme.accentBlue)
                     Text(nextStopLabel)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
                 }
-
-                HStack(spacing: 8) {
-                    summaryChip(label: "Driver \(route.driverID.suffix(4))", tone: .neutral)
-                    summaryChip(label: "\(route.stops.count) total stops", tone: .accent)
-                    if route.approximate {
-                        summaryChip(label: "Fallback", tone: .warning)
-                    }
-                }
             } else {
                 Text("No active route yet")
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(AppTheme.textMuted)
             }
         }
@@ -71,7 +63,7 @@ struct RouteSummaryHeader: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.cardGradient)
+                .fill(AppTheme.surface.opacity(0.82))
         )
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
@@ -98,35 +90,5 @@ struct RouteSummaryHeader: View {
         case .cancelled:
             return AppTheme.danger
         }
-    }
-
-    private enum SummaryTone {
-        case accent
-        case warning
-        case neutral
-    }
-
-    private func summaryChip(label: String, tone: SummaryTone) -> some View {
-        let background: Color
-        let foreground: Color
-
-        switch tone {
-        case .accent:
-            background = AppTheme.accentBlue.opacity(0.18)
-            foreground = AppTheme.accentBlue
-        case .warning:
-            background = AppTheme.warning.opacity(0.18)
-            foreground = AppTheme.warning
-        case .neutral:
-            background = AppTheme.surface.opacity(0.75)
-            foreground = AppTheme.textSecondary
-        }
-
-        return Text(label)
-            .font(.caption2.weight(.bold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(background, in: Capsule())
-            .foregroundStyle(foreground)
     }
 }

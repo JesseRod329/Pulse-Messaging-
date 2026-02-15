@@ -7,19 +7,19 @@ struct DispatchActionBar: View {
     let optimizeDisabled: Bool
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             HStack(spacing: 0) {
                 navItem(icon: "point.topleft.down.curvedto.point.bottomright.up", label: "Routes", active: true)
                 navItem(icon: "clock.arrow.circlepath", label: "History", active: false)
                 navItem(icon: "person.fill", label: "Profile", active: false)
             }
-            .padding(6)
+            .padding(8)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(AppTheme.surface.opacity(0.82))
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(AppTheme.surface.opacity(0.92))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .stroke(AppTheme.border, lineWidth: 1)
             )
 
@@ -27,18 +27,18 @@ struct DispatchActionBar: View {
                 Button {
                     onOptimizeRoute()
                 } label: {
-                    Label("Optimize Route (Apple Maps)", systemImage: "sparkles")
-                        .font(.subheadline.weight(.semibold))
+                    Label("Optimize Route (Mapbox)", systemImage: "sparkles")
+                        .font(.system(size: 18, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 2)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("dispatch.optimizeRoute")
                 .foregroundStyle(AppTheme.textPrimary)
-                .padding(.vertical, 12)
+                .padding(.vertical, 13)
                 .background(
                     RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                        .fill(AppTheme.surface.opacity(0.88))
+                        .fill(AppTheme.surface.opacity(0.98))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
@@ -48,9 +48,9 @@ struct DispatchActionBar: View {
 
                 Button(action: onRefresh) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.subheadline.weight(.bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(AppTheme.textMuted)
-                        .frame(width: 42, height: 42)
+                        .frame(width: 44, height: 44)
                         .background(AppTheme.surface.opacity(0.88), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -64,49 +64,39 @@ struct DispatchActionBar: View {
             Button {
                 onSaveRouteChanges()
             } label: {
-                Label("Save Route Changes", systemImage: "square.and.arrow.down")
-                    .font(.headline.weight(.semibold))
+                Label("Save Route Changes", systemImage: "square.and.arrow.down.fill")
+                    .font(.system(size: 22, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 2)
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("dispatch.saveRouteChanges")
             .foregroundStyle(AppTheme.textPrimary)
-            .padding(.vertical, 13)
+            .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
                     .fill(AppTheme.accentBlue)
             )
         }
-        .padding(.horizontal, AppTheme.cardPadding)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
+        .padding(.horizontal, 2)
+        .padding(.top, 6)
+        .padding(.bottom, 6)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.surface, AppTheme.navBar],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
+            AppTheme.navBar.opacity(0.94)
         )
     }
 
     private func navItem(icon: String, label: String, active: Bool) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.caption.weight(.semibold))
+                .font(.system(size: 16, weight: .semibold))
             Text(label)
-                .font(.caption2.weight(.semibold))
+                .font(.system(size: 10, weight: .bold))
+                .textCase(.uppercase)
         }
         .foregroundStyle(active ? AppTheme.accentBlue : AppTheme.textMuted)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 11, style: .continuous)
                 .fill(active ? AppTheme.accentBlue.opacity(0.18) : .clear)

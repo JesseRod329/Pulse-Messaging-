@@ -19,69 +19,69 @@ struct RouteStopCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(spacing: 0) {
-                if canReorder {
-                    HStack(spacing: 6) {
-                        Button(action: onMoveUp) {
-                            Image(systemName: "chevron.up")
-                        }
-                        .buttonStyle(.borderless)
-                        .disabled(stop.stopIndex == 0)
-                        .accessibilityIdentifier("dispatch.stop.moveUp")
-
-                        Button(action: onMoveDown) {
-                            Image(systemName: "chevron.down")
-                        }
-                        .buttonStyle(.borderless)
-                        .disabled(stop.stopIndex == route.stops.count - 1)
-                        .accessibilityIdentifier("dispatch.stop.moveDown")
+                HStack(spacing: 2) {
+                    Button(action: onMoveUp) {
+                        Image(systemName: "chevron.up")
                     }
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(AppTheme.textMuted)
-                    .padding(.bottom, 8)
+                    .buttonStyle(.borderless)
+                    .disabled(!canReorder || stop.stopIndex == 0)
+                    .accessibilityIdentifier("dispatch.stop.moveUp")
+
+                    Button(action: onMoveDown) {
+                        Image(systemName: "chevron.down")
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(!canReorder || stop.stopIndex == route.stops.count - 1)
+                    .accessibilityIdentifier("dispatch.stop.moveDown")
                 }
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(AppTheme.textMuted)
+                .opacity(canReorder ? 0.72 : 0.30)
+                .padding(.bottom, 8)
 
                 ZStack {
                     Circle()
-                        .fill(stop.completedAt == nil ? AppTheme.surfaceElevated : AppTheme.success.opacity(0.18))
-                        .frame(width: 34, height: 34)
+                        .fill(stop.completedAt == nil ? (isCurrentStop ? AppTheme.accentBlue : AppTheme.surfaceElevated) : AppTheme.success.opacity(0.18))
+                        .frame(width: 40, height: 40)
                     if stop.completedAt == nil {
                         Text("\(stop.stopIndex + 1)")
-                            .font(.caption.weight(.bold))
+                            .font(.system(size: 17, weight: .bold))
                             .foregroundStyle(AppTheme.textPrimary)
                     } else {
                         Image(systemName: "checkmark")
-                            .font(.caption.weight(.bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(AppTheme.success)
                     }
                 }
 
                 if !isLastStop {
                     Rectangle()
-                        .fill(AppTheme.border.opacity(0.84))
-                        .frame(width: 2, height: 58)
-                        .padding(.top, 8)
+                        .fill(AppTheme.border.opacity(0.72))
+                        .frame(width: 2, height: 72)
+                        .padding(.top, 6)
                 }
             }
-            .frame(width: 44)
+            .frame(width: 46)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(primaryLine)
-                        .font(.headline.weight(.semibold))
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
+                        .strikethrough(stop.completedAt != nil, color: AppTheme.textMuted)
                         .lineLimit(1)
                     Spacer()
                     statusBadge
                 }
 
                 Text(secondaryLine)
-                    .font(.caption)
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(2)
 
                 if let eta = stop.etaMinutes {
                     Text("ETA \(eta) min")
-                        .font(.caption.weight(.semibold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AppTheme.accentBlue)
                 }
 
@@ -95,12 +95,12 @@ struct RouteStopCard: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("dispatch.stop.call")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
-                    .padding(.vertical, 8)
-                    .background(AppTheme.surface.opacity(0.90), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.vertical, 9)
+                    .background(AppTheme.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 1)
                     )
                     .disabled(callURL == nil)
@@ -113,12 +113,12 @@ struct RouteStopCard: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("dispatch.stop.details")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
-                    .padding(.vertical, 8)
-                    .background(AppTheme.surface.opacity(0.90), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.vertical, 9)
+                    .background(AppTheme.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 1)
                     )
                 }
@@ -132,15 +132,16 @@ struct RouteStopCard: View {
                 }
             }
         }
-        .padding(12)
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(stopBackgroundStyle)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isCurrentStop ? AppTheme.accentBlue : AppTheme.border, lineWidth: isCurrentStop ? 1.6 : 1)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(isCurrentStop ? AppTheme.accentBlue : AppTheme.border.opacity(0.65), lineWidth: isCurrentStop ? 2 : 1)
         )
+        .opacity(stop.completedAt == nil ? 1 : 0.62)
     }
 
     private var callURL: URL? {
@@ -152,24 +153,28 @@ struct RouteStopCard: View {
         if isCurrentStop {
             return AnyShapeStyle(
                 LinearGradient(
-                    colors: [AppTheme.surfaceElevated.opacity(0.92), AppTheme.surface.opacity(0.96)],
+                    colors: [AppTheme.surfaceElevated.opacity(0.95), AppTheme.surface.opacity(0.98)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
         }
         if stop.completedAt != nil {
-            return AnyShapeStyle(AppTheme.surface.opacity(0.85))
+            return AnyShapeStyle(AppTheme.surface.opacity(0.62))
         }
-        return AnyShapeStyle(AppTheme.cardGradient)
+        return AnyShapeStyle(AppTheme.surface.opacity(0.86))
     }
 
     private var statusBadge: some View {
         Text(stopStateText.uppercased())
-            .font(.caption2.weight(.bold))
-            .padding(.horizontal, 10)
+            .font(.system(size: 10, weight: .bold))
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(stopStateColor.opacity(0.18), in: Capsule())
+            .background(stopStateColor.opacity(0.14), in: Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(stopStateColor.opacity(0.30), lineWidth: 1)
+            )
             .foregroundStyle(stopStateColor)
     }
 
@@ -218,14 +223,14 @@ struct RouteStopCard: View {
     private var stopStateText: String {
         if stop.completedAt != nil { return "Completed" }
         if isInProgress { return "In Progress" }
-        if isPending { return "Queued" }
+        if isPending { return "Pending" }
         return "Pending"
     }
 
     private var stopStateColor: Color {
         if stop.completedAt != nil { return AppTheme.success }
         if isInProgress { return AppTheme.accentBlue }
-        if isPending { return AppTheme.warning }
+        if isPending { return AppTheme.textMuted }
         return AppTheme.textMuted
     }
 }
