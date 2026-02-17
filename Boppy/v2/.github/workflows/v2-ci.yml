@@ -1,0 +1,39 @@
+name: boppy-v2-ci
+
+on:
+  push:
+    paths:
+      - "v2/**"
+  pull_request:
+    paths:
+      - "v2/**"
+
+jobs:
+  ios-core-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Xcode project
+        run: |
+          cd v2/ios/BoppyV2App
+          xcodegen generate
+      - name: Run core Swift tests
+        run: |
+          cd v2/ios/BoppyV2App
+          swift test
+
+  edge-function-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Typecheck edge functions
+        run: |
+          cd v2/backend/supabase/functions
+          deno check */index.ts
+      - name: Run edge function tests
+        run: |
+          cd v2/backend/supabase/functions
+          deno test **/*test.ts

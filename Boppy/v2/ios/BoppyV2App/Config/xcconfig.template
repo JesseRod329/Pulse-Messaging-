@@ -1,0 +1,5 @@
+// Copy this to a local xcconfig and set real values before production runs.
+SUPABASE_URL = https://YOUR-PROJECT.supabase.co
+SUPABASE_ANON_KEY = YOUR_SUPABASE_ANON_KEY
+SUPABASE_EDGE_BASE_URL = https://YOUR-PROJECT.functions.supabase.co
+MAPBOX_ACCESS_TOKEN = YOUR_MAPBOX_TOKEN

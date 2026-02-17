@@ -1,0 +1,260 @@
+:root {
+  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  line-height: 1.45;
+  font-weight: 400;
+  color: #101828;
+
+  --bg-top: #f4f9f8;
+  --bg-bottom: #ecf2f7;
+  --surface: #ffffff;
+  --surface-muted: #f5f8fb;
+  --ink: #101828;
+  --ink-muted: #475467;
+  --line: #d0d9e4;
+  --brand: #0b7285;
+  --brand-strong: #095c6b;
+  --danger: #b42318;
+  --danger-bg: #fef3f2;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--ink);
+  background: linear-gradient(145deg, var(--bg-top), var(--bg-bottom));
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  background: #fff;
+  color: var(--ink);
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--brand-strong);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+}
+
+.app-shell {
+  width: min(1100px, 100% - 2rem);
+  margin: 1.25rem auto 2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  padding: 1rem 0.2rem;
+}
+
+.hero .badge {
+  margin: 0;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.hero h1 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.5rem, 2.1vw, 2rem);
+}
+
+.hero .subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--ink-muted);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.95rem;
+  box-shadow: 0 10px 28px rgba(16, 24, 40, 0.06);
+}
+
+.panel-title {
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.helper {
+  margin: 0 0 0.7rem;
+  color: var(--ink-muted);
+}
+
+.steps-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.step-card {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+}
+
+.panel-subgrid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  align-items: end;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.checkbox {
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: start;
+  gap: 0.45rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.7rem;
+}
+
+.tab-button {
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+}
+
+.tab-button.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.quick-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.quick-grid button {
+  min-height: 48px;
+  text-align: left;
+}
+
+.panel-body.busy {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+details {
+  margin-top: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem;
+  background: var(--surface-muted);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.details-grid {
+  margin-top: 0.75rem;
+}
+
+.error-panel {
+  border-color: #f7b4ae;
+  background: var(--danger-bg);
+}
+
+.error-panel p {
+  margin: 0.35rem 0;
+}
+
+.result-summary {
+  margin: 0.4rem 0 0.7rem;
+  padding-left: 1.1rem;
+}
+
+.result-panel pre {
+  background: #0f172a;
+  color: #d1fae5;
+  border-radius: 12px;
+  padding: 0.8rem;
+  margin: 0.65rem 0 0;
+  overflow: auto;
+  max-height: 420px;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 700px) {
+  .app-shell {
+    width: min(1100px, 100% - 1rem);
+    margin-top: 0.85rem;
+  }
+
+  .panel {
+    padding: 0.75rem;
+  }
+}

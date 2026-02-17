@@ -17,3 +17,11 @@ build/
 Pods/
 Carthage/
 *.xcodeproj/project.xcworkspace/xcuserdata/
+
+# BeamBox local artifacts
+Boppy/v2/.deriveddata/
+Boppy/v2/docs/reports/screens/
+Boppy/.gitignore
+_restore_7d0c704/
+_restore_ec87129/
+beamboxv2/

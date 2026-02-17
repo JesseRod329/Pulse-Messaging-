@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 - My Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto border-x border-slate-200 dark:border-slate-800">
+<!-- Header -->
+<header class="flex items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark border-b border-slate-200 dark:border-slate-800/50 sticky top-0 z-10">
+<div class="w-10 flex items-center">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+</div>
+<h1 class="text-lg font-bold tracking-tight">My Orders</h1>
+<div class="w-10 flex items-center justify-end">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">search</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto hide-scrollbar pb-24">
+<!-- Horizontal Filter Chips -->
+<div class="flex gap-2 p-4 overflow-x-auto hide-scrollbar bg-background-light dark:bg-background-dark sticky top-[61px] z-10">
+<button class="flex h-9 shrink-0 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-white">
+                    All
+                </button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-800 px-5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    Requested
+                </button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-800 px-5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    Quoted
+                </button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-800 px-5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    In Progress
+                </button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-800 px-5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    Completed
+                </button>
+</div>
+<!-- Orders List (Telegram Style) -->
+<div class="flex flex-col">
+<!-- Order Card 1 -->
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer border-b border-slate-100 dark:border-slate-800/30 transition-colors">
+<div class="relative">
+<div class="bg-primary/10 rounded-xl size-14 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">sensors</span>
+</div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-background-light dark:bg-background-dark rounded-full flex items-center justify-center p-0.5">
+<div class="size-full rounded-full bg-slate-400"></div>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="text-base font-semibold truncate">Industrial Sensor Kit</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">Requested</span>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">#BB-9021</p>
+<div class="flex items-center text-slate-400">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 2 -->
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer border-b border-slate-100 dark:border-slate-800/30 transition-colors">
+<div class="relative">
+<div class="bg-primary/10 rounded-xl size-14 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">settings_input_component</span>
+</div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-background-light dark:bg-background-dark rounded-full flex items-center justify-center p-0.5">
+<div class="size-full rounded-full bg-primary"></div>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="text-base font-semibold truncate">Pneumatic Actuator</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary">Quoted</span>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">#BB-8842</p>
+<div class="flex items-center text-slate-400">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 3 -->
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer border-b border-slate-100 dark:border-slate-800/30 transition-colors">
+<div class="relative">
+<div class="bg-primary/10 rounded-xl size-14 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">precision_manufacturing</span>
+</div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-background-light dark:bg-background-dark rounded-full flex items-center justify-center p-0.5">
+<div class="size-full rounded-full bg-orange-500"></div>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="text-base font-semibold truncate">CNC Milling Module</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-500">Processing</span>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">#BB-7729</p>
+<div class="flex items-center text-slate-400">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 4 -->
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer border-b border-slate-100 dark:border-slate-800/30 transition-colors">
+<div class="relative">
+<div class="bg-primary/10 rounded-xl size-14 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
+</div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-background-light dark:bg-background-dark rounded-full flex items-center justify-center p-0.5">
+<div class="size-full rounded-full bg-green-500"></div>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="text-base font-semibold truncate">Voltage Regulator</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-500">Out for Delivery</span>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">#BB-6540</p>
+<div class="flex items-center text-slate-400">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 5 (Completed) -->
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer border-b border-slate-100 dark:border-slate-800/30 transition-colors">
+<div class="relative opacity-60">
+<div class="bg-slate-200 dark:bg-slate-800 rounded-xl size-14 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500 text-3xl">hardware</span>
+</div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-background-light dark:bg-background-dark rounded-full flex items-center justify-center p-0.5">
+<div class="size-full rounded-full bg-slate-500"></div>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="text-base font-semibold truncate text-slate-400 dark:text-slate-500">Heavy Duty Clamps</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-600">Delivered</span>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-400 dark:text-slate-600 text-sm font-medium">#BB-4102</p>
+<div class="flex items-center text-slate-300 dark:text-slate-700">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800/50 flex justify-around items-center px-4 pb-6 pt-3 z-20">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-2xl">rss_feed</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-[0.05em] text-slate-400 dark:text-slate-500 group-hover:text-primary">Feed</span>
+</a>
+<a class="flex flex-col items-center gap-1 group relative" href="#">
+<div class="text-primary flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-2xl fill-[1]">package_2</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-[0.05em] text-primary">Orders</span>
+<div class="absolute -top-1 right-0 size-2 bg-primary rounded-full ring-2 ring-white dark:ring-background-dark"></div>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-2xl">account_circle</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-[0.05em] text-slate-400 dark:text-slate-500 group-hover:text-primary">Profile</span>
+</a>
+</nav>
+</div>
+</body></html>

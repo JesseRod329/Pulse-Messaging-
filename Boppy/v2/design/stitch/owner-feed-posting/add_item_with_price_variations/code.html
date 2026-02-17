@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add New Item - Inventory Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for media section */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- Header -->
+<header class="sticky top-0 z-10 flex items-center justify-between p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<button class="text-primary font-medium text-base">Cancel</button>
+<h1 class="text-lg font-bold tracking-tight">New Item</h1>
+<div class="w-12"></div> <!-- Spacer for centering -->
+</header>
+<main class="flex-1 overflow-y-auto pb-32">
+<!-- General Information Section -->
+<section class="mt-4 px-4">
+<div class="bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Item Name</span>
+<input class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600" placeholder="e.g. Wireless Mechanical Keyboard" type="text"/>
+</label>
+</div>
+<div class="p-4 border-b border-slate-200 dark:border-slate-800">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">SKU</span>
+<div class="flex items-center gap-2">
+<input class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600" placeholder="Scan or enter SKU" type="text"/>
+<button class="text-primary p-1 hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="barcode_scanner">barcode_scanner</span>
+</button>
+</div>
+</label>
+</div>
+<div class="p-4">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</span>
+<select class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 text-base appearance-none text-slate-900 dark:text-slate-100">
+<option disabled="" selected="" value="">Select category</option>
+<option value="electronics">Electronics</option>
+<option value="furniture">Furniture</option>
+<option value="office">Office Supplies</option>
+<option value="peripherals">Peripherals</option>
+</select>
+</label>
+</div>
+</div>
+</section>
+<!-- Media Section -->
+<section class="mt-6 px-4">
+<h3 class="px-1 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Media (Photos/Videos)</h3>
+<div class="flex gap-3 overflow-x-auto hide-scrollbar py-1">
+<!-- Add Button -->
+<button class="flex flex-col items-center justify-center min-w-[100px] h-[100px] rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/30 text-slate-400 hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-3xl" data-icon="add_a_photo">add_a_photo</span>
+</button>
+<!-- Placeholder Previews -->
+<div class="relative min-w-[100px] h-[100px] rounded-xl bg-slate-200 dark:bg-slate-800 overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="Close up of a keyboard" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWGgKWz7qhgWkgiMrYE8W75-KyFekCY450SqM2PPECkcODK3zw3xB2NX_M60J6nZmenApsf8mc3BS1C7vL4FJfH9CKov4kmIYpi2NfpRuO8nN1fmACbv0CFPkRHNYtgBsoR_3gYeG7ziNeVoT849v5F7SqQurc5zx9mF0VpEP6nW-XXkWI1jZZEQXJzAWL-oPtp5uTN79TX5DjmZMB_42CuPtSFcaipn37dIgTWI4M-pe8ZYy2jG35PMGXMb0IUXSiwEIXWRdKXvtv"/>
+<button class="absolute top-1 right-1 bg-black/50 rounded-full p-0.5 text-white">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span>
+</button>
+</div>
+<div class="relative min-w-[100px] h-[100px] rounded-xl bg-slate-200 dark:bg-slate-800 overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="Technical product box packaging" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrapbGv2i2lTORdti1-TPP-4joGFLz7uWzdtDs6rhHRkEPCGWeSA8kcmy5K_XOTkN5dxxRCAevhm0y8BFsfDvIdjVVpgXZTMj7ZiILfeLW2j8dUUNkn09-a1rwLWyKscmoqp9NMU3gLQHhSg3OPNZjgFWhf0DAZLJ2VzgD5Nc7kiZCnpL3OatzLR9J7f24KoHOzhRPQdPbpU4x4qwla0n2ir0eNOeACUOubIIZSyPu8tANzOm7ABPDmNlukDOdSeQcBn9RwIIa6S6d"/>
+<button class="absolute top-1 right-1 bg-black/50 rounded-full p-0.5 text-white">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Inventory Details Section -->
+<section class="mt-6 px-4">
+<div class="bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="grid">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Initial Quantity</span>
+<div class="flex items-center mt-1">
+<input class="block w-full bg-transparent border-none p-0 focus:ring-0 text-lg font-medium" type="number" value="0"/>
+<div class="flex flex-col gap-0.5">
+<button class="text-slate-400 hover:text-primary leading-none">
+<span class="material-symbols-outlined text-base" data-icon="keyboard_arrow_up">keyboard_arrow_up</span>
+</button>
+<button class="text-slate-400 hover:text-primary leading-none">
+<span class="material-symbols-outlined text-base" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+</label>
+</div>
+
+</div>
+<div class="p-4">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</span>
+<textarea class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 text-base resize-none placeholder:text-slate-400 dark:placeholder:text-slate-600" placeholder="Add detailed notes about the item..." rows="3"></textarea>
+</label>
+</div>
+</div>
+</section><section class="mt-6 px-4">
+<h3 class="px-1 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pricing Variations</h3>
+<div class="bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 divide-y divide-slate-200 dark:divide-slate-800">
+<!-- Variation 1 -->
+<div class="grid grid-cols-2">
+<div class="p-4 border-r border-slate-200 dark:border-slate-800">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Label</span>
+<input class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600" placeholder="e.g. Wholesale" type="text" value="Retail"/>
+</label>
+</div>
+<div class="p-4">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Price</span>
+<div class="flex items-center mt-1">
+<span class="text-slate-400 mr-1 font-medium">$</span>
+<input class="block w-full bg-transparent border-none p-0 focus:ring-0 text-base font-medium" placeholder="0.00" type="number" value="24.99"/>
+</div>
+</label>
+</div>
+</div>
+<!-- Variation 2 -->
+<div class="grid grid-cols-2">
+<div class="p-4 border-r border-slate-200 dark:border-slate-800">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Label</span>
+<input class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600" placeholder="e.g. Wholesale" type="text" value="Wholesale"/>
+</label>
+</div>
+<div class="p-4">
+<label class="block">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Price</span>
+<div class="flex items-center mt-1">
+<span class="text-slate-400 mr-1 font-medium">$</span>
+<input class="block w-full bg-transparent border-none p-0 focus:ring-0 text-base font-medium" placeholder="0.00" type="number" value="18.50"/>
+</div>
+</label>
+</div>
+</div>
+<!-- Add Button -->
+<button class="w-full py-3 px-4 flex items-center justify-center gap-2 text-primary font-semibold text-sm hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="add_circle">add_circle</span>
+            Add Price Variation
+        </button>
+</div>
+</section>
+<!-- Extra Options -->
+<section class="mt-6 px-4">
+<div class="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-200 dark:divide-slate-800">
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400" data-icon="notifications_active">notifications_active</span>
+<span class="text-sm font-medium">Low stock alert</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400" data-icon="visibility">visibility</span>
+<span class="text-sm font-medium">Show in online catalog</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Footer Action -->
+<footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                Save Item
+            </button>
+</footer>
+</div>
+</body></html>

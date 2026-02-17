@@ -1,0 +1,49 @@
+name: BoppyV2App
+options:
+  createIntermediateGroups: true
+packages:
+  BoppyV2Core:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+targets:
+  BoppyV2App:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/App
+    configFiles:
+      Debug: Config/xcconfig.template
+      Release: Config/xcconfig.template
+    info:
+      path: Sources/App/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jesse.boppyv2
+        PRODUCT_NAME: Boppy V2
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - package: BoppyV2Core
+  BoppyV2AppTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Tests/AppTests
+    dependencies:
+      - target: BoppyV2App
+  BoppyV2AppUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Tests/UITests
+    dependencies:
+      - target: BoppyV2App
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.jesse.boppyv2.uitests

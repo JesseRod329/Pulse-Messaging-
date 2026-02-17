@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 - Owner Order Inbox</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f172a",
+                        "surface-dark": "#1e293b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-pill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="relative flex h-screen w-full max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark overflow-hidden border-x border-slate-200 dark:border-slate-800 shadow-2xl">
+<!-- Header -->
+<header class="sticky top-0 z-20 bg-background-light dark:bg-background-dark/80 backdrop-blur-md pt-4">
+<div class="flex items-center px-4 mb-4 justify-between">
+<div class="flex items-center gap-3">
+<button class="text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">Inbox</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</button>
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 overflow-hidden">
+<img alt="User Profile" class="size-full object-cover" data-alt="Small round user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUrABSN2-UwZXopFE1uy_3zc12r9a1cW_rQpnwoI_qKxK7Lzyqr4ymTRq-T6xikEuGCRCF-wCKUhQsqfuPZh8GVEaeSOJrZnZiSZBjq_0Mg_BEZNUEyd5g0M6nRuMZBxDT46ly0sDyOHc29I5R0MYu9sTROzgsW3lVmCPr6SVpQ4rP-Nj4gX1nzmM7rULQw1X1d1K1kRrXgCiLpUauQS6fvP6Bbd-COm9JxtlwkYwyUh5cTEA-xrQVMXDLwtkyIGbnHxE7FbiJFFUb"/>
+</div>
+</div>
+</div>
+<!-- Segmented Control (Filters) -->
+<div class="px-4 pb-2">
+<div class="flex h-11 w-full items-center justify-center rounded-xl bg-slate-200/50 dark:bg-surface-dark p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">All</span>
+<input checked="" class="hidden" name="filter" type="radio" value="All"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Pending</span>
+<input class="hidden" name="filter" type="radio" value="Pending"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Active</span>
+<input class="hidden" name="filter" type="radio" value="Active"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Done</span>
+<input class="hidden" name="filter" type="radio" value="Done"/>
+</label>
+</div>
+</div>
+</header>
+<!-- Order List (Telegram Style) -->
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Item: Requested -->
+<div class="relative group flex gap-4 px-4 py-3 hover:bg-slate-100 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-800/50">
+<div class="shrink-0">
+<div class="size-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20">
+<span class="material-symbols-outlined">engineering</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<p class="text-slate-900 dark:text-white text-[15px] font-bold truncate">Acme Structural Co.</p>
+<span class="text-slate-400 dark:text-slate-500 text-xs">12:45 PM</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium truncate mb-1.5">Custom Beam Fabrication - #ORD-8821</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold uppercase tracking-wider border border-amber-500/20">Requested</span>
+<span class="text-primary text-xs font-semibold">Quote Pending</span>
+</div>
+</div>
+<!-- Unread indicator for Requested -->
+<div class="absolute right-4 bottom-4 size-2 rounded-full bg-primary"></div>
+</div>
+<!-- Item: Quoted -->
+<div class="flex gap-4 px-4 py-3 hover:bg-slate-100 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-800/50">
+<div class="shrink-0">
+<div class="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined">description</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<p class="text-slate-900 dark:text-white text-[15px] font-bold truncate">Precision Metals LLC</p>
+<span class="text-slate-400 dark:text-slate-500 text-xs">Yesterday</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium truncate mb-1.5">Reinforced Steel Joists (12pcs) - #ORD-8790</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider border border-primary/20">Quoted</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-semibold">$4,250.00</span>
+</div>
+</div>
+</div>
+<!-- Item: Assigned -->
+<div class="flex gap-4 px-4 py-3 hover:bg-slate-100 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-800/50">
+<div class="shrink-0">
+<div class="size-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+<span class="material-symbols-outlined">task_alt</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<p class="text-slate-900 dark:text-white text-[15px] font-bold truncate">Skyline Builders</p>
+<span class="text-slate-400 dark:text-slate-500 text-xs">Tue</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium truncate mb-1.5">Standard I-Beams - #ORD-8755</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold uppercase tracking-wider border border-emerald-500/20">Assigned</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-semibold">Worker: M. Chen</span>
+</div>
+</div>
+</div>
+<!-- Item: Requested -->
+<div class="flex gap-4 px-4 py-3 hover:bg-slate-100 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-800/50">
+<div class="shrink-0">
+<div class="size-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20">
+<span class="material-symbols-outlined">architecture</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<p class="text-slate-900 dark:text-white text-[15px] font-bold truncate">Nova Design Studio</p>
+<span class="text-slate-400 dark:text-slate-500 text-xs">Oct 12</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium truncate mb-1.5">Custom Laser Cut Brackets - #ORD-8701</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold uppercase tracking-wider border border-amber-500/20">Requested</span>
+<span class="text-primary text-xs font-semibold italic">Awaiting Docs</span>
+</div>
+</div>
+</div>
+<!-- Item: Quoted -->
+<div class="flex gap-4 px-4 py-3 hover:bg-slate-100 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-800/50">
+<div class="shrink-0">
+<div class="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<p class="text-slate-900 dark:text-white text-[15px] font-bold truncate">Industrial Parks Group</p>
+<span class="text-slate-400 dark:text-slate-500 text-xs">Oct 10</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium truncate mb-1.5">Foundation Rebar Set - #ORD-8692</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider border border-primary/20">Quoted</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-semibold">$12,800.00</span>
+</div>
+</div>
+</div>
+<!-- Empty Space at bottom for scrolling -->
+<div class="h-20"></div>
+</main>
+<!-- Floating Action Button -->
+<button class="absolute bottom-24 right-4 size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform z-30">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="absolute bottom-0 left-0 right-0 z-40 flex h-20 items-center border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-surface-dark/90 backdrop-blur-lg px-4 pb-4">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined active-pill">inbox</span>
+<p class="text-[11px] font-bold uppercase tracking-tight">Inbox</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">folder</span>
+<p class="text-[11px] font-bold uppercase tracking-tight">Orders</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">group</span>
+<p class="text-[11px] font-bold uppercase tracking-tight">Clients</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-[11px] font-bold uppercase tracking-tight">Admin</p>
+</a>
+</nav>
+</div>
+</body></html>

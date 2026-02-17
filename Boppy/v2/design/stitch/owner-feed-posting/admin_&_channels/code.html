@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 Admin Controls</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f172a",
+                        "surface-dark": "#1e293b",
+                        "border-dark": "#334155",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex flex-col">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-dark px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-surface-dark rounded-full transition-colors">
+<span class="material-symbols-outlined block">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Admin Controls</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-surface-dark rounded-full transition-colors">
+<span class="material-symbols-outlined block">search</span>
+</button>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-surface-dark rounded-full transition-colors">
+<span class="material-symbols-outlined block">more_vert</span>
+</button>
+</div>
+</header>
+<main class="flex-1 max-w-2xl mx-auto w-full p-4 space-y-6 custom-scrollbar overflow-y-auto pb-32">
+<!-- Channel Management Segmented Control -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Channel Management</h2>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">8 Total</span>
+</div>
+<div class="flex p-1 bg-slate-200 dark:bg-surface-dark rounded-xl mb-4">
+<button class="flex-1 py-2 text-sm font-medium rounded-lg bg-white dark:bg-primary text-slate-900 dark:text-white shadow-sm">
+                    Active
+                </button>
+<button class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                    Archived
+                </button>
+</div>
+<div class="space-y-3">
+<!-- Channel Item 1 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">tag</span>
+</div>
+<div>
+<p class="font-semibold">announcements</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">2,482 members • Last active 2m ago</p>
+</div>
+</div>
+<div class="flex gap-1">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Archive">
+<span class="material-symbols-outlined text-[20px]">archive</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Deactivate">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</div>
+<!-- Channel Item 2 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+<span class="material-symbols-outlined">forum</span>
+</div>
+<div>
+<p class="font-semibold">general-chat</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">1,105 members • Last active 5m ago</p>
+</div>
+</div>
+<div class="flex gap-1">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Archive">
+<span class="material-symbols-outlined text-[20px]">archive</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Deactivate">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Invite Link Management -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Invite Links</h2>
+<button class="text-sm font-semibold text-primary flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Create New
+                </button>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-border-dark divide-y divide-slate-100 dark:divide-border-dark">
+<!-- Active Invite Link -->
+<div class="p-4 flex items-center justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-medium text-sm">Summer-Campaign-2024</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+</div>
+<code class="text-xs text-primary mt-1">beambox.gg/i/summer24</code>
+</div>
+<div class="text-right">
+<p class="text-xs font-medium">42/100 uses</p>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Expires in 12 days</p>
+</div>
+</div>
+<!-- Invite Settings Form (In-line Style for Admin) -->
+<div class="p-4 bg-slate-50 dark:bg-slate-900/40 space-y-4">
+<p class="text-xs font-bold text-slate-400 uppercase">Quick Creation</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500">Expiry Date</label>
+<input class="w-full bg-white dark:bg-surface-dark border-slate-200 dark:border-border-dark rounded-lg text-sm focus:ring-primary focus:border-primary" type="date"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500">Max Usage Limit</label>
+<input class="w-full bg-white dark:bg-surface-dark border-slate-200 dark:border-border-dark rounded-lg text-sm focus:ring-primary focus:border-primary" placeholder="e.g. 50" type="number"/>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">link</span>
+                        Generate Invite Link
+                    </button>
+</div>
+</div>
+</section>
+<!-- Audit Trail / Sensitive Actions -->
+<section class="space-y-4">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Security &amp; Logs</h2>
+<button class="w-full group bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark flex items-center justify-between hover:border-primary/50 transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined">shield_person</span>
+</div>
+<div class="text-left">
+<p class="font-semibold">View Sensitive Actions</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Audit trail for owner-level changes</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<div class="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-red-500">warning</span>
+<div>
+<p class="text-sm font-bold text-red-500">Danger Zone</p>
+<p class="text-xs text-red-400 mt-1 leading-relaxed">Deactivating a channel is irreversible. All messages and media associated with the channel will be queued for deletion.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-lg border-t border-slate-200 dark:border-border-dark px-2 pb-6 pt-2">
+<div class="max-w-2xl mx-auto flex justify-around items-end">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 px-4 py-1" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 px-4 py-1" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-medium">Channels</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary px-4 py-1" href="#">
+<span class="material-symbols-outlined font-bold" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+<span class="text-[10px] font-bold">Admin</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 px-4 py-1" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

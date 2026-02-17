@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeamBoxV2 - Assign Driver</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f172a",
+                        "surface-dark": "#1e293b",
+                        "border-dark": "#334155",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Sticky Header Area -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-dark">
+<div class="flex items-center p-4 gap-3">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-slate-200 dark:hover:bg-surface-dark transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+</button>
+<div class="flex-1">
+<h1 class="text-lg font-bold leading-tight">Assign Driver</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium">BeamBoxV2 Fleet Manager</p>
+</div>
+<button class="p-2 text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="px-4 pb-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 bg-slate-100 dark:bg-surface-dark border-none rounded-xl text-sm placeholder-slate-400 focus:ring-2 focus:ring-primary transition-all" placeholder="Search by name or current location..." type="text"/>
+</div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto max-w-2xl mx-auto w-full">
+<!-- Order Context Card -->
+<div class="p-4">
+<div class="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white">package_2</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-primary">ORDER #BB-9021</p>
+<span class="text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-2 py-0.5 rounded">Priority</span>
+</div>
+<p class="text-sm font-medium mt-0.5">742 Evergreen Terrace, Springfield</p>
+</div>
+</div>
+</div>
+<!-- Filter Tabs -->
+<div class="px-4 flex gap-2 overflow-x-auto no-scrollbar pb-2">
+<button class="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold whitespace-nowrap">Nearby (12)</button>
+<button class="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-surface-dark text-slate-600 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">Available (8)</button>
+<button class="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-surface-dark text-slate-600 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">Favorites</button>
+</div>
+<!-- Driver List (Telegram Style) -->
+<div class="mt-2">
+<!-- Driver Item 1 -->
+<div class="flex items-center gap-4 px-4 py-3 hover:bg-slate-50 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-border-dark/30">
+<div class="relative shrink-0">
+<div class="w-14 h-14 rounded-full bg-center bg-cover border-2 border-white dark:border-surface-dark" data-alt="Profile portrait of a smiling delivery driver" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB4qKNOew6e52H1MFj_tVtJMxF2XoTwmLLxiPBGsoS5eCnCzXFmq9Skr9GXM1mb0riddCSTljIAi7W44vtPtIWj3DEtUH1laUDpR-Wcd7T6oG3w-_5IgSBkepxMgbiwvqokG7YUsEp8p1KCq30zulv463PhpDW4APQm6_ACpiARzgf14QUgtvC00OkQ3LO7aa3XWQ_ZW11Y27xPtv2mrpsyav-MTn2Vk-DtmFFvd5h-9Fl-GIHDprEYZxdOIU5Aipglq9HiSyqh5aIR')"></div>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center">
+<h3 class="text-base font-semibold truncate">Marcus Sterling</h3>
+<span class="text-xs font-medium text-slate-400">0.8 mi</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Available • 4 min ETA</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-icon">star</span>
+<span class="text-[12px] font-medium text-slate-400">4.9 (120 trips)</span>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-4 py-2 rounded-lg transition-all active:scale-95">
+                    Assign
+                </button>
+</div>
+<!-- Driver Item 2 -->
+<div class="flex items-center gap-4 px-4 py-3 hover:bg-slate-50 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-border-dark/30">
+<div class="relative shrink-0">
+<div class="w-14 h-14 rounded-full bg-center bg-cover border-2 border-white dark:border-surface-dark" data-alt="Professional female driver avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCwgBPrNLG58PlKh56rzj5UatVKY7WhSAYAiEq929hDeY3-23BhnpBvRLE2AAOCYz2CC8cZtXiAq3XA9iWomIZawV1qsh_YE5cbsDqnHHr1btZKZ5VmaqHY6MXE5qbuQmDTX41LMQNj_4cC9zxMiFYIJjgFu2O4xwEz_OCBBj9iR1wk4c3NE8JVCf7KFKgpkopSLwXMDWFGUHTvN5yJRT_3mRDJI6CtAD3R6Eonoq5PuMc-L0hdEfg2vXvuWgUPiTXSjBtWITVtzuq2')"></div>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-amber-500 border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center">
+<h3 class="text-base font-semibold truncate">Sarah Jenkins</h3>
+<span class="text-xs font-medium text-slate-400">1.2 mi</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Ending trip • 8 min ETA</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-icon">star</span>
+<span class="text-[12px] font-medium text-slate-400">4.8 (85 trips)</span>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-4 py-2 rounded-lg transition-all active:scale-95">
+                    Assign
+                </button>
+</div>
+<!-- Driver Item 3 -->
+<div class="flex items-center gap-4 px-4 py-3 hover:bg-slate-50 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-border-dark/30">
+<div class="relative shrink-0">
+<div class="w-14 h-14 rounded-full bg-center bg-cover border-2 border-white dark:border-surface-dark" data-alt="Young male delivery partner profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuASKnv2XrIV9VZ0sxQAuEX_9bNMeVf0a1pzexguUwWoD8fvc0okp4H5yEZlxpqg-yleUNOtK8zrxPDAkcqkuViYWYnWihjYQjSC4OGdWOEYYkd5FnrSwQLaaNmNVB4Y7AiK_F7G8o9rneqhsNoVHIBbAxlAiVo6wGIg_114GhDeOhkZvshSHeOicG2iUuILmwOMqmgfzRHLuHn98oRkTDa031PTDNQL7aQqbnwI41wqBw4mNNW4Mu4InV1_I3u6b3utQQCf5voxPcPw')"></div>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center">
+<h3 class="text-base font-semibold truncate">David Chen</h3>
+<span class="text-xs font-medium text-slate-400">2.5 mi</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Available • 12 min ETA</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-icon">star</span>
+<span class="text-[12px] font-medium text-slate-400">5.0 (210 trips)</span>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-4 py-2 rounded-lg transition-all active:scale-95">
+                    Assign
+                </button>
+</div>
+<!-- Driver Item 4 -->
+<div class="flex items-center gap-4 px-4 py-3 hover:bg-slate-50 dark:hover:bg-surface-dark/50 cursor-pointer transition-colors border-b border-slate-100 dark:border-border-dark/30 opacity-60">
+<div class="relative shrink-0">
+<div class="w-14 h-14 rounded-full bg-center bg-cover border-2 border-white dark:border-surface-dark grayscale" data-alt="Female driver profile photo grayscale" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATgUPwf87_QIdOY6HPiqIwvWphCkAe2FYBGo0HedKz9MbFcpywOQCjeLyRvmzx1wrGf7AjN3Vbnp1KCwMRX1KT6hIK5Et1dTje9AL7-H-yUK2OXp_hFa01ZcKL5yvI2WwtjFS8lQc1belffRKlfvPju4VQXQ5SGdZLwWp4l9srOSKSDfr58i08RsNrHQFVM8jUyidons73Gp6Zf9_hWUYH6AzZ2D1OL9Pk3RZmE7K_HR-CQtvCusLdnHKc3l3OiAKHcTx1e6Mx4PBw')"></div>
+<span class="absolute bottom-0 right-0 w-4 h-4 bg-slate-400 border-2 border-white dark:border-background-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center">
+<h3 class="text-base font-semibold truncate">Elena Rodriguez</h3>
+<span class="text-xs font-medium text-slate-400">3.1 mi</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">On Break • No ETA</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-slate-400 fill-icon">star</span>
+<span class="text-[12px] font-medium text-slate-400">4.7 (42 trips)</span>
+</div>
+</div>
+<button class="bg-slate-300 dark:bg-surface-dark text-slate-500 dark:text-slate-500 text-sm font-bold px-4 py-2 rounded-lg cursor-not-allowed" disabled="">
+                    Busy
+                </button>
+</div>
+</div>
+<!-- Mini Map Preview (Optional Modern Touch) -->
+<div class="p-4 mt-4">
+<div class="relative w-full h-32 rounded-xl overflow-hidden grayscale brightness-75 contrast-125 dark:brightness-50 dark:contrast-100">
+<img class="w-full h-full object-cover" data-alt="Abstract dark map background showing street lines" data-location="Springfield, Illinois" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC2lW1Tv4WIktwy8Icrffq7CoXcG4637uy3DZ4PcoHe9056J0oOK8xXvxOcmty9ZPKVnIpfR5KjqvS-dMa8-smbCX3nkpar_eywjjtoegRsCz3Q8aQ6XfNZlMT1_g0IRhgm6rBAP0tFUkN9Cb4sxKBGPrYNxrNC85VIxbDWfWCpn4NWx-djOkdz8k1fLJ5-phE_fOn8tm2AJZqnQTsxvzrZ3lNd6RUIvQlYSqGWq0uv0lHt7hQeRC4Sb532T_KN450wXfcwZc40vjX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 to-transparent"></div>
+<div class="absolute bottom-3 left-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">location_on</span>
+<span class="text-xs font-bold text-white">View Full Map View</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Bar -->
+<nav class="bg-white dark:bg-background-dark border-t border-slate-200 dark:border-border-dark px-4 pb-6 pt-2">
+<div class="max-w-2xl mx-auto flex justify-between items-center">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">inbox</span>
+<span class="text-[10px] font-bold">Orders</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-icon">local_shipping</span>
+<span class="text-[10px] font-bold">Fleet</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-bold">Live</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] font-bold">Stats</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold">Config</span>
+</a>
+</div>
+</nav>
+<!-- Toast Notification (Simulated) -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-bounce hidden">
+<span class="material-symbols-outlined text-green-400">check_circle</span>
+<span class="text-sm font-medium">Driver assigned successfully</span>
+</div>
+</body></html>
