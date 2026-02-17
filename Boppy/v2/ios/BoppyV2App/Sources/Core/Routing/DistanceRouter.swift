@@ -26,8 +26,9 @@ public final class DistanceRouter: RoutingServiceProtocol {
             }
 
             guard let chosen = best else { break }
-            let distance = haversineDistance(current, chosen.element.point)
-            elapsed += max(4, Int(((distance / 35.0) * 60.0).rounded()))
+            let distanceKilometers = haversineDistance(current, chosen.element.point)
+            let distanceMiles = distanceKilometers * 0.621_371
+            elapsed += max(4, Int(((distanceMiles / 35.0) * 60.0).rounded()))
             ordered.append(chosen.element.id)
             etas.append(elapsed)
             current = chosen.element.point

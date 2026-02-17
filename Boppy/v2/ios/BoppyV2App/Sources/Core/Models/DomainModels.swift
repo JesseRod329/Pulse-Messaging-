@@ -47,6 +47,10 @@ public struct ChannelPost: Identifiable, Codable, Equatable, Sendable {
     public let postType: PostType
     public let caption: String
     public let mediaPath: String?
+    public let slotRemaining: Int?
+    public let slotLabel: String?
+    public let heroSubtitle: String?
+    public let heroAspectRatio: Double?
     public let createdAt: Date
 
     public init(
@@ -56,6 +60,10 @@ public struct ChannelPost: Identifiable, Codable, Equatable, Sendable {
         postType: PostType,
         caption: String,
         mediaPath: String?,
+        slotRemaining: Int? = nil,
+        slotLabel: String? = nil,
+        heroSubtitle: String? = nil,
+        heroAspectRatio: Double? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -64,6 +72,10 @@ public struct ChannelPost: Identifiable, Codable, Equatable, Sendable {
         self.postType = postType
         self.caption = caption
         self.mediaPath = mediaPath
+        self.slotRemaining = slotRemaining
+        self.slotLabel = slotLabel
+        self.heroSubtitle = heroSubtitle
+        self.heroAspectRatio = heroAspectRatio
         self.createdAt = createdAt
     }
 }
@@ -133,6 +145,11 @@ public struct OrderRequest: Identifiable, Codable, Equatable, Sendable {
     public var quoteNote: String
     public var status: OrderStatus
     public var assignedDriverID: String?
+    public var externalRef: String?
+    public var summaryTitle: String?
+    public var summaryImageURL: String?
+    public var summaryTotalCents: Int?
+    public var summaryEtaText: String?
     public let createdAt: Date
     public var updatedAt: Date
 
@@ -148,6 +165,11 @@ public struct OrderRequest: Identifiable, Codable, Equatable, Sendable {
         quoteNote: String,
         status: OrderStatus = .requested,
         assignedDriverID: String? = nil,
+        externalRef: String? = nil,
+        summaryTitle: String? = nil,
+        summaryImageURL: String? = nil,
+        summaryTotalCents: Int? = nil,
+        summaryEtaText: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -162,6 +184,11 @@ public struct OrderRequest: Identifiable, Codable, Equatable, Sendable {
         self.quoteNote = quoteNote
         self.status = status
         self.assignedDriverID = assignedDriverID
+        self.externalRef = externalRef
+        self.summaryTitle = summaryTitle
+        self.summaryImageURL = summaryImageURL
+        self.summaryTotalCents = summaryTotalCents
+        self.summaryEtaText = summaryEtaText
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -266,6 +293,10 @@ public struct InventoryItem: Identifiable, Codable, Equatable, Sendable {
     public let stockOnHand: Int
     public let lowStockThreshold: Int
     public let isActive: Bool
+    public let thumbnailURL: String?
+    public let category: String?
+    public let activeOrderCount: Int?
+    public let showInCatalog: Bool?
     public let createdAt: Date
     public let updatedAt: Date
     public let variants: [InventoryVariant]
@@ -282,6 +313,10 @@ public struct InventoryItem: Identifiable, Codable, Equatable, Sendable {
         stockOnHand: Int,
         lowStockThreshold: Int,
         isActive: Bool,
+        thumbnailURL: String? = nil,
+        category: String? = nil,
+        activeOrderCount: Int? = nil,
+        showInCatalog: Bool? = nil,
         createdAt: Date,
         updatedAt: Date,
         variants: [InventoryVariant]
@@ -297,6 +332,10 @@ public struct InventoryItem: Identifiable, Codable, Equatable, Sendable {
         self.stockOnHand = stockOnHand
         self.lowStockThreshold = lowStockThreshold
         self.isActive = isActive
+        self.thumbnailURL = thumbnailURL
+        self.category = category
+        self.activeOrderCount = activeOrderCount
+        self.showInCatalog = showInCatalog
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.variants = variants
@@ -424,10 +463,41 @@ public struct AdminAuditEvent: Identifiable, Codable, Equatable, Sendable {
 public struct DriverProfile: Identifiable, Codable, Equatable, Sendable {
     public let id: String
     public let displayName: String
+    public let avatarURL: String?
+    public let availability: String?
+    public let rating: Double?
+    public let tripCount: Int?
+    public let lastLat: Double?
+    public let lastLng: Double?
 
-    public init(id: String, displayName: String) {
+    public init(
+        id: String,
+        displayName: String,
+        avatarURL: String? = nil,
+        availability: String? = nil,
+        rating: Double? = nil,
+        tripCount: Int? = nil,
+        lastLat: Double? = nil,
+        lastLng: Double? = nil
+    ) {
         self.id = id
         self.displayName = displayName
+        self.avatarURL = avatarURL
+        self.availability = availability
+        self.rating = rating
+        self.tripCount = tripCount
+        self.lastLat = lastLat
+        self.lastLng = lastLng
+    }
+}
+
+public struct OrderTimelineDetail: Codable, Equatable, Sendable {
+    public let order: OrderRequest
+    public let events: [OrderLedgerEvent]
+
+    public init(order: OrderRequest, events: [OrderLedgerEvent]) {
+        self.order = order
+        self.events = events
     }
 }
 

@@ -3,6 +3,7 @@ import { requireChannelRole, requireUser } from "../_shared/auth.ts";
 import { appendAdminAudit } from "../_shared/adminAudit.ts";
 import { enforceAdminActionRateLimit } from "../_shared/rateLimit.ts";
 import { adminGet, adminPatch, adminPost, SupabaseRequestError } from "../_shared/supabase.ts";
+import { computeBalanceAfter } from "./logic.ts";
 
 interface InventoryAdjustStockBody {
   channel_id: string;
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
       const variant = variantRows[0];
       assert(variant, 404, "variant_not_found", "Variant not found.");
 
-      balanceAfter = variant.stock_on_hand + body.delta;
+      balanceAfter = computeBalanceAfter(variant.stock_on_hand, body.delta);
       assert(balanceAfter >= 0, 409, "insufficient_stock", "Stock cannot be negative.");
 
       await adminPatch(
@@ -66,7 +67,7 @@ Deno.serve(async (req) => {
         { stock_on_hand: balanceAfter }
       );
     } else {
-      balanceAfter = item.stock_on_hand + body.delta;
+      balanceAfter = computeBalanceAfter(item.stock_on_hand, body.delta);
       assert(balanceAfter >= 0, 409, "insufficient_stock", "Stock cannot be negative.");
 
       await adminPatch(

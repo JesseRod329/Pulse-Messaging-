@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const archivedFilter = body.include_archived ? "" : "&archived_at=is.null";
 
     const orders = await adminGet(
-      `order_requests?select=id,channel_id,post_id,customer_id,customer_phone,status,assigned_driver_id,quote_note,created_at,updated_at,archived_at&channel_id=eq.${cid}${statusFilter}${archivedFilter}&order=created_at.desc&limit=${limit}`,
+      `order_requests?select=id,channel_id,post_id,customer_id,customer_phone,status,assigned_driver_id,quote_note,external_ref,summary_title,summary_image_url,summary_total_cents,summary_eta_text,delivery_address_json,lat,lng,created_at,updated_at,archived_at&channel_id=eq.${cid}${statusFilter}${archivedFilter}&order=created_at.desc&limit=${limit}`,
     ) as Array<Record<string, unknown>>;
 
     return ok(rid, {

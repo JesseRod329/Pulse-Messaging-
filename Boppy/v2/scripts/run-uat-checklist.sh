@@ -2,7 +2,7 @@
 set -u
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ADMIN_WEB_DIR="$(cd "$ROOT_DIR/../../beambox-admin-web" && pwd)"
+ADMIN_WEB_DIR="${ADMIN_WEB_DIR:-$ROOT_DIR/../../beambox-admin-web}"
 IOS_DIR="$ROOT_DIR/ios/BoppyV2App"
 FUNCTIONS_DIR="$ROOT_DIR/backend/supabase/functions"
 RLS_SCRIPT="$ROOT_DIR/backend/supabase/scripts/rls-matrix-check.ts"
@@ -37,14 +37,22 @@ skip_check() {
 echo "BeamBox V2 UAT Checklist Runner"
 echo "Root: $ROOT_DIR"
 
-run_check "Admin web typecheck" bash -lc "cd '$ADMIN_WEB_DIR' && npm run typecheck"
-run_check "Admin web tests" bash -lc "cd '$ADMIN_WEB_DIR' && npm test"
+if [[ -d "$ADMIN_WEB_DIR" ]]; then
+  run_check "Admin web typecheck" bash -lc "cd '$ADMIN_WEB_DIR' && npm run typecheck"
+  run_check "Admin web tests" bash -lc "cd '$ADMIN_WEB_DIR' && npm test"
+else
+  echo ""
+  echo "==> Admin web repository"
+  echo "FAIL: Expected admin web path missing: $ADMIN_WEB_DIR"
+  echo "Set ADMIN_WEB_DIR to your checked-out admin web repo path and rerun."
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
 
 run_check "iOS build" bash -lc "cd '$IOS_DIR' && swift build"
 run_check "iOS tests" bash -lc "cd '$IOS_DIR' && swift test"
 
 run_check "Edge function typecheck" bash -lc "cd '$FUNCTIONS_DIR' && deno check --config deno.json _shared/rateLimit.ts update-order-status/transitions.ts update-order-status/index.ts"
-run_check "Edge function unit tests" bash -lc "cd '$ROOT_DIR' && SUPABASE_URL='http://localhost:54321' SUPABASE_SERVICE_ROLE_KEY='dev-key' SUPABASE_ANON_KEY='anon-dev' deno test --allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,SUPABASE_ANON_KEY --config '$FUNCTIONS_DIR/deno.json' '$FUNCTIONS_DIR/update-order-status/transitions_test.ts' '$FUNCTIONS_DIR/_shared/rateLimit_test.ts'"
+run_check "Edge function unit tests" bash -lc "cd '$FUNCTIONS_DIR' && SUPABASE_URL='http://localhost:54321' SUPABASE_SERVICE_ROLE_KEY='dev-key' SUPABASE_ANON_KEY='anon-dev' deno test **/*test.ts"
 
 if [[ -n "${RLS_CHANNEL_ID:-}" && -n "${RLS_OWNER_TOKEN:-}" && -n "${RLS_DRIVER_TOKEN:-}" && -n "${RLS_FOLLOWER_TOKEN:-}" ]]; then
   run_check "Live RLS matrix" bash -lc "cd '$ROOT_DIR' && SUPABASE_URL='${SUPABASE_URL:-}' SUPABASE_FUNCTIONS_BASE_URL='${SUPABASE_FUNCTIONS_BASE_URL:-}' RLS_CHANNEL_ID='$RLS_CHANNEL_ID' RLS_OWNER_TOKEN='$RLS_OWNER_TOKEN' RLS_DRIVER_TOKEN='$RLS_DRIVER_TOKEN' RLS_FOLLOWER_TOKEN='$RLS_FOLLOWER_TOKEN' deno run --allow-env --allow-net '$RLS_SCRIPT'"

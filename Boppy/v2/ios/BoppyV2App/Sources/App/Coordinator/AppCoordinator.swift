@@ -1,95 +1,158 @@
 import Foundation
 import SwiftUI
+import Combine
 import BoppyV2Core
 
 @MainActor
 final class AppCoordinator: ObservableObject {
-    @Published var user: SessionUser?
     @Published var selectedTab: MainTab = .feed
 
-    @Published var channels: [Channel] = []
-    @Published var selectedChannelID: String?
-    @Published var posts: [ChannelPost] = []
-    @Published var orders: [OrderRequest] = []
-    @Published var routes: [DeliveryRoute] = []
-    @Published var drivers: [DriverProfile] = []
-    @Published var inventoryCatalog: InventoryCatalog?
-    @Published var adminAuditEvents: [AdminAuditEvent] = []
+    let authStore: AuthStore
+    let feedStore: FeedStore
+    let orderStore: OrderStore
+    let dispatchStore: DispatchStore
+    let inventoryStore: InventoryStore
+    let adminStore: AdminStore
 
-    @Published var ledgerByOrderID: [String: [OrderLedgerEvent]] = [:]
-    @Published var loadingLedgerOrderIDs: Set<String> = []
+    let environment: AppEnvironment
+    var pollingTask: Task<Void, Never>?
+    let launchArguments = ProcessInfo.processInfo.arguments
+    var lastRefreshAt: Date?
+    var storeObservers: [AnyCancellable] = []
 
-    @Published var activeOrderPost: ChannelPost?
-    @Published var activeOrderPrefilledQuote: String?
-    @Published var inviteTokenInput = ""
-    @Published var latestInvite: ChannelInvite?
-
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-
-    private let environment: AppEnvironment
-    private var pollingTask: Task<Void, Never>?
-
-    init(environment: AppEnvironment) {
+    init(
+        environment: AppEnvironment,
+        authStore: AuthStore,
+        feedStore: FeedStore,
+        orderStore: OrderStore,
+        dispatchStore: DispatchStore,
+        inventoryStore: InventoryStore,
+        adminStore: AdminStore
+    ) {
         self.environment = environment
+        self.authStore = authStore
+        self.feedStore = feedStore
+        self.orderStore = orderStore
+        self.dispatchStore = dispatchStore
+        self.inventoryStore = inventoryStore
+        self.adminStore = adminStore
+        bindStoreUpdates()
+    }
+
+    convenience init(environment: AppEnvironment) {
+        self.init(
+            environment: environment,
+            authStore: AuthStore(),
+            feedStore: FeedStore(),
+            orderStore: OrderStore(),
+            dispatchStore: DispatchStore(),
+            inventoryStore: InventoryStore(),
+            adminStore: AdminStore()
+        )
     }
 
     deinit {
         pollingTask?.cancel()
     }
 
+    func bindStoreUpdates() {
+        authStore.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &storeObservers)
+        feedStore.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &storeObservers)
+        orderStore.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &storeObservers)
+        dispatchStore.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &storeObservers)
+        inventoryStore.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &storeObservers)
+        adminStore.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &storeObservers)
+    }
+
     func bootstrap() async {
         do {
-            user = try await environment.authService.currentSession()
-            if user == nil, environment.backendMode == .localDemo {
-                try await environment.authService.requestOTP(phoneE164: "+15550000001")
-                user = try await environment.authService.verifyOTP(phoneE164: "+15550000001", code: "123456")
+            try await authStore.bootstrapSession(authService: environment.authService)
+
+            // QA override to force auth screen visibility in local demo mode.
+            if launchArguments.contains("-show-auth-screen") {
+                authStore.user = nil
+                return
             }
-            if user != nil {
+
+            if authStore.user == nil, environment.backendMode == .localDemo {
+                try await authStore.requestOTP(
+                    phone: "+15550000001",
+                    authService: environment.authService,
+                    analyticsService: environment.analyticsService
+                )
+                _ = try await authStore.verifyOTP(
+                    phone: "+15550000001",
+                    code: "123456",
+                    authService: environment.authService,
+                    analyticsService: environment.analyticsService
+                )
+            }
+            if authStore.user != nil {
+                if let startTab = launchStartTab() {
+                    selectedTab = startTab
+                }
                 startPollingLoop()
                 await refreshAll()
+                if let startTab = launchStartTab() {
+                    selectedTab = startTab
+                }
             }
         } catch {
-            errorMessage = error.localizedDescription
+            handleError(error)
         }
     }
 
     func requestOTP(phone: String) async {
+        guard ensureOnline() else { return }
         do {
-            try await environment.authService.requestOTP(phoneE164: phone)
-            environment.analyticsService.track(event: "otp_requested", properties: ["phone": phone])
+            try await authStore.requestOTP(
+                phone: phone,
+                authService: environment.authService,
+                analyticsService: environment.analyticsService
+            )
         } catch {
-            errorMessage = error.localizedDescription
+            handleError(error)
         }
     }
 
     func verifyOTP(phone: String, code: String) async {
+        guard ensureOnline() else { return }
         do {
-            user = try await environment.authService.verifyOTP(phoneE164: phone, code: code)
-            environment.analyticsService.track(event: "otp_verified", properties: ["role": user?.role.rawValue ?? "unknown"])
+            _ = try await authStore.verifyOTP(
+                phone: phone,
+                code: code,
+                authService: environment.authService,
+                analyticsService: environment.analyticsService
+            )
             startPollingLoop()
             await refreshAll()
         } catch {
-            errorMessage = error.localizedDescription
+            handleError(error)
         }
     }
 
-    func signOut() async {
+    func signOut(preserveError: Bool = false) async {
         stopPollingLoop()
         await environment.authService.signOut()
-        user = nil
-        channels = []
-        posts = []
-        orders = []
-        routes = []
-        drivers = []
-        ledgerByOrderID = [:]
-        loadingLedgerOrderIDs = []
-        selectedChannelID = nil
-        activeOrderPost = nil
-        activeOrderPrefilledQuote = nil
-        inventoryCatalog = nil
-        adminAuditEvents = []
+        feedStore.clear()
+        orderStore.clear()
+        dispatchStore.clear()
+        inventoryStore.clear()
+        adminStore.clear()
+        authStore.applySignOutState(preserveError: preserveError)
+        lastRefreshAt = nil
     }
 
     func handleDeepLink(_ url: URL) async {
@@ -98,7 +161,7 @@ final class AppCoordinator: ObservableObject {
         if url.host == "invite" {
             let token = url.pathComponents.dropFirst().joined(separator: "")
             if !token.isEmpty {
-                inviteTokenInput = token
+                authStore.inviteTokenInput = token
                 await joinChannel(using: token)
             }
         }
@@ -108,294 +171,28 @@ final class AppCoordinator: ObservableObject {
         await refreshAll(trigger: "manual")
     }
 
-    func selectChannel(_ channelID: String) async {
-        selectedChannelID = channelID
-        await refreshAll()
+    func setNetworkOnline(_ isOnline: Bool) {
+        authStore.isOffline = !isOnline
     }
 
-    func createChannel(title: String, description: String) async {
-        guard let user, user.role == .owner else { return }
-
-        do {
-            let channel = try await environment.channelFeedService.createChannel(
-                ownerID: user.id,
-                title: title,
-                description: description
-            )
-            selectedChannelID = channel.id
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func joinChannel(using token: String? = nil) async {
-        guard let user else { return }
-
-        let inviteToken = token ?? inviteTokenInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !inviteToken.isEmpty else { return }
-
-        do {
-            _ = try await environment.channelFeedService.joinChannel(token: inviteToken, userID: user.id)
-            inviteTokenInput = ""
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func createInvite(expiresInHours: Int = 72, maxUses: Int? = nil) async {
-        guard let user, user.role == .owner, let channelID = selectedChannelID else { return }
-
-        do {
-            latestInvite = try await environment.channelFeedService.createInvite(
-                channelID: channelID,
-                ownerID: user.id,
-                expiresInHours: expiresInHours,
-                maxUses: maxUses
-            )
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func createPost(type: PostType, caption: String, mediaPath: String?) async {
-        guard let user, let channelID = selectedChannelID else { return }
-
-        do {
-            _ = try await environment.channelFeedService.createPost(
-                channelID: channelID,
-                authorID: user.id,
-                postType: type,
-                caption: caption,
-                mediaPath: mediaPath
-            )
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func openOrderSheet(for post: ChannelPost, prefilledQuote: String? = nil) {
-        guard user?.role == .follower else { return }
-        activeOrderPrefilledQuote = prefilledQuote
-        activeOrderPost = post
-    }
-
-    func submitOrderRequest(postID: String, address: DeliveryAddress, quoteNote: String) async {
-        guard let user, let channelID = selectedChannelID else { return }
-
-        do {
-            _ = try await environment.orderService.createOrderRequest(
-                channelID: channelID,
-                postID: postID,
-                customerID: user.id,
-                customerPhone: user.phoneE164,
-                deliveryAddress: address,
-                quoteNote: quoteNote
-            )
-            activeOrderPrefilledQuote = nil
-            activeOrderPost = nil
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func updateOrderStatus(orderID: String, status: OrderStatus, quoteNote: String?) async {
-        guard let user else { return }
-
-        do {
-            _ = try await environment.orderService.updateOrderStatus(
-                orderID: orderID,
-                status: status,
-                quoteNote: quoteNote,
-                actorID: user.id
-            )
-            await loadLedger(for: orderID, force: true)
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func assignDriver(orderID: String, driverID: String) async {
-        guard let user else { return }
-
-        do {
-            _ = try await environment.orderService.assignDriver(orderID: orderID, driverID: driverID, actorID: user.id)
-            await loadLedger(for: orderID, force: true)
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func loadLedger(for orderID: String, force: Bool = false) async {
-        guard let user else { return }
-        if loadingLedgerOrderIDs.contains(orderID) { return }
-        if !force, ledgerByOrderID[orderID] != nil { return }
-
-        loadingLedgerOrderIDs.insert(orderID)
-        defer { loadingLedgerOrderIDs.remove(orderID) }
-
-        do {
-            let events = try await environment.orderService.fetchLedgerEvents(orderID: orderID, userID: user.id, role: user.role)
-            ledgerByOrderID[orderID] = events
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func buildRoute(start: GeoPoint, driverID: String) async {
-        guard let user, let channelID = selectedChannelID else { return }
-
-        do {
-            _ = try await environment.dispatchService.buildRoute(
-                channelID: channelID,
-                driverID: driverID,
-                start: start,
-                actorID: user.id
-            )
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func reorderStop(routeID: String, stopID: String, direction: RouteStopReorderDirection) async {
-        guard let user, user.role == .owner else { return }
-        guard let route = routes.first(where: { $0.id == routeID }), route.status == .planned else { return }
-
-        let orderedStops = route.stops.sorted(by: { $0.stopIndex < $1.stopIndex })
-        let ids = orderedStops.map(\.id)
-        guard let currentIndex = ids.firstIndex(of: stopID) else { return }
-
-        let targetIndex: Int
-        switch direction {
-        case .up:
-            targetIndex = currentIndex - 1
-        case .down:
-            targetIndex = currentIndex + 1
-        }
-
-        guard ids.indices.contains(targetIndex) else { return }
-
-        var reordered = ids
-        reordered.swapAt(currentIndex, targetIndex)
-
-        do {
-            let updatedRoute = try await environment.dispatchService.reorderRouteStops(
-                routeID: routeID,
-                orderedStopIDs: reordered,
-                actorID: user.id
-            )
-            if let routeIndex = routes.firstIndex(where: { $0.id == routeID }) {
-                routes[routeIndex] = updatedRoute
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func completeStop(routeID: String, stopID: String) async {
-        guard let user else { return }
-
-        do {
-            _ = try await environment.dispatchService.completeStop(routeID: routeID, stopID: stopID, actorID: user.id)
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func refreshInventoryAndAudit() async {
-        guard let user, user.role == .owner, let channelID = selectedChannelID else {
-            inventoryCatalog = nil
-            adminAuditEvents = []
+    func handleSceneDidBecomeActive() async {
+        guard authStore.user != nil else { return }
+        if let lastRefreshAt, Date().timeIntervalSince(lastRefreshAt) < 30 {
             return
         }
-
-        do {
-            async let catalog = environment.inventoryService.fetchInventoryCatalog(
-                channelID: channelID,
-                includeInactive: false,
-                includeLedger: true,
-                actorID: user.id
-            )
-            async let events = environment.adminService.fetchAdminAuditEvents(
-                channelID: channelID,
-                action: nil,
-                limit: 25,
-                actorID: user.id
-            )
-
-            inventoryCatalog = try await catalog
-            adminAuditEvents = try await events
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        await refreshAll(trigger: "foreground")
     }
 
-    func createInventoryDraftItem() async {
-        guard let user, user.role == .owner, let channelID = selectedChannelID else { return }
-
-        do {
-            let timestamp = Int(Date().timeIntervalSince1970)
-            _ = try await environment.inventoryService.upsertInventoryItem(
-                channelID: channelID,
-                itemID: nil,
-                name: "Catalog Item \(timestamp % 1000)",
-                sku: "SKU-\(timestamp)",
-                description: "Added from Profile admin tools",
-                defaultPriceCents: 1200,
-                currencyCode: "USD",
-                trackStock: true,
-                stockOnHand: 8,
-                lowStockThreshold: 2,
-                actorID: user.id
-            )
-            await refreshInventoryAndAudit()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+    func clearPresentedError() {
+        authStore.clearPresentedError()
     }
 
-    func adjustInventory(itemID: String, delta: Int, reason: String) async {
-        guard let user, user.role == .owner, let channelID = selectedChannelID else { return }
-
-        do {
-            _ = try await environment.inventoryService.adjustInventoryStock(
-                channelID: channelID,
-                itemID: itemID,
-                variantID: nil,
-                delta: delta,
-                reason: reason,
-                actorID: user.id
-            )
-            await refreshInventoryAndAudit()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+    func present(_ appError: AppError) {
+        authStore.present(appError)
     }
 
-    func archiveActiveChannel() async {
-        guard let user, user.role == .owner, let channelID = selectedChannelID else { return }
-
-        do {
-            try await environment.adminService.archiveChannel(
-                channelID: channelID,
-                reason: "Archived from iOS owner admin controls",
-                actorID: user.id
-            )
-            await refreshAll()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    var selectedChannel: Channel? {
-        channels.first(where: { $0.id == selectedChannelID })
+    func present(_ error: Error) {
+        handleError(error)
     }
 
     var backendModeLabel: String {
@@ -411,76 +208,79 @@ final class AppCoordinator: ObservableObject {
         environment.backendMode == .localDemo
     }
 
-    private func refreshAll(trigger: String) async {
-        guard let user else { return }
-        if isLoading { return }
+    var featureFlags: FeatureFlags {
+        environment.featureFlags
+    }
+
+    func refreshAll(trigger: String) async {
+        guard let user = authStore.user else { return }
+        if authStore.isLoading { return }
 
         normalizeSelectedTab(for: user.role)
 
-        isLoading = true
-        defer { isLoading = false }
+        authStore.isLoading = true
+        defer { authStore.isLoading = false }
 
         do {
-            async let fetchedChannels = environment.channelFeedService.fetchChannels(userID: user.id)
-            async let fetchedOrders = environment.orderService.fetchOrders(userID: user.id, role: user.role)
-            async let fetchedRoutes = environment.dispatchService.fetchRoutes(userID: user.id, role: user.role)
+            async let feedRefresh: Void = feedStore.refresh(
+                userID: user.id,
+                channelFeedService: environment.channelFeedService
+            )
+            async let orderRefresh: Void = orderStore.refreshOrders(
+                userID: user.id,
+                role: user.role,
+                orderService: environment.orderService
+            )
+            async let routeRefresh: Void = dispatchStore.refreshRoutes(
+                userID: user.id,
+                role: user.role,
+                dispatchService: environment.dispatchService
+            )
+            _ = try await (feedRefresh, orderRefresh, routeRefresh)
 
-            channels = try await fetchedChannels
-
-            if selectedChannelID == nil || !channels.contains(where: { $0.id == selectedChannelID }) {
-                selectedChannelID = channels.first?.id
-            }
-
-            if let selectedChannelID {
-                async let fetchedPosts = environment.channelFeedService.fetchPosts(channelID: selectedChannelID)
-                async let fetchedDrivers = environment.channelFeedService.fetchDrivers(channelID: selectedChannelID)
-                posts = try await fetchedPosts
-                drivers = try await fetchedDrivers
+            if user.role == .owner, let channelID = feedStore.selectedChannelID {
+                async let inventoryRefresh: Void = inventoryStore.refreshInventory(
+                    channelID: channelID,
+                    actorID: user.id,
+                    inventoryService: environment.inventoryService
+                )
+                async let adminRefresh: Void = adminStore.refreshAuditEvents(
+                    channelID: channelID,
+                    actorID: user.id,
+                    adminService: environment.adminService
+                )
+                _ = try await (inventoryRefresh, adminRefresh)
             } else {
-                posts = []
-                drivers = []
-                inventoryCatalog = nil
-                adminAuditEvents = []
-            }
-
-            orders = try await fetchedOrders
-            routes = try await fetchedRoutes
-
-            let validOrderIDs = Set(orders.map(\.id))
-            ledgerByOrderID = ledgerByOrderID.filter { validOrderIDs.contains($0.key) }
-
-            if user.role == .owner {
-                await refreshInventoryAndAudit()
-            } else {
-                inventoryCatalog = nil
-                adminAuditEvents = []
+                inventoryStore.clear()
+                adminStore.clear()
             }
 
             environment.analyticsService.track(event: "refresh_all", properties: ["trigger": trigger])
+            lastRefreshAt = Date()
         } catch {
-            errorMessage = error.localizedDescription
+            handleError(error)
         }
     }
 
-    private func startPollingLoop() {
+    func startPollingLoop() {
         guard pollingTask == nil else { return }
 
         pollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 20_000_000_000)
                 guard let self else { return }
-                if self.user == nil { continue }
+                if self.authStore.user == nil { continue }
                 await self.refreshAll(trigger: "polling")
             }
         }
     }
 
-    private func stopPollingLoop() {
+    func stopPollingLoop() {
         pollingTask?.cancel()
         pollingTask = nil
     }
 
-    private func normalizeSelectedTab(for role: UserRole) {
+    func normalizeSelectedTab(for role: UserRole) {
         switch role {
         case .owner:
             return
@@ -493,6 +293,70 @@ final class AppCoordinator: ObservableObject {
                 selectedTab = .feed
             }
         }
+    }
+
+    func launchStartTab() -> MainTab? {
+        guard let flagIndex = launchArguments.firstIndex(of: "-start-tab") else { return nil }
+        let valueIndex = launchArguments.index(after: flagIndex)
+        guard launchArguments.indices.contains(valueIndex) else { return nil }
+
+        switch launchArguments[valueIndex].lowercased() {
+        case "feed":
+            return .feed
+        case "orders":
+            return .orders
+        case "dispatch":
+            return .dispatch
+        case "profile":
+            return .profile
+        default:
+            return nil
+        }
+    }
+
+    func ensureOnline() -> Bool {
+        if authStore.isOffline {
+            authStore.present(.network(URLError(.notConnectedToInternet)))
+            return false
+        }
+        return true
+    }
+
+    func handleError(_ error: Error) {
+        let mapped = mapError(error)
+        authStore.present(mapped, fallbackMessage: error.localizedDescription)
+
+        if case .auth(.sessionExpired) = mapped, authStore.user != nil {
+            Task { [weak self] in
+                await self?.signOut(preserveError: true)
+            }
+        }
+    }
+
+    func mapError(_ error: Error) -> AppError {
+        if let clientError = error as? SupabaseClientError {
+            switch clientError {
+            case .unauthorized:
+                return .auth(.sessionExpired)
+            case .missingSession:
+                return .auth(.missingSession)
+            case let .server(status, message):
+                if status == 401 {
+                    return .auth(.sessionExpired)
+                }
+                if status == 403 {
+                    return .auth(.forbidden)
+                }
+                return .backend(statusCode: status, message: message)
+            case let .decoding(decodingError):
+                return .unknown("Response decode failed: \(decodingError.localizedDescription)")
+            case .invalidURL:
+                return .validation("Invalid backend URL configuration.")
+            case .invalidResponse:
+                return .backend(statusCode: 500, message: "Invalid backend response.")
+            }
+        }
+        return AppError.map(error)
     }
 }
 

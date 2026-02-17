@@ -12,19 +12,19 @@ struct FeedHeaderStrip: View {
                 .overlay {
                     Image(systemName: AppTheme.brandSymbolName)
                         .foregroundStyle(AppTheme.textPrimary)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(AppTheme.inter(15, weight: .bold, relativeTo: .subheadline))
                 }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(AppTheme.inter(16, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                 HStack(spacing: 6) {
                     Circle()
                         .fill(AppTheme.success)
                         .frame(width: 6, height: 6)
                     Text(subtitle.uppercased().replacingOccurrences(of: "CHANNEL", with: "CHANNEL"))
-                        .font(.system(size: 11, weight: .bold))
+                        .font(AppTheme.inter(11, weight: .bold))
                         .tracking(0.7)
                         .foregroundStyle(AppTheme.success)
                 }
@@ -37,7 +37,11 @@ struct FeedHeaderStrip: View {
         .padding(AppTheme.cardPadding)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.92))
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                        .fill(AppTheme.surface.opacity(0.38))
+                )
         )
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)

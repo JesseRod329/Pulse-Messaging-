@@ -1,6 +1,6 @@
 import Foundation
 
-struct SupabaseSessionStore {
+struct SupabaseSessionStore: SessionTokenStore {
     private enum Keys {
         static let accessToken = "v2.auth.accessToken"
         static let refreshToken = "v2.auth.refreshToken"
@@ -30,17 +30,47 @@ struct SupabaseSessionStore {
         defaults.string(forKey: Keys.userPhone)
     }
 
-    func save(accessToken: String, refreshToken: String?, userID: String, userPhone: String?) {
-        defaults.set(accessToken, forKey: Keys.accessToken)
-        defaults.set(refreshToken, forKey: Keys.refreshToken)
-        defaults.set(userID, forKey: Keys.userID)
-        defaults.set(userPhone, forKey: Keys.userPhone)
+    func readTokens() -> SessionTokens? {
+        guard let accessToken, let userID else {
+            return nil
+        }
+
+        return SessionTokens(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            userID: userID,
+            userPhone: userPhone
+        )
     }
 
-    func clear() {
+    func saveTokens(_ tokens: SessionTokens) {
+        defaults.set(tokens.accessToken, forKey: Keys.accessToken)
+        defaults.set(tokens.refreshToken, forKey: Keys.refreshToken)
+        defaults.set(tokens.userID, forKey: Keys.userID)
+        defaults.set(tokens.userPhone, forKey: Keys.userPhone)
+    }
+
+    func clearTokens() {
         defaults.removeObject(forKey: Keys.accessToken)
         defaults.removeObject(forKey: Keys.refreshToken)
         defaults.removeObject(forKey: Keys.userID)
         defaults.removeObject(forKey: Keys.userPhone)
+    }
+
+    func migrateFromLegacyStoreIfNeeded() {}
+
+    func save(accessToken: String, refreshToken: String?, userID: String, userPhone: String?) {
+        saveTokens(
+            SessionTokens(
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                userID: userID,
+                userPhone: userPhone
+            )
+        )
+    }
+
+    func clear() {
+        clearTokens()
     }
 }

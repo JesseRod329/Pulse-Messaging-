@@ -4,6 +4,7 @@ import { appendAdminAudit } from "../_shared/adminAudit.ts";
 import { appendLedger } from "../_shared/ledger.ts";
 import { enforceAdminActionRateLimit } from "../_shared/rateLimit.ts";
 import { adminDelete, adminGet, adminPatch, SupabaseRequestError } from "../_shared/supabase.ts";
+import { canHardDeleteStatus } from "./logic.ts";
 
 interface AdminDeleteOrderBody {
   order_id: string;
@@ -16,8 +17,6 @@ interface OrderRow {
   channel_id: string;
   status: string;
 }
-
-const HARD_DELETE_TERMINAL_STATUSES = new Set(["cancelled", "delivered"]);
 
 Deno.serve(async (req) => {
   const rid = requestId(req);
@@ -54,7 +53,7 @@ Deno.serve(async (req) => {
         "Hard delete is disabled by policy.",
       );
       assert(
-        HARD_DELETE_TERMINAL_STATUSES.has(order.status),
+        canHardDeleteStatus(order.status),
         409,
         "hard_delete_not_allowed_for_status",
         `Hard delete is only allowed for terminal orders (cancelled/delivered). Current status: ${order.status}.`,

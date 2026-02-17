@@ -1,7 +1,6 @@
 import { ApiHttpError, assert, onError, ok, readJson, requestId } from "../_shared/http.ts";
 import { requireChannelRole, requireUser } from "../_shared/auth.ts";
-import { appendLedger } from "../_shared/ledger.ts";
-import { adminGet, adminPatch, adminPost, SupabaseRequestError } from "../_shared/supabase.ts";
+import { adminGet, adminRpc, SupabaseRequestError } from "../_shared/supabase.ts";
 
 interface BuildRouteBody {
   channel_id: string;
@@ -19,6 +18,21 @@ interface RouteOrder {
 interface Point {
   lat: number;
   lng: number;
+}
+
+interface RpcRoutePayload {
+  route: {
+    id: string;
+    status: string;
+    approximate: boolean;
+    created_at: string;
+  };
+  stops: Array<{
+    route_id: string;
+    order_id: string;
+    stop_index: number;
+    eta_minutes: number | null;
+  }>;
 }
 
 function distanceKm(a: Point, b: Point): number {
@@ -110,6 +124,48 @@ async function mapboxOptimize(orders: RouteOrder[], start: Point): Promise<{ ord
   return nearestNeighbor(reordered, start);
 }
 
+function coerceRoutePayload(payload: unknown): RpcRoutePayload {
+  const normalized = Array.isArray(payload) ? payload[0] : payload;
+  const value = normalized as Record<string, unknown>;
+  const nested = (value?.build_delivery_route ?? value) as Record<string, unknown>;
+
+  const route = nested?.route as Record<string, unknown> | undefined;
+  const stops = nested?.stops as Array<Record<string, unknown>> | undefined;
+
+  if (!route || !Array.isArray(stops)) {
+    throw new ApiHttpError(500, "db_error", "Route build returned an unexpected payload.");
+  }
+
+  return {
+    route: {
+      id: String(route.id),
+      status: String(route.status),
+      approximate: Boolean(route.approximate),
+      created_at: String(route.created_at),
+    },
+    stops: stops.map((stop) => ({
+      route_id: String(stop.route_id),
+      order_id: String(stop.order_id),
+      stop_index: Number(stop.stop_index),
+      eta_minutes: stop.eta_minutes == null ? null : Number(stop.eta_minutes),
+    })),
+  };
+}
+
+function mapRouteRpcError(error: SupabaseRequestError): ApiHttpError {
+  const message = error.message.toLowerCase();
+
+  if (message.includes("no_routable_orders")) {
+    return new ApiHttpError(404, "no_routable_orders", "No routable assigned orders found.");
+  }
+
+  if (message.includes("invalid_request")) {
+    return new ApiHttpError(400, "invalid_request", "Route build payload is invalid.");
+  }
+
+  return new ApiHttpError(500, "db_error", error.message);
+}
+
 Deno.serve(async (req) => {
   const rid = requestId(req);
 
@@ -134,48 +190,32 @@ Deno.serve(async (req) => {
     assert(orders.length > 0, 404, "no_routable_orders", "No routable assigned orders found.");
 
     const start = { lat: body.start_lat, lng: body.start_lng };
-    let approximate = false;
-
     const mapboxResult = await mapboxOptimize(orders, start);
     const plan = mapboxResult ?? nearestNeighbor(orders, start);
-    if (!mapboxResult) {
-      approximate = true;
-    }
+    const approximate = mapboxResult == null;
 
-    const routeRows = await adminPost("delivery_routes?select=id,status,approximate,created_at", {
-      channel_id: body.channel_id,
-      driver_id: body.driver_id,
-      status: "planned",
-      approximate,
-    }) as Array<{ id: string; status: string; approximate: boolean; created_at: string }>;
-
-    const route = routeRows[0];
-    assert(route, 500, "db_error", "Route creation failed.");
-
-    const stopRows = plan.orderedIds.map((orderId, index) => ({
-      route_id: route.id,
-      order_id: orderId,
-      stop_index: index,
-      eta_minutes: plan.etas[index] ?? null,
-    }));
-
-    await adminPost("delivery_route_stops", stopRows);
-
-    const orderIDs = plan.orderedIds.map((id) => encodeURIComponent(id)).join(",");
-    await adminPatch(`order_requests?id=in.(${orderIDs})`, {
-      status: "out_for_delivery",
-    });
-
-    for (const orderID of plan.orderedIds) {
-      await appendLedger(orderID, user.id, "route_built", {
-        route_id: route.id,
-        approximate,
+    let rpcPayload: unknown;
+    try {
+      rpcPayload = await adminRpc("build_delivery_route", {
+        p_channel_id: body.channel_id,
+        p_driver_id: body.driver_id,
+        p_actor_id: user.id,
+        p_order_ids: plan.orderedIds,
+        p_etas: plan.etas,
+        p_approximate: approximate,
       });
+    } catch (error) {
+      if (error instanceof SupabaseRequestError) {
+        throw mapRouteRpcError(error);
+      }
+      throw error;
     }
+
+    const builtRoute = coerceRoutePayload(rpcPayload);
 
     return ok(rid, {
-      route,
-      stops: stopRows,
+      route: builtRoute.route,
+      stops: builtRoute.stops,
       approximate,
       fallback_reason: approximate ? "mapbox_unavailable_or_unusable" : null,
     });

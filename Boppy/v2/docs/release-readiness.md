@@ -12,6 +12,31 @@ This document tracks final production readiness for BeamBox V2.
 
 ## Readiness Gates
 
+## Current Snapshot (2026-02-17)
+
+- Local iOS gate commands are passing:
+  - `xcodebuild ... build` succeeded.
+  - `swift test` succeeded.
+  - `xcodebuild ... test` succeeded on `iPhone 16 (iOS 18.6)` with:
+    - `15` app tests passed.
+    - `5` UI tests passed.
+- Local backend gate commands are passing:
+  - `deno check */index.ts` succeeded.
+  - `deno test **/*test.ts` succeeded (`17 passed`).
+- Full UAT checklist now passes end-to-end in this environment:
+  - `ADMIN_WEB_DIR=/Users/jesse/pulse/beambox-admin-web ./v2/scripts/run-uat-checklist.sh`
+  - Summary: `Passed 7, Failed 0, Skipped 0`
+- Live RLS matrix now passes using generated owner/driver/follower credentials:
+  - `deno run --allow-env --allow-net v2/backend/supabase/scripts/rls-matrix-check.ts`
+  - Summary: `11 passed, 0 failed`
+- Admin web repo now exists at:
+  - `/Users/jesse/pulse/beambox-admin-web`
+  - `npm run typecheck` + `npm test` passing
+- Final screenshot pack prepared at:
+  - `/Users/jesse/pulse/Boppy/v2/docs/reports/screens/final-pack-2026-02-16/`
+- Full evidence log:
+  - `/Users/jesse/pulse/Boppy/v2/docs/reports/wave-e-closeout-2026-02-16.md`
+
 ## 1) Backend
 
 - [ ] Latest migrations applied:
@@ -21,20 +46,20 @@ This document tracks final production readiness for BeamBox V2.
   - `20260214000004_inventory_admin_schema.sql`
   - `20260214000005_inventory_admin_rls.sql`
 - [ ] Edge functions deployed and healthy.
-- [ ] RLS matrix script passes for owner/driver/follower/anon role expectations.
+- [x] RLS matrix script passes for owner/driver/follower/anon role expectations.
 - [ ] Rate limits on sensitive admin mutations validated.
 
 ## 2) iOS App
 
 - [ ] `swift build` and `swift test` pass in CI and local.
-- [ ] Role-specific tabs/actions behave correctly.
-- [ ] Dispatch and Profile match approved layout density.
+- [x] Role-specific tabs/actions behave correctly.
+- [x] Dispatch and Profile match approved layout density.
 - [ ] OTP demo and live modes validated.
 - [ ] Crash-free behavior acceptable in staging/TestFlight.
 
 ## 3) Admin Web
 
-- [ ] `npm run typecheck` and `npm test` pass.
+- [x] `npm run typecheck` and `npm test` pass.
 - [ ] Orders/Inventory/Dispatch/Channels/Members/Audit load and mutate successfully.
 - [ ] Error banners show request-context and explicit rate-limit cooldown guidance.
 - [ ] Owner-only controls blocked for non-owner roles.

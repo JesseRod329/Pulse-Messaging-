@@ -8,8 +8,8 @@ struct LedgerTimelineView: View {
     var body: some View {
         if isLoading {
             HStack {
-                ProgressView()
-                    .controlSize(.small)
+                ShimmerBlock(cornerRadius: 8)
+                    .frame(width: 28, height: 28)
                 Text("Loading timeline")
                     .font(.caption)
                     .foregroundStyle(AppTheme.textMuted)
@@ -23,23 +23,25 @@ struct LedgerTimelineView: View {
                 ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
                     HStack(alignment: .top, spacing: 10) {
                         VStack(spacing: 0) {
-                            Circle()
-                                .fill(color(for: event).opacity(0.20))
-                                .frame(width: 20, height: 20)
-                                .overlay(
-                                    Circle()
-                                        .stroke(color(for: event), lineWidth: 1.4)
-                                )
-                                .overlay(
-                                    Image(systemName: icon(for: event))
-                                        .font(.system(size: 9, weight: .bold))
-                                        .foregroundStyle(color(for: event))
-                                )
+                            ZStack {
+                                Circle()
+                                    .stroke(color(for: event).opacity(0.75), lineWidth: 2)
+                                    .frame(width: AppTheme.timelineNodeSize, height: AppTheme.timelineNodeSize)
+                                Circle()
+                                    .fill(color(for: event).opacity(0.24))
+                                    .frame(width: AppTheme.timelineNodeSize - 8, height: AppTheme.timelineNodeSize - 8)
+                                Image(systemName: icon(for: event))
+                                    .font(AppTheme.inter(12, weight: .bold, relativeTo: .caption))
+                                    .foregroundStyle(color(for: event))
+                            }
 
                             if index != events.count - 1 {
-                                Rectangle()
-                                    .fill(color(for: event).opacity(0.44))
-                                    .frame(width: 1, height: 28)
+                                LinearGradient(
+                                    colors: [color(for: event).opacity(0.7), color(for: events[index + 1]).opacity(0.7)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                .frame(width: 2, height: 36)
                             }
                         }
 

@@ -19,6 +19,12 @@ interface ProfileRow {
   id: string;
   display_name: string | null;
   phone_e164: string;
+  avatar_url: string | null;
+  driver_availability: string | null;
+  driver_rating: number | null;
+  driver_trip_count: number | null;
+  last_lat: number | null;
+  last_lng: number | null;
 }
 
 Deno.serve(async (req) => {
@@ -46,7 +52,7 @@ Deno.serve(async (req) => {
     if (uniqueUserIDs.length > 0) {
       const userFilter = uniqueUserIDs.map((id) => encodeURIComponent(id)).join(",");
       const profiles = await adminGet(
-        `profiles?select=id,display_name,phone_e164&id=in.(${userFilter})`,
+        `profiles?select=id,display_name,phone_e164,avatar_url,driver_availability,driver_rating,driver_trip_count,last_lat,last_lng&id=in.(${userFilter})`,
       ) as ProfileRow[];
       for (const profile of profiles) {
         profilesByID.set(profile.id, profile);
@@ -63,6 +69,12 @@ Deno.serve(async (req) => {
         ? {
             display_name: profilesByID.get(membership.user_id)?.display_name ?? null,
             phone_e164: profilesByID.get(membership.user_id)?.phone_e164 ?? "",
+            avatar_url: profilesByID.get(membership.user_id)?.avatar_url ?? null,
+            driver_availability: profilesByID.get(membership.user_id)?.driver_availability ?? null,
+            driver_rating: profilesByID.get(membership.user_id)?.driver_rating ?? null,
+            driver_trip_count: profilesByID.get(membership.user_id)?.driver_trip_count ?? null,
+            last_lat: profilesByID.get(membership.user_id)?.last_lat ?? null,
+            last_lng: profilesByID.get(membership.user_id)?.last_lng ?? null,
           }
         : null,
     }));

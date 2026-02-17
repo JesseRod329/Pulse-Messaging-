@@ -1,142 +1,256 @@
 import SwiftUI
+import UIKit
 
 struct PhoneAuthView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
 
-    @State private var phone = "+1555"
+    @State private var selectedCountry = CountryCode.us
+    @State private var phoneLocal = "5550000001"
     @State private var code = ""
     @State private var codeRequested = false
+    @ScaledMetric(relativeTo: .title) private var brandSize: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var authCardPadding: CGFloat = 18
+    @ScaledMetric(relativeTo: .body) private var continueButtonVerticalPadding: CGFloat = 14
+    @ScaledMetric(relativeTo: .body) private var trustStripHorizontalPadding: CGFloat = 12
+    @ScaledMetric(relativeTo: .caption) private var trustStripVerticalPadding: CGFloat = 6
+    @ScaledMetric(relativeTo: .body) private var headerOuterSize: CGFloat = 80
+    @ScaledMetric(relativeTo: .body) private var headerInnerSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .title3) private var headerGlyphSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .body) private var fieldHeight: CGFloat = 48
 
     var body: some View {
+        authV2
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .appScreenBackground()
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    dismissKeyboard()
+                }
+            }
+        }
+        .onTapGesture {
+            dismissKeyboard()
+        }
+    }
+
+    private var authV2: some View {
         ZStack {
             AppTheme.screenGradient
                 .ignoresSafeArea()
 
-            GeometryReader { proxy in
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("Sign In")
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(AppTheme.textPrimary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.bottom, 4)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    Spacer(minLength: 28)
 
-                        VStack(alignment: .leading, spacing: 14) {
-                            VStack(alignment: .leading, spacing: 10) {
-                                HStack(spacing: 12) {
-                                    Circle()
-                                        .fill(AppTheme.accentBlue)
-                                        .frame(width: 44, height: 44)
-                                        .overlay {
-                                            Image(systemName: AppTheme.brandSymbolName)
-                                                .font(.system(size: 17, weight: .bold))
-                                                .foregroundStyle(AppTheme.textPrimary)
-                                        }
+                    VStack(spacing: 16) {
+                        headerIcon
 
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("BeamBox V2")
-                                            .font(AppTheme.titleFont)
-                                            .foregroundStyle(AppTheme.textPrimary)
-                                        Text(coordinator.isDemoMode ? "Demo authentication flow" : "Live OTP authentication flow")
-                                            .font(AppTheme.captionFont)
-                                            .foregroundStyle(AppTheme.textMuted)
+                        VStack(spacing: 6) {
+                            Text("BeamBoxV2")
+                                .font(AppTheme.inter(brandSize, weight: .bold, relativeTo: .largeTitle))
+                                .foregroundStyle(AppTheme.textPrimary)
+                            Text("Secure phone verification")
+                                .font(AppTheme.inter(13, weight: .medium, relativeTo: .subheadline))
+                                .foregroundStyle(AppTheme.textMuted)
+                        }
+
+                        VStack(spacing: 10) {
+                            HStack(spacing: 8) {
+                                Picker("Country", selection: $selectedCountry) {
+                                    ForEach(CountryCode.allCases, id: \.self) { country in
+                                        Text("\(country.flag) \(country.dialCode)").tag(country)
                                     }
                                 }
+                                .pickerStyle(.menu)
+                                .frame(width: 110)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(AppTheme.surfaceElevated)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(AppTheme.border, lineWidth: 1)
+                                )
+                                .accessibilityLabel("Country code")
+                                .accessibilityHint("Select your phone country code.")
+                                .accessibilityIdentifier("auth.countryCode")
 
-                                Text(authSubtitle)
-                                    .font(AppTheme.bodyFont)
-                                    .foregroundStyle(AppTheme.textSecondary)
-                                    .multilineTextAlignment(.leading)
+                                InputTextField(
+                                    placeholder: "Phone number",
+                                    text: $phoneLocal,
+                                    keyboardType: .phonePad,
+                                    disableActions: true
+                                )
+                                .frame(height: fieldHeight)
+                                .accessibilityLabel("Phone number")
+                                .accessibilityHint("Enter your phone number to receive a verification code.")
+                                .accessibilityIdentifier("auth.phoneNumber")
                             }
 
-                            if coordinator.isDemoMode {
-                                VStack(spacing: 10) {
-                                    roleButton(
-                                        title: "Continue as Owner",
-                                        subtitle: "+15550000001",
-                                        icon: "person.crop.circle.badge.checkmark",
-                                        identifier: "auth.continueOwner",
-                                        action: { signInDemo(phone: "+15550000001") }
-                                    )
-                                    roleButton(
-                                        title: "Continue as Driver",
-                                        subtitle: "+15550000002",
-                                        icon: "steeringwheel",
-                                        identifier: "auth.continueDriver",
-                                        action: { signInDemo(phone: "+15550000002") }
-                                    )
-                                    roleButton(
-                                        title: "Continue as Follower",
-                                        subtitle: "+15550000003",
-                                        icon: "person.2.fill",
-                                        identifier: "auth.continueFollower",
-                                        action: { signInDemo(phone: "+15550000003") }
-                                    )
-                                }
-                            } else {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    InputTextField(
-                                        placeholder: "+15551234567",
-                                        text: $phone,
-                                        keyboardType: .phonePad,
-                                        disableActions: true
-                                    )
-                                    .frame(height: 48)
-
-                                    if codeRequested {
-                                        InputTextField(
-                                            placeholder: "6-digit code",
-                                            text: $code,
-                                            keyboardType: .numberPad,
-                                            disableActions: true
-                                        )
-                                        .frame(height: 48)
-
-                                        Button("Verify Code") {
-                                            Task {
-                                                await coordinator.verifyOTP(phone: phone, code: code)
-                                            }
-                                        }
-                                        .buttonStyle(.borderedProminent)
-                                        .tint(AppTheme.accentBlue)
-                                        .frame(maxWidth: .infinity)
-                                        .accessibilityIdentifier("auth.verifyCode")
-                                    }
-
-                                    Button(codeRequested ? "Resend Code" : "Send Code") {
-                                        Task {
-                                            await coordinator.requestOTP(phone: phone)
-                                            codeRequested = true
-                                        }
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .tint(AppTheme.accentBlue)
-                                    .frame(maxWidth: .infinity)
-                                    .accessibilityIdentifier("auth.sendCode")
-                                }
+                            if codeRequested {
+                                InputTextField(
+                                    placeholder: "6-digit code",
+                                    text: $code,
+                                    keyboardType: .numberPad,
+                                    disableActions: true
+                                )
+                                .frame(height: fieldHeight)
+                                .accessibilityLabel("Verification code")
+                                .accessibilityHint("Enter the 6 digit code sent to your phone.")
+                                .accessibilityIdentifier("auth.code")
                             }
                         }
-                        .padding(AppTheme.cardPadding)
+
+                        if coordinator.featureFlags.showDemoAuthShortcuts {
+                            VStack(spacing: 8) {
+                                roleButton(
+                                    title: "Continue as Owner",
+                                    subtitle: "+15550000001",
+                                    icon: "person.crop.circle.badge.checkmark",
+                                    identifier: "auth.continueOwner",
+                                    action: { signInDemo(phone: "+15550000001") }
+                                )
+                                roleButton(
+                                    title: "Continue as Driver",
+                                    subtitle: "+15550000002",
+                                    icon: "steeringwheel",
+                                    identifier: "auth.continueDriver",
+                                    action: { signInDemo(phone: "+15550000002") }
+                                )
+                                roleButton(
+                                    title: "Continue as Follower",
+                                    subtitle: "+15550000003",
+                                    icon: "person.2.fill",
+                                    identifier: "auth.continueFollower",
+                                    action: { signInDemo(phone: "+15550000003") }
+                                )
+                            }
+                        }
+
+                        Button {
+                            Task {
+                                if codeRequested {
+                                    await coordinator.verifyOTP(phone: resolvedPhone, code: code)
+                                } else {
+                                    await coordinator.requestOTP(phone: resolvedPhone)
+                                    codeRequested = true
+                                    if coordinator.featureFlags.motionV2 {
+                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text(codeRequested ? "Continue" : "Send Code")
+                                    .font(AppTheme.inter(16, weight: .semibold, relativeTo: .headline))
+                                DesignIconView(icon: .chevronRight, size: 14, color: AppTheme.textPrimary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, continueButtonVerticalPadding)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(AppTheme.accentBlue)
+                            )
+                            .foregroundStyle(AppTheme.textPrimary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(codeRequested ? "Verify code" : "Send code")
+                        .accessibilityHint(codeRequested ? "Verifies your one-time passcode and signs you in." : "Sends a one-time passcode to your phone.")
+                        .accessibilityIdentifier(codeRequested ? "auth.verifyCode" : "auth.sendCode")
+
+                        HStack(spacing: 8) {
+                            Image(systemName: "info.circle")
+                            Text("Invite-only network. Contact your supplier for access.")
+                        }
+                        .font(AppTheme.inter(12, weight: .medium, relativeTo: .subheadline))
+                        .foregroundStyle(AppTheme.accentBlue)
+                        .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
-                            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius + 2, style: .continuous)
-                                .fill(AppTheme.cardGradient)
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(AppTheme.accentBlue.opacity(0.05))
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius + 2, style: .continuous)
-                                .stroke(AppTheme.border, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(AppTheme.accentBlue.opacity(0.12), lineWidth: 1)
                         )
+                        .accessibilityLabel("Invite-only access info")
+                        .accessibilityHint("Explains how to request BeamBox access.")
+                        .accessibilityIdentifier("auth.inviteInfo")
                     }
+                    .padding(authCardPadding)
+                    .frame(maxWidth: 420)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(AppTheme.cardGradient)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(AppTheme.border, lineWidth: 1)
+                    )
                     .padding(.horizontal, AppTheme.screenHorizontalPadding)
-                    .padding(.top, max(proxy.safeAreaInsets.top + 8, 22))
-                    .padding(.bottom, max(proxy.safeAreaInsets.bottom + 16, 24))
-                    .frame(maxWidth: .infinity, alignment: .top)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("auth.card")
+
+                    trustStrip
+                        .padding(.bottom, 16)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .appScreenBackground()
+    }
+
+    private var headerIcon: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(AppTheme.accentBlue.opacity(0.2))
+                .frame(width: headerOuterSize, height: headerOuterSize)
+            Circle()
+                .fill(AppTheme.accentBlue)
+                .frame(width: headerInnerSize, height: headerInnerSize)
+                .overlay {
+                    Image(systemName: "truck.box.fill")
+                        .font(AppTheme.symbolFont(headerGlyphSize, weight: .bold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var trustStrip: some View {
+        HStack(spacing: 8) {
+            Text("ENCRYPTED")
+            Text("/")
+            Text("VERIFIED")
+            Text("/")
+            Text("BEAMBOX V2.0.4")
+        }
+        .font(AppTheme.inter(11, weight: .semibold, relativeTo: .caption))
+        .foregroundStyle(AppTheme.textMuted)
+        .padding(.horizontal, trustStripHorizontalPadding)
+        .padding(.vertical, trustStripVerticalPadding)
+        .background(
+            Capsule()
+                .fill(AppTheme.surface.opacity(0.75))
+        )
+        .overlay(
+            Capsule()
+                .stroke(AppTheme.border, lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Security trust strip")
+        .accessibilityValue("Encrypted, verified, BeamBox version 2.0.4")
+        .accessibilityIdentifier("auth.trustStrip")
+    }
+
+    private var resolvedPhone: String {
+        let digits = phoneLocal
+            .filter { $0.isNumber }
+        return "\(selectedCountry.dialCode)\(digits)"
     }
 
     private func roleButton(title: String, subtitle: String, icon: String, identifier: String, action: @escaping () -> Void) -> some View {
@@ -147,24 +261,22 @@ struct PhoneAuthView: View {
                         .fill(AppTheme.accentBlueSoft)
                         .frame(width: 36, height: 36)
                     Image(systemName: icon)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(AppTheme.inter(14, weight: .semibold, relativeTo: .subheadline))
                         .foregroundStyle(AppTheme.textPrimary)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.subheadline.weight(.semibold))
+                        .font(AppTheme.inter(14, weight: .semibold))
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(subtitle)
-                        .font(.caption)
+                        .font(AppTheme.inter(12, weight: .regular))
                         .foregroundStyle(AppTheme.textMuted)
                 }
 
                 Spacer()
 
-                Image(systemName: "arrow.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppTheme.accentBlue)
+                DesignIconView(icon: .chevronRight, size: 12, color: AppTheme.accentBlue)
                     .frame(width: 24, height: 24)
                     .background(AppTheme.accentBlue.opacity(0.14), in: Circle())
             }
@@ -179,20 +291,41 @@ struct PhoneAuthView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityHint("Signs in with a demo role shortcut.")
         .accessibilityIdentifier(identifier)
-    }
-
-    private var authSubtitle: String {
-        if coordinator.isDemoMode {
-            return "Choose a role shortcut to preview owner, driver, or follower surfaces."
-        }
-        return "Use your phone number to receive an OTP code via Supabase + Twilio."
     }
 
     private func signInDemo(phone: String) {
         Task {
             await coordinator.requestOTP(phone: phone)
             await coordinator.verifyOTP(phone: phone, code: "123456")
+        }
+    }
+
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+private enum CountryCode: CaseIterable {
+    case us
+    case ae
+    case gb
+
+    var flag: String {
+        switch self {
+        case .us: return "🇺🇸"
+        case .ae: return "🇦🇪"
+        case .gb: return "🇬🇧"
+        }
+    }
+
+    var dialCode: String {
+        switch self {
+        case .us: return "+1"
+        case .ae: return "+971"
+        case .gb: return "+44"
         }
     }
 }

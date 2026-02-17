@@ -3,6 +3,7 @@ import { requireChannelRole, requireUser } from "../_shared/auth.ts";
 import { appendLedger } from "../_shared/ledger.ts";
 import { adminGet, adminPatch, SupabaseRequestError } from "../_shared/supabase.ts";
 import type { OrderStatus } from "../_shared/types.ts";
+import { isLegalAssignmentStatus } from "./logic.ts";
 
 interface AssignDriverBody {
   order_id: string;
@@ -15,8 +16,6 @@ interface OrderRow {
   assigned_driver_id: string | null;
   status: OrderStatus;
 }
-
-const LEGAL_ASSIGNMENT_STATUSES = new Set<OrderStatus>(["accepted", "assigned", "address_review"]);
 
 Deno.serve(async (req) => {
   const rid = requestId(req);
@@ -38,7 +37,7 @@ Deno.serve(async (req) => {
     await requireChannelRole(order.channel_id, user.id, "owner");
     await requireChannelRole(order.channel_id, body.driver_id, "driver");
     assert(
-      LEGAL_ASSIGNMENT_STATUSES.has(order.status),
+      isLegalAssignmentStatus(order.status),
       409,
       "invalid_assignment_state",
       `Cannot assign driver while order is ${order.status}.`

@@ -3,6 +3,7 @@ import { requireChannelRole, requireUser } from "../_shared/auth.ts";
 import { appendLedger } from "../_shared/ledger.ts";
 import { adminGet, adminPost, SupabaseRequestError } from "../_shared/supabase.ts";
 import type { OrderStatus } from "../_shared/types.ts";
+import { nextOrderStatusFromGeocode } from "./logic.ts";
 
 interface DeliveryAddress {
   line1: string;
@@ -18,6 +19,11 @@ interface CreateOrderRequestBody {
   post_id: string;
   quote_note: string;
   delivery_address: DeliveryAddress;
+  external_ref?: string;
+  summary_title?: string;
+  summary_image_url?: string;
+  summary_total_cents?: number;
+  summary_eta_text?: string;
 }
 
 async function geocode(address: DeliveryAddress): Promise<{ lat: number; lng: number } | null> {
@@ -84,7 +90,7 @@ Deno.serve(async (req) => {
     assert(profile, 404, "profile_not_found", "Profile not found for current user.");
 
     const geocoded = await geocode(body.delivery_address);
-    const status: OrderStatus = geocoded ? "requested" : "address_review";
+    const status: OrderStatus = nextOrderStatusFromGeocode(geocoded);
 
     const insertedRows = await adminPost(
       "order_requests?select=id,channel_id,status,lat,lng,created_at",
@@ -98,6 +104,11 @@ Deno.serve(async (req) => {
         lng: geocoded?.lng ?? null,
         quote_note: body.quote_note,
         status,
+        external_ref: body.external_ref ?? null,
+        summary_title: body.summary_title ?? null,
+        summary_image_url: body.summary_image_url ?? null,
+        summary_total_cents: body.summary_total_cents ?? null,
+        summary_eta_text: body.summary_eta_text ?? null,
       }
     ) as Array<{ id: string; channel_id: string; status: string; lat: number | null; lng: number | null; created_at: string }>;
 

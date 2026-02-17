@@ -29,6 +29,9 @@ private struct InventoryItemRecord {
     var stockOnHand: Int
     var lowStockThreshold: Int
     var isActive: Bool
+    var thumbnailURL: String?
+    var category: String?
+    var showInCatalog: Bool
     var createdAt: Date
     var updatedAt: Date
 }
@@ -43,6 +46,12 @@ private struct InventoryVariantRecord {
     var isActive: Bool
     var createdAt: Date
     var updatedAt: Date
+}
+
+private struct InventoryMetadataPayload {
+    let category: String?
+    let showInCatalog: Bool?
+    let thumbnailURL: String?
 }
 
 enum InMemoryBackendError: LocalizedError {
@@ -121,12 +130,44 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
         ]
 
         postsByChannel["channel-main"] = [
-            ChannelPost(id: "post-1", channelID: "channel-main", authorID: owner.id, postType: .image, caption: "Sunset Canvas #18", mediaPath: "https://example.com/art1.jpg"),
-            ChannelPost(id: "post-2", channelID: "channel-main", authorID: owner.id, postType: .video, caption: "Studio walkthrough", mediaPath: "https://example.com/studio.mp4")
+            ChannelPost(
+                id: "post-1",
+                channelID: "channel-main",
+                authorID: owner.id,
+                postType: .image,
+                caption: "Immutable LED Lantern batch with final QA check.",
+                mediaPath: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1400&q=80",
+                slotRemaining: 12,
+                slotLabel: "12 SLOTS LEFT",
+                heroSubtitle: "Express lane available",
+                heroAspectRatio: 16.0 / 9.0
+            ),
+            ChannelPost(
+                id: "post-2",
+                channelID: "channel-main",
+                authorID: owner.id,
+                postType: .video,
+                caption: "Warehouse packaging line ready for overnight dispatch.",
+                mediaPath: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1400&q=80",
+                slotRemaining: 8,
+                slotLabel: "CONSOLIDATED SHIP",
+                heroSubtitle: "Bulk tier still open",
+                heroAspectRatio: 16.0 / 9.0
+            )
         ]
 
         postsByChannel["channel-limited"] = [
-            ChannelPost(id: "post-3", channelID: "channel-limited", authorID: owner.id, postType: .text, caption: "Limited release opens Friday 8PM.", mediaPath: nil)
+            ChannelPost(
+                id: "post-3",
+                channelID: "channel-limited",
+                authorID: owner.id,
+                postType: .text,
+                caption: "Limited release opens Friday 8PM.",
+                mediaPath: nil,
+                slotRemaining: 4,
+                slotLabel: "LIMITED",
+                heroSubtitle: "Invite-only allocation"
+            )
         ]
 
         let seedItem = InventoryItemRecord(
@@ -142,6 +183,9 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             stockOnHand: 25,
             lowStockThreshold: 5,
             isActive: true,
+            thumbnailURL: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80",
+            category: "Lighting",
+            showInCatalog: true,
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -225,7 +269,19 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
 
         return usersByPhone.values
             .filter { driverIDs.contains($0.id) }
-            .map { DriverProfile(id: $0.id, displayName: $0.displayName) }
+            .map {
+                let isBusy = $0.id.hashValue % 3 == 0
+                return DriverProfile(
+                    id: $0.id,
+                    displayName: $0.displayName,
+                    avatarURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=240&q=80",
+                    availability: isBusy ? "busy" : "available",
+                    rating: isBusy ? 4.3 : 4.8,
+                    tripCount: isBusy ? 86 : 142,
+                    lastLat: 30.2672 + Double($0.id.hashValue % 5) * 0.01,
+                    lastLng: -97.7431 + Double($0.id.hashValue % 5) * 0.01
+                )
+            }
             .sorted(by: { $0.displayName < $1.displayName })
     }
 
@@ -246,7 +302,11 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             authorID: authorID,
             postType: postType,
             caption: caption,
-            mediaPath: mediaPath
+            mediaPath: mediaPath,
+            slotRemaining: postType == .text ? nil : 10,
+            slotLabel: postType == .video ? "CONSOLIDATED SHIP" : "10 SLOTS LEFT",
+            heroSubtitle: "Freshly posted",
+            heroAspectRatio: 16.0 / 9.0
         )
 
         postsByChannel[channelID, default: []].insert(post, at: 0)
@@ -325,6 +385,7 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
         }
 
         let geocodeFailed = deliveryAddress.postalCode.hasPrefix("000")
+        let externalRefSuffix = String(postID.suffix(4)).uppercased()
         let request = OrderRequest(
             id: "order-\(UUID().uuidString.prefix(8))",
             channelID: channelID,
@@ -336,7 +397,12 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             lng: geocodeFailed ? nil : -97.7431,
             quoteNote: quoteNote,
             status: geocodeFailed ? .addressReview : .requested,
-            assignedDriverID: nil
+            assignedDriverID: nil,
+            externalRef: "BXB-\(externalRefSuffix)",
+            summaryTitle: "Immutable LED Lantern",
+            summaryImageURL: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+            summaryTotalCents: 48900,
+            summaryEtaText: geocodeFailed ? "Address review required" : "ETA 2h 15m"
         )
 
         orders.insert(request, at: 0)
@@ -657,6 +723,7 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             throw InMemoryBackendError.permissionDenied
         }
 
+        let metadata = parseInventoryMetadata(description)
         let now = Date()
         if let itemID, let index = inventoryItems.firstIndex(where: { $0.id == itemID && $0.channelID == channelID }) {
             inventoryItems[index].name = name
@@ -667,6 +734,9 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             inventoryItems[index].trackStock = trackStock
             inventoryItems[index].stockOnHand = max(0, stockOnHand)
             inventoryItems[index].lowStockThreshold = max(0, lowStockThreshold)
+            inventoryItems[index].category = metadata.category ?? inventoryItems[index].category ?? "General"
+            inventoryItems[index].thumbnailURL = metadata.thumbnailURL ?? inventoryItems[index].thumbnailURL
+            inventoryItems[index].showInCatalog = metadata.showInCatalog ?? inventoryItems[index].showInCatalog
             inventoryItems[index].updatedAt = now
 
             appendAdminAudit(channelID: channelID, actorID: actorID, action: "inventory_item_updated", targetType: "inventory_item", targetID: itemID, reason: nil, payload: "sku=\(sku)")
@@ -686,6 +756,9 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             stockOnHand: max(0, stockOnHand),
             lowStockThreshold: max(0, lowStockThreshold),
             isActive: true,
+            thumbnailURL: metadata.thumbnailURL ?? "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=80",
+            category: metadata.category ?? "General",
+            showInCatalog: metadata.showInCatalog ?? true,
             createdAt: now,
             updatedAt: now
         )
@@ -926,6 +999,42 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
         adminAuditEvents.insert(event, at: 0)
     }
 
+    private func parseInventoryMetadata(_ description: String) -> InventoryMetadataPayload {
+        let lowered = description.lowercased()
+        guard lowered.contains("category=") || lowered.contains("thumbnail=") || lowered.contains("show_in_catalog=") else {
+            return InventoryMetadataPayload(category: nil, showInCatalog: nil, thumbnailURL: nil)
+        }
+
+        let components = description
+            .replacingOccurrences(of: "\n", with: ";")
+            .split(separator: ";")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        var category: String?
+        var showInCatalog: Bool?
+        var thumbnailURL: String?
+
+        for component in components {
+            let parts = component.split(separator: "=", maxSplits: 1).map(String.init)
+            guard parts.count == 2 else { continue }
+            let key = parts[0].lowercased()
+            let value = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+            switch key {
+            case "category":
+                category = value.isEmpty ? nil : value
+            case "show_in_catalog":
+                if value.lowercased() == "true" { showInCatalog = true }
+                if value.lowercased() == "false" { showInCatalog = false }
+            case "thumbnail":
+                thumbnailURL = value.isEmpty ? nil : value
+            default:
+                continue
+            }
+        }
+
+        return InventoryMetadataPayload(category: category, showInCatalog: showInCatalog, thumbnailURL: thumbnailURL)
+    }
+
     private func toInventoryVariant(_ row: InventoryVariantRecord) -> InventoryVariant {
         InventoryVariant(
             id: row.id,
@@ -944,6 +1053,9 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
         let variants = inventoryVariants
             .filter { $0.itemID == row.id }
             .map(toInventoryVariant)
+        let activeOrderCount = orders.filter { order in
+            order.status == .accepted || order.status == .assigned || order.status == .outForDelivery
+        }.count
         return InventoryItem(
             id: row.id,
             channelID: row.channelID,
@@ -956,6 +1068,10 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             stockOnHand: row.stockOnHand,
             lowStockThreshold: row.lowStockThreshold,
             isActive: row.isActive,
+            thumbnailURL: row.thumbnailURL,
+            category: row.category,
+            activeOrderCount: activeOrderCount,
+            showInCatalog: row.showInCatalog,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
             variants: variants

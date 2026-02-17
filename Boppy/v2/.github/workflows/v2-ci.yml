@@ -33,3 +33,7 @@ jobs:
         run: |
           cd v2/backend/supabase/functions
           deno check */index.ts
+      - name: Run edge function tests
+        run: |
+          cd v2/backend/supabase/functions
+          deno test **/*test.ts

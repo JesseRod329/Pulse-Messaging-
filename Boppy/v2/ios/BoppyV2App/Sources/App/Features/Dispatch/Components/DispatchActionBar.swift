@@ -5,6 +5,9 @@ struct DispatchActionBar: View {
     let onOptimizeRoute: () -> Void
     let onSaveRouteChanges: () -> Void
     let optimizeDisabled: Bool
+    let offline: Bool
+    let isBusy: Bool
+    var glass: Bool = true
 
     var body: some View {
         VStack(spacing: 12) {
@@ -28,11 +31,13 @@ struct DispatchActionBar: View {
                     onOptimizeRoute()
                 } label: {
                     Label("Optimize Route (Mapbox)", systemImage: "sparkles")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(AppTheme.inter(16, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 2)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Optimize route")
+                .accessibilityHint("Builds or re-optimizes the route for the selected driver.")
                 .accessibilityIdentifier("dispatch.optimizeRoute")
                 .foregroundStyle(AppTheme.textPrimary)
                 .padding(.vertical, 13)
@@ -44,11 +49,11 @@ struct DispatchActionBar: View {
                     RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .disabled(optimizeDisabled)
+                .disabled(optimizeDisabled || offline || isBusy)
 
                 Button(action: onRefresh) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(AppTheme.inter(15, weight: .bold, relativeTo: .body))
                         .foregroundStyle(AppTheme.textMuted)
                         .frame(width: 44, height: 44)
                         .background(AppTheme.surface.opacity(0.88), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -58,18 +63,23 @@ struct DispatchActionBar: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Refresh dispatch")
+                .accessibilityHint("Reloads routes, stops, and order statuses.")
                 .accessibilityIdentifier("dispatch.refresh")
+                .disabled(isBusy)
             }
 
             Button {
                 onSaveRouteChanges()
             } label: {
                 Label("Save Route Changes", systemImage: "square.and.arrow.down.fill")
-                    .font(.system(size: 22, weight: .bold))
+                    .font(AppTheme.inter(18, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 2)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Save route changes")
+            .accessibilityHint("Saves current route state and refreshes dispatch.")
             .accessibilityIdentifier("dispatch.saveRouteChanges")
             .foregroundStyle(AppTheme.textPrimary)
             .padding(.vertical, 14)
@@ -77,21 +87,22 @@ struct DispatchActionBar: View {
                 RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
                     .fill(AppTheme.accentBlue)
             )
+            .disabled(offline || isBusy)
         }
         .padding(.horizontal, 2)
         .padding(.top, 6)
         .padding(.bottom, 6)
-        .background(
-            AppTheme.navBar.opacity(0.94)
-        )
+        .background {
+            AppTheme.chromeBackground(glass: glass)
+        }
     }
 
     private func navItem(icon: String, label: String, active: Bool) -> some View {
         VStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
+                .font(AppTheme.inter(14, weight: .semibold))
             Text(label)
-                .font(.system(size: 10, weight: .bold))
+                .font(AppTheme.inter(10, weight: .bold))
                 .textCase(.uppercase)
         }
         .foregroundStyle(active ? AppTheme.accentBlue : AppTheme.textMuted)

@@ -4,9 +4,9 @@ struct InviteOnlyBadge: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "lock.fill")
-                .font(.system(size: 10, weight: .bold))
+                .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
             Text("INVITE ONLY")
-                .font(.system(size: 10, weight: .bold))
+                .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
                 .tracking(0.8)
         }
         .foregroundStyle(AppTheme.accentBlue)

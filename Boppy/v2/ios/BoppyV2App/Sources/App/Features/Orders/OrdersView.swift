@@ -1,14 +1,20 @@
 import SwiftUI
+import UIKit
 import BoppyV2Core
 
 struct OrdersView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
-    @State private var expandedOrderIDs: Set<String> = []
+    @EnvironmentObject private var authStore: AuthStore
+    @EnvironmentObject private var orderStore: OrderStore
+
     @State private var selectedFilter: InboxFilter = .all
+    @State private var readOrderIDs: Set<String> = []
+    @State private var timelineOrder: OrderRequest?
+    @State private var assignDriverOrder: OrderRequest?
 
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .bottomTrailing) {
                 AppTheme.screenGradient
                     .ignoresSafeArea()
 
@@ -27,22 +33,13 @@ struct OrdersView: View {
                                 ForEach(filteredOrders) { order in
                                     OrderInboxCard(
                                         order: order,
-                                        isExpanded: expandedOrderIDs.contains(order.id),
-                                        onToggleTimeline: {
-                                            if expandedOrderIDs.contains(order.id) {
-                                                expandedOrderIDs.remove(order.id)
-                                            } else {
-                                                expandedOrderIDs.insert(order.id)
-                                                Task { await coordinator.loadLedger(for: order.id) }
-                                            }
+                                        isUnread: isUnread(order),
+                                        showOwnerActions: authStore.user?.role == .owner,
+                                        onOpenTimeline: { openTimeline(order) },
+                                        onOpenAssign: {
+                                            assignDriverOrder = order
                                         }
-                                    ) {
-                                        if coordinator.user?.role == .owner {
-                                            ownerActions(order: order)
-                                        }
-                                    } timeline: {
-                                        timeline(orderID: order.id)
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -56,9 +53,14 @@ struct OrdersView: View {
                         )
                     }
                     .scrollDismissesKeyboard(.immediately)
+                    .refreshable {
+                        await coordinator.refreshAll()
+                    }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .background(AppTheme.screenGradient)
                 }
+
+                ordersFab
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .navigationTitle(navigationTitle)
@@ -69,9 +71,11 @@ struct OrdersView: View {
                     Button {
                         Task { await coordinator.refreshAll() }
                     } label: {
-                        Image(systemName: "line.3.horizontal")
+                        DesignIconView(icon: .menu, size: 18, color: AppTheme.textSecondary)
                     }
                     .foregroundStyle(AppTheme.textSecondary)
+                    .accessibilityLabel("Orders menu")
+                    .accessibilityHint("Refreshes the orders inbox.")
                     .accessibilityIdentifier("orders.menu")
                 }
 
@@ -80,9 +84,11 @@ struct OrdersView: View {
                         Button {
                             Task { await coordinator.refreshAll() }
                         } label: {
-                            Image(systemName: "magnifyingglass")
+                            DesignIconView(icon: .refresh, size: 16, color: AppTheme.textSecondary)
                         }
                         .foregroundStyle(AppTheme.textSecondary)
+                        .accessibilityLabel("Refresh orders")
+                        .accessibilityHint("Reloads the latest order statuses.")
                         .accessibilityIdentifier("orders.refresh")
 
                         Circle()
@@ -98,21 +104,36 @@ struct OrdersView: View {
             }
             .onAppear {
                 Task { await coordinator.refreshAll() }
+                bootstrapReadState()
+            }
+            .onChange(of: orderStore.orders) { _, _ in
+                bootstrapReadState()
             }
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .fullScreenCover(item: Binding(
+            get: { timelineOrder.map(OrderTimelineToken.init(order:)) },
+            set: { token in timelineOrder = token?.order }
+        )) { token in
+            OrderTimelineView(order: token.order)
+                .environmentObject(coordinator)
+        }
+        .fullScreenCover(item: Binding(
+            get: { assignDriverOrder.map(OrderTimelineToken.init(order:)) },
+            set: { token in assignDriverOrder = token?.order }
+        )) { token in
+            AssignDriverView(order: token.order) { driverID in
+                Task {
+                    await coordinator.assignDriver(orderID: token.order.id, driverID: driverID)
+                    assignDriverOrder = nil
+                }
+            }
+            .environmentObject(coordinator)
+        }
         .appScreenBackground()
     }
 
-    private func timeline(orderID: String) -> some View {
-        LedgerTimelineView(
-            events: coordinator.ledgerByOrderID[orderID] ?? [],
-            isLoading: coordinator.loadingLedgerOrderIDs.contains(orderID)
-        )
-    }
-
     private var sortedOrders: [OrderRequest] {
-        coordinator.orders.sorted(by: { $0.updatedAt > $1.updatedAt })
+        orderStore.orders.sorted(by: { $0.updatedAt > $1.updatedAt })
     }
 
     private var filteredOrders: [OrderRequest] {
@@ -141,55 +162,64 @@ struct OrdersView: View {
     }
 
     private var role: UserRole {
-        coordinator.user?.role ?? .follower
+        authStore.user?.role ?? .follower
     }
 
     private var filterBar: some View {
-        HStack(spacing: 8) {
-            ForEach(InboxFilter.allCases, id: \.self) { filter in
-                Button {
-                    selectedFilter = filter
-                } label: {
-                    HStack(spacing: 6) {
-                        Text(filter.rawValue)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.85)
-                        Text("\(count(for: filter))")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(
-                                Capsule()
-                                    .fill(selectedFilter == filter ? AppTheme.surface.opacity(0.55) : AppTheme.surface.opacity(0.24))
-                            )
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(InboxFilter.allCases, id: \.self) { filter in
+                    Button {
+                        selectedFilter = filter
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(filter.rawValue)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
+                            Text("\(count(for: filter))")
+                                .font(AppTheme.inter(10, weight: .bold))
+                                .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(selectedFilter == filter ? AppTheme.surface.opacity(0.55) : AppTheme.surface.opacity(0.24))
+                                )
+                        }
+                        .font(AppTheme.inter(13, weight: .semibold))
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 9)
+                        .background(
+                            Capsule()
+                                .fill(selectedFilter == filter ? AppTheme.accentBlue.opacity(0.30) : AppTheme.surface.opacity(0.88))
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1)
+                        )
                     }
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 9)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(selectedFilter == filter ? AppTheme.accentBlue.opacity(0.30) : AppTheme.surface.opacity(0.88))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1)
-                    )
+                    .buttonStyle(.plain)
+                    .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
+                    .accessibilityLabel("\(filter.rawValue) filter")
+                    .accessibilityHint("Shows \(count(for: filter)) \(filter.rawValue.lowercased()) orders.")
+                    .accessibilityIdentifier("orders.filter.\(filter.rawValue.lowercased())")
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
-                .accessibilityIdentifier("orders.filter.\(filter.rawValue.lowercased())")
             }
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.85))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
-        )
+    }
+
+    private var ordersFab: some View {
+        FloatingActionButton(title: "New Order", icon: .add) {
+            if coordinator.featureFlags.motionV2 {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            }
+            selectedFilter = .pending
+        }
+        .padding(.trailing, 18)
+        .padding(.bottom, AppTheme.fabBottomPadding)
+        .accessibilityLabel("New order shortcut")
+        .accessibilityHint("Switches the inbox to pending orders.")
+        .accessibilityIdentifier("orders.fab")
     }
 
     private func count(for filter: InboxFilter) -> Int {
@@ -205,44 +235,25 @@ struct OrdersView: View {
         }
     }
 
-    @ViewBuilder
-    private func ownerActions(order: OrderRequest) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Menu("Update Status") {
-                    ForEach(OrderStatus.allCases, id: \.self) { status in
-                        Button(status.rawValue.replacingOccurrences(of: "_", with: " ").capitalized) {
-                            Task {
-                                await coordinator.updateOrderStatus(
-                                    orderID: order.id,
-                                    status: status,
-                                    quoteNote: order.quoteNote
-                                )
-                            }
-                        }
-                    }
-                }
-                .buttonStyle(.bordered)
-                .tint(AppTheme.accentBlue)
-                .accessibilityIdentifier("orders.updateStatus")
-
-                if !coordinator.drivers.isEmpty {
-                    Menu("Assign Driver") {
-                        ForEach(coordinator.drivers) { driver in
-                            Button(driver.displayName) {
-                                Task {
-                                    await coordinator.assignDriver(orderID: order.id, driverID: driver.id)
-                                }
-                            }
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(AppTheme.accentBlue)
-                    .accessibilityIdentifier("orders.assignDriver")
-                }
-            }
-            .font(.caption.weight(.semibold))
+    private func openTimeline(_ order: OrderRequest) {
+        if coordinator.featureFlags.motionV2 {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
+        readOrderIDs.insert(order.id)
+        Task {
+            await coordinator.loadLedger(for: order.id)
+            timelineOrder = order
+        }
+    }
+
+    private func bootstrapReadState() {
+        let knownOrderIDs = Set(orderStore.orders.map(\.id))
+        readOrderIDs = readOrderIDs.intersection(knownOrderIDs)
+    }
+
+    private func isUnread(_ order: OrderRequest) -> Bool {
+        guard !readOrderIDs.contains(order.id) else { return false }
+        return [.requested, .quoted, .addressReview].contains(order.status)
     }
 }
 
@@ -251,4 +262,9 @@ private enum InboxFilter: String, CaseIterable {
     case pending = "Pending"
     case active = "Active"
     case done = "Done"
+}
+
+private struct OrderTimelineToken: Identifiable {
+    let order: OrderRequest
+    var id: String { order.id }
 }

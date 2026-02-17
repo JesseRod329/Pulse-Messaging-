@@ -2,6 +2,7 @@ import { ApiHttpError, assert, onError, ok, readJson, requestId } from "../_shar
 import { requireUser } from "../_shared/auth.ts";
 import { appendLedger } from "../_shared/ledger.ts";
 import { adminGet, adminPatch, SupabaseRequestError } from "../_shared/supabase.ts";
+import { canCompleteStop, nextRouteStatus } from "./logic.ts";
 
 interface CompleteStopBody {
   route_id: string;
@@ -46,7 +47,12 @@ Deno.serve(async (req) => {
 
     const isOwner = ownerRows.length > 0;
     const isDriver = route.driver_id == user.id;
-    assert(isOwner || isDriver, 403, "forbidden", "Only route owner or assigned driver can complete stops.");
+    assert(
+      canCompleteStop(isOwner, isDriver),
+      403,
+      "forbidden",
+      "Only route owner or assigned driver can complete stops.",
+    );
 
     const stopFilters = [
       `route_id=eq.${encodeURIComponent(route.id)}`,
@@ -81,13 +87,14 @@ Deno.serve(async (req) => {
       `delivery_route_stops?select=id&route_id=eq.${encodeURIComponent(route.id)}&completed_at=is.null`
     ) as Array<unknown>;
 
-    if (remainingRows.length == 0) {
+    const targetRouteStatus = nextRouteStatus(route.status, remainingRows.length);
+    if (targetRouteStatus === "completed") {
       await adminPatch(`delivery_routes?id=eq.${encodeURIComponent(route.id)}`, {
         status: "completed",
         completed_at: new Date().toISOString(),
         started_at: route.started_at ?? new Date().toISOString(),
       });
-    } else if (route.status == "planned") {
+    } else if (targetRouteStatus === "in_progress") {
       await adminPatch(`delivery_routes?id=eq.${encodeURIComponent(route.id)}`, {
         status: "in_progress",
         started_at: route.started_at ?? new Date().toISOString(),

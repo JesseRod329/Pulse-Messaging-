@@ -7,23 +7,24 @@ export class SupabaseRequestError extends Error {
   }
 }
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+function readSupabaseConfig(): { url: string; serviceRoleKey: string; anonKey: string } {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-if (!supabaseUrl || !serviceRoleKey || !anonKey) {
-  throw new Error("Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or SUPABASE_ANON_KEY.");
+  if (!url || !serviceRoleKey || !anonKey) {
+    throw new Error("Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or SUPABASE_ANON_KEY.");
+  }
+
+  return { url, serviceRoleKey, anonKey };
 }
 
-const SUPABASE_URL: string = supabaseUrl;
-const SERVICE_ROLE_KEY: string = serviceRoleKey;
-const ANON_KEY: string = anonKey;
-
 function adminHeaders(preferRepresentation = false): Headers {
+  const config = readSupabaseConfig();
   const headers = new Headers();
   headers.set("content-type", "application/json");
-  headers.set("apikey", SERVICE_ROLE_KEY);
-  headers.set("authorization", `Bearer ${SERVICE_ROLE_KEY}`);
+  headers.set("apikey", config.serviceRoleKey);
+  headers.set("authorization", `Bearer ${config.serviceRoleKey}`);
 
   if (preferRepresentation) {
     headers.set("prefer", "return=representation");
@@ -59,7 +60,8 @@ async function handleResponse(response: Response): Promise<unknown> {
 }
 
 export async function adminGet(path: string): Promise<unknown> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const { url } = readSupabaseConfig();
+  const response = await fetch(`${url}/rest/v1/${path}`, {
     method: "GET",
     headers: adminHeaders(false),
   });
@@ -67,7 +69,8 @@ export async function adminGet(path: string): Promise<unknown> {
 }
 
 export async function adminPost(path: string, body: unknown): Promise<unknown> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const { url } = readSupabaseConfig();
+  const response = await fetch(`${url}/rest/v1/${path}`, {
     method: "POST",
     headers: adminHeaders(true),
     body: JSON.stringify(body),
@@ -76,7 +79,8 @@ export async function adminPost(path: string, body: unknown): Promise<unknown> {
 }
 
 export async function adminPatch(path: string, body: unknown): Promise<unknown> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const { url } = readSupabaseConfig();
+  const response = await fetch(`${url}/rest/v1/${path}`, {
     method: "PATCH",
     headers: adminHeaders(true),
     body: JSON.stringify(body),
@@ -85,7 +89,8 @@ export async function adminPatch(path: string, body: unknown): Promise<unknown> 
 }
 
 export async function adminDelete(path: string): Promise<unknown> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const { url } = readSupabaseConfig();
+  const response = await fetch(`${url}/rest/v1/${path}`, {
     method: "DELETE",
     headers: adminHeaders(true),
   });
@@ -93,7 +98,8 @@ export async function adminDelete(path: string): Promise<unknown> {
 }
 
 export async function adminRpc(fnName: string, body: unknown): Promise<unknown> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+  const { url } = readSupabaseConfig();
+  const response = await fetch(`${url}/rest/v1/rpc/${fnName}`, {
     method: "POST",
     headers: adminHeaders(false),
     body: JSON.stringify(body),
@@ -102,10 +108,11 @@ export async function adminRpc(fnName: string, body: unknown): Promise<unknown> 
 }
 
 export async function authUserFromToken(token: string): Promise<unknown> {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+  const config = readSupabaseConfig();
+  const response = await fetch(`${config.url}/auth/v1/user`, {
     method: "GET",
     headers: new Headers({
-      "apikey": ANON_KEY,
+      "apikey": config.anonKey,
       "authorization": `Bearer ${token}`,
     }),
   });

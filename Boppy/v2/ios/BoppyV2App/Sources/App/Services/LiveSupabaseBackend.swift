@@ -1,8 +1,20 @@
 import Foundation
 import BoppyV2Core
 
+actor SessionStateActor {
+    private var cachedSession: SessionUser?
+
+    func read() -> SessionUser? {
+        cachedSession
+    }
+
+    func write(_ session: SessionUser?) {
+        cachedSession = session
+    }
+}
+
 final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, OrderServiceProtocol, DispatchServiceProtocol, InventoryServiceProtocol, AdminServiceProtocol {
-    private struct MembershipRow: Decodable {
+    struct MembershipRow: Decodable {
         let channelID: String
         let role: String
 
@@ -12,7 +24,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct ChannelRow: Decodable {
+    struct ChannelRow: Decodable {
         let id: String
         let title: String
         let description: String
@@ -26,7 +38,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct ProfileRow: Decodable {
+    struct ProfileRow: Decodable {
         let id: String
         let phoneE164: String
         let displayName: String?
@@ -38,23 +50,39 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct DriverProfileRow: Decodable {
+    struct DriverProfileRow: Decodable {
         let id: String
         let displayName: String?
+        let avatarURL: String?
+        let availability: String?
+        let rating: Double?
+        let tripCount: Int?
+        let lastLat: Double?
+        let lastLng: Double?
 
         enum CodingKeys: String, CodingKey {
             case id
             case displayName = "display_name"
+            case avatarURL = "avatar_url"
+            case availability = "driver_availability"
+            case rating = "driver_rating"
+            case tripCount = "driver_trip_count"
+            case lastLat = "last_lat"
+            case lastLng = "last_lng"
         }
     }
 
-    private struct PostRow: Decodable {
+    struct PostRow: Decodable {
         let id: String
         let channelID: String
         let authorID: String
         let postType: String
         let caption: String?
         let mediaPath: String?
+        let slotRemaining: Int?
+        let slotLabel: String?
+        let heroSubtitle: String?
+        let heroAspectRatio: Double?
         let createdAt: Date
 
         enum CodingKeys: String, CodingKey {
@@ -64,11 +92,15 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             case postType = "post_type"
             case caption
             case mediaPath = "media_path"
+            case slotRemaining = "slot_remaining"
+            case slotLabel = "slot_label"
+            case heroSubtitle = "hero_subtitle"
+            case heroAspectRatio = "hero_aspect_ratio"
             case createdAt = "created_at"
         }
     }
 
-    private struct DeliveryAddressRow: Decodable {
+    struct DeliveryAddressRow: Decodable {
         let line1: String
         let line2: String?
         let city: String
@@ -86,7 +118,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct OrderRow: Decodable {
+    struct OrderRow: Decodable {
         let id: String
         let channelID: String
         let postID: String
@@ -98,6 +130,11 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         let quoteNote: String?
         let status: String
         let assignedDriverID: String?
+        let externalRef: String?
+        let summaryTitle: String?
+        let summaryImageURL: String?
+        let summaryTotalCents: Int?
+        let summaryEtaText: String?
         let createdAt: Date
         let updatedAt: Date
 
@@ -113,12 +150,17 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             case quoteNote = "quote_note"
             case status
             case assignedDriverID = "assigned_driver_id"
+            case externalRef = "external_ref"
+            case summaryTitle = "summary_title"
+            case summaryImageURL = "summary_image_url"
+            case summaryTotalCents = "summary_total_cents"
+            case summaryEtaText = "summary_eta_text"
             case createdAt = "created_at"
             case updatedAt = "updated_at"
         }
     }
 
-    private struct RouteRow: Decodable {
+    struct RouteRow: Decodable {
         let id: String
         let channelID: String
         let driverID: String
@@ -140,7 +182,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct StopRow: Decodable {
+    struct StopRow: Decodable {
         let id: String
         let routeID: String
         let orderID: String
@@ -158,7 +200,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct LedgerRow: Decodable {
+    struct LedgerRow: Decodable {
         let id: String
         let orderID: String
         let actorID: String
@@ -176,7 +218,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct OrderLineItemRow: Decodable {
+    struct OrderLineItemRow: Decodable {
         let id: String
         let orderID: String
         let itemID: String?
@@ -202,7 +244,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct InventoryVariantRow: Decodable {
+    struct InventoryVariantRow: Decodable {
         let id: String
         let itemID: String
         let name: String
@@ -226,7 +268,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct InventoryItemRow: Decodable {
+    struct InventoryItemRow: Decodable {
         let id: String
         let channelID: String
         let name: String
@@ -238,6 +280,10 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         let stockOnHand: Int
         let lowStockThreshold: Int
         let isActive: Bool
+        let thumbnailURL: String?
+        let category: String?
+        let activeOrderCount: Int?
+        let showInCatalog: Bool?
         let createdAt: Date
         let updatedAt: Date
         let variants: [InventoryVariantRow]?
@@ -254,13 +300,17 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             case stockOnHand = "stock_on_hand"
             case lowStockThreshold = "low_stock_threshold"
             case isActive = "is_active"
+            case thumbnailURL = "thumbnail_url"
+            case category
+            case activeOrderCount = "active_order_count"
+            case showInCatalog = "show_in_catalog"
             case createdAt = "created_at"
             case updatedAt = "updated_at"
             case variants
         }
     }
 
-    private struct InventoryStockRow: Decodable {
+    struct InventoryStockRow: Decodable {
         let id: String
         let itemID: String
         let variantID: String?
@@ -280,7 +330,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct AdminAuditRow: Decodable {
+    struct AdminAuditRow: Decodable {
         let id: String
         let channelID: String
         let actorID: String
@@ -304,7 +354,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private struct CreateInviteResponse: Decodable {
+    struct CreateInviteResponse: Decodable {
         let id: String
         let channel_id: String
         let token: String
@@ -313,16 +363,16 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         let max_uses: Int?
     }
 
-    private struct JoinChannelResponse: Decodable {
+    struct JoinChannelResponse: Decodable {
         let channel_id: String
         let already_joined: Bool
     }
 
-    private struct CreateOrderResponse: Decodable {
+    struct CreateOrderResponse: Decodable {
         let id: String
     }
 
-    private struct BuildRouteResponse: Decodable {
+    struct BuildRouteResponse: Decodable {
         struct EmbeddedRoute: Decodable {
             let id: String
         }
@@ -330,695 +380,58 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         let route: EmbeddedRoute
     }
 
-    private struct CompleteStopResponse: Decodable {
+    struct CompleteStopResponse: Decodable {
         let route_id: String
     }
 
-    private struct ReorderStopsResponse: Decodable {
+    struct ReorderStopsResponse: Decodable {
         let route_id: String
     }
 
-    private struct InventoryCatalogResponse: Decodable {
+    struct InventoryCatalogResponse: Decodable {
         let channel_id: String
         let items: [InventoryItemRow]
         let ledger: [InventoryStockRow]
     }
 
-    private struct InventoryAdjustResponse: Decodable {
+    struct InventoryAdjustResponse: Decodable {
         let item_id: String
         let variant_id: String?
         let delta: Int
         let balance_after: Int
     }
 
-    private struct OrderLineItemsResponse: Decodable {
+    struct OrderLineItemsResponse: Decodable {
         let order_id: String
         let line_items: [OrderLineItemRow]
     }
 
-    private struct AdminAuditEventsResponse: Decodable {
+    struct AdminAuditEventsResponse: Decodable {
         let events: [AdminAuditRow]
     }
 
-    private let client: SupabaseRESTClient
-    private let sessionStore: SupabaseSessionStore
-    private let analytics: AnalyticsServiceProtocol
+    let client: SupabaseRESTClient
+    let sessionStore: SessionTokenStore
+    let analytics: AnalyticsServiceProtocol
+    let sessionState = SessionStateActor()
 
-    private var cachedSession: SessionUser?
-
-    init(config: SupabaseConfig, analytics: AnalyticsServiceProtocol, sessionStore: SupabaseSessionStore = SupabaseSessionStore()) {
-        self.client = SupabaseRESTClient(config: config)
+    init(config: SupabaseConfig, analytics: AnalyticsServiceProtocol, sessionStore: SessionTokenStore = MigratingSessionTokenStore()) {
         self.sessionStore = sessionStore
+        self.client = SupabaseRESTClient(config: config, tokenStore: sessionStore)
         self.analytics = analytics
-    }
-
-    // MARK: - Auth
-
-    func requestOTP(phoneE164: String) async throws {
-        try await client.requestOTP(phoneE164: phoneE164)
-    }
-
-    func verifyOTP(phoneE164: String, code: String) async throws -> SessionUser {
-        let response = try await client.verifyOTP(phoneE164: phoneE164, code: code)
-        sessionStore.save(
-            accessToken: response.access_token,
-            refreshToken: response.refresh_token,
-            userID: response.user.id,
-            userPhone: response.user.phone
-        )
-
-        try await upsertProfile(
-            userID: response.user.id,
-            phoneE164: response.user.phone ?? phoneE164,
-            displayName: nil,
-            accessToken: response.access_token
-        )
-
-        let sessionUser = try await resolveSessionUser(
-            userID: response.user.id,
-            fallbackPhone: response.user.phone ?? phoneE164,
-            accessToken: response.access_token
-        )
-        cachedSession = sessionUser
-        analytics.track(event: "live_auth_verify", properties: ["role": sessionUser.role.rawValue])
-        return sessionUser
-    }
-
-    func currentSession() async throws -> SessionUser? {
-        if let cachedSession {
-            return cachedSession
-        }
-
-        guard let accessToken = sessionStore.accessToken,
-              let userID = sessionStore.userID else {
-            return nil
-        }
-
-        do {
-            let authUser = try await client.fetchAuthUser(accessToken: accessToken)
-            let sessionUser = try await resolveSessionUser(
-                userID: userID,
-                fallbackPhone: authUser.phone ?? sessionStore.userPhone ?? "+10000000000",
-                accessToken: accessToken
-            )
-            cachedSession = sessionUser
-            return sessionUser
-        } catch {
-            sessionStore.clear()
-            cachedSession = nil
-            return nil
-        }
-    }
-
-    func signOut() async {
-        cachedSession = nil
-        sessionStore.clear()
-    }
-
-    // MARK: - Channels
-
-    func createChannel(ownerID: String, title: String, description: String) async throws -> Channel {
-        let accessToken = try requireAccessToken()
-        let normalizedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !normalizedTitle.isEmpty else {
-            throw SupabaseClientError.server(status: 400, message: "Channel title is required.")
-        }
-
-        let body: [String: Any] = [
-            "owner_id": ownerID,
-            "title": normalizedTitle,
-            "description": description,
-            "is_active": true,
-        ]
-
-        let data = try await client.restPost(
-            pathAndQuery: "channels?select=id,title,description,is_active",
-            body: body,
-            accessToken: accessToken,
-            prefer: "return=representation"
-        )
-
-        let rows = try decode([ChannelRow].self, from: data)
-        guard let channel = rows.first else {
-            throw SupabaseClientError.invalidResponse
-        }
-
-        _ = try await client.restPost(
-            pathAndQuery: "channel_memberships?select=channel_id,user_id",
-            body: [
-                "channel_id": channel.id,
-                "user_id": ownerID,
-                "role": "owner",
-            ],
-            accessToken: accessToken,
-            prefer: "return=representation"
-        )
-
-        return Channel(id: channel.id, title: channel.title, description: channel.description, isActive: channel.isActive)
-    }
-
-    func fetchChannels(userID: String) async throws -> [Channel] {
-        let accessToken = try requireAccessToken()
-        let memberships = try await fetchMemberships(userID: userID, accessToken: accessToken)
-        let ids = memberships.map(\.channelID)
-        guard !ids.isEmpty else { return [] }
-
-        let query = "channels?select=id,title,description,is_active&id=in.\(inFilter(ids))&is_active=eq.true&order=created_at.desc"
-        let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
-        let rows = try decode([ChannelRow].self, from: data)
-
-        return rows.map { row in
-            Channel(id: row.id, title: row.title, description: row.description, isActive: row.isActive)
-        }
-    }
-
-    func fetchPosts(channelID: String) async throws -> [ChannelPost] {
-        let accessToken = try requireAccessToken()
-        let query = "posts?select=id,channel_id,author_id,post_type,caption,media_path,created_at&channel_id=eq.\(escape(channelID))&archived_at=is.null&order=created_at.desc"
-        let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
-        let rows = try decode([PostRow].self, from: data)
-
-        return rows.compactMap(mapPost)
-    }
-
-    func fetchDrivers(channelID: String) async throws -> [DriverProfile] {
-        let accessToken = try requireAccessToken()
-        let membershipQuery = "channel_memberships?select=user_id&channel_id=eq.\(escape(channelID))&role=eq.driver"
-        let membershipData = try await client.restGet(pathAndQuery: membershipQuery, accessToken: accessToken)
-        let membershipRows = try decode([[String: String]].self, from: membershipData)
-        let userIDs = membershipRows.compactMap { $0["user_id"] }
-
-        guard !userIDs.isEmpty else { return [] }
-
-        let profilesQuery = "profiles?select=id,display_name&id=in.\(inFilter(userIDs))"
-        let profilesData = try await client.restGet(pathAndQuery: profilesQuery, accessToken: accessToken)
-        let profileRows = try decode([DriverProfileRow].self, from: profilesData)
-
-        return profileRows
-            .map { DriverProfile(id: $0.id, displayName: $0.displayName ?? "Driver") }
-            .sorted(by: { $0.displayName < $1.displayName })
-    }
-
-    func createPost(
-        channelID: String,
-        authorID: String,
-        postType: PostType,
-        caption: String,
-        mediaPath: String?
-    ) async throws -> ChannelPost {
-        let accessToken = try requireAccessToken()
-        let body: [String: Any?] = [
-            "channel_id": channelID,
-            "author_id": authorID,
-            "post_type": postType.rawValue,
-            "caption": caption,
-            "media_path": mediaPath,
-        ]
-
-        let payload = sanitizeDictionary(body)
-        let data = try await client.restPost(
-            pathAndQuery: "posts?select=id,channel_id,author_id,post_type,caption,media_path,created_at",
-            body: payload,
-            accessToken: accessToken,
-            prefer: "return=representation"
-        )
-
-        let rows = try decode([PostRow].self, from: data)
-        guard let first = rows.first, let post = mapPost(first) else {
-            throw SupabaseClientError.invalidResponse
-        }
-
-        return post
-    }
-
-    func createInvite(
-        channelID: String,
-        ownerID: String,
-        expiresInHours: Int,
-        maxUses: Int?
-    ) async throws -> ChannelInvite {
-        let accessToken = try requireAccessToken()
-        _ = ownerID
-
-        let data: CreateInviteResponse = try await client.edgeCall(
-            functionName: "create-invite",
-            accessToken: accessToken,
-            body: [
-                "channel_id": channelID,
-                "expires_in_hours": expiresInHours,
-                "max_uses": maxUses as Any
-            ]
-        )
-
-        return ChannelInvite(
-            id: data.id,
-            channelID: data.channel_id,
-            token: data.token,
-            inviteURL: data.invite_url,
-            expiresAt: data.expires_at,
-            maxUses: data.max_uses
-        )
-    }
-
-    func joinChannel(token: String, userID: String) async throws -> Channel {
-        let accessToken = try requireAccessToken()
-        _ = userID
-
-        let data: JoinChannelResponse = try await client.edgeCall(
-            functionName: "join-channel",
-            accessToken: accessToken,
-            body: ["token": token]
-        )
-
-        return try await fetchChannelByID(data.channel_id, accessToken: accessToken)
-    }
-
-    // MARK: - Orders
-
-    func createOrderRequest(
-        channelID: String,
-        postID: String,
-        customerID: String,
-        customerPhone: String,
-        deliveryAddress: DeliveryAddress,
-        quoteNote: String
-    ) async throws -> OrderRequest {
-        let accessToken = try requireAccessToken()
-        _ = customerID
-        _ = customerPhone
-
-        let payload: [String: Any] = [
-            "channel_id": channelID,
-            "post_id": postID,
-            "quote_note": quoteNote,
-            "delivery_address": [
-                "line1": deliveryAddress.line1,
-                "line2": deliveryAddress.line2,
-                "city": deliveryAddress.city,
-                "state": deliveryAddress.state,
-                "postal_code": deliveryAddress.postalCode,
-                "country": deliveryAddress.country,
-            ]
-        ]
-
-        let data: CreateOrderResponse = try await client.edgeCall(
-            functionName: "create-order-request",
-            accessToken: accessToken,
-            body: payload
-        )
-
-        return try await fetchOrderByID(data.id, accessToken: accessToken)
-    }
-
-    func fetchOrders(userID: String, role: UserRole) async throws -> [OrderRequest] {
-        let accessToken = try requireAccessToken()
-        let query: String
-
-        switch role {
-        case .owner:
-            let ownerChannels = try await fetchOwnedChannelIDs(userID: userID, accessToken: accessToken)
-            guard !ownerChannels.isEmpty else { return [] }
-            query = "order_requests?select=id,channel_id,post_id,customer_id,customer_phone,delivery_address_json,lat,lng,quote_note,status,assigned_driver_id,created_at,updated_at&channel_id=in.\(inFilter(ownerChannels))&order=updated_at.desc"
-        case .driver:
-            query = "order_requests?select=id,channel_id,post_id,customer_id,customer_phone,delivery_address_json,lat,lng,quote_note,status,assigned_driver_id,created_at,updated_at&assigned_driver_id=eq.\(escape(userID))&order=updated_at.desc"
-        case .follower:
-            query = "order_requests?select=id,channel_id,post_id,customer_id,customer_phone,delivery_address_json,lat,lng,quote_note,status,assigned_driver_id,created_at,updated_at&customer_id=eq.\(escape(userID))&order=updated_at.desc"
-        }
-
-        let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
-        let rows = try decode([OrderRow].self, from: data)
-        return rows.compactMap(mapOrder)
-    }
-
-    func fetchLedgerEvents(orderID: String, userID: String, role: UserRole) async throws -> [OrderLedgerEvent] {
-        _ = userID
-        _ = role
-
-        let accessToken = try requireAccessToken()
-        let query = "order_ledger_events?select=id,order_id,actor_id,event_type,event_payload_json,created_at&order_id=eq.\(escape(orderID))&order=created_at.asc"
-        let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
-        let rows = try decode([LedgerRow].self, from: data)
-
-        return rows.map { row in
-            OrderLedgerEvent(
-                id: row.id,
-                orderID: row.orderID,
-                actorID: row.actorID,
-                eventType: row.eventType,
-                payloadSummary: row.payload.summary,
-                createdAt: row.createdAt
-            )
-        }
-    }
-
-    func updateOrderStatus(orderID: String, status: OrderStatus, quoteNote: String?, actorID: String) async throws -> OrderRequest {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let body: [String: Any?] = [
-            "order_id": orderID,
-            "status": status.rawValue,
-            "quote_note": quoteNote,
-        ]
-
-        _ = try await client.edgeCall(
-            functionName: "update-order-status",
-            accessToken: accessToken,
-            body: sanitizeDictionary(body)
-        ) as [String: String]
-
-        return try await fetchOrderByID(orderID, accessToken: accessToken)
-    }
-
-    func assignDriver(orderID: String, driverID: String, actorID: String) async throws -> OrderRequest {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        _ = try await client.edgeCall(
-            functionName: "assign-driver",
-            accessToken: accessToken,
-            body: [
-                "order_id": orderID,
-                "driver_id": driverID,
-            ]
-        ) as [String: String]
-
-        return try await fetchOrderByID(orderID, accessToken: accessToken)
-    }
-
-    func upsertOrderLineItems(orderID: String, lineItems: [OrderLineItemInput], actorID: String) async throws -> [OrderLineItem] {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let payloadLineItems = lineItems.map { item in
-            [
-                "item_id": item.itemID as Any,
-                "variant_id": item.variantID as Any,
-                "title": item.title,
-                "sku": item.sku,
-                "quantity": item.quantity,
-                "unit_price_cents": item.unitPriceCents,
-            ]
-        }
-
-        let data: OrderLineItemsResponse = try await client.edgeCall(
-            functionName: "order-upsert-line-items",
-            accessToken: accessToken,
-            body: [
-                "order_id": orderID,
-                "line_items": payloadLineItems
-            ]
-        )
-
-        _ = data.order_id
-        return data.line_items.map(mapOrderLineItem)
-    }
-
-    // MARK: - Inventory
-
-    func upsertInventoryItem(
-        channelID: String,
-        itemID: String?,
-        name: String,
-        sku: String,
-        description: String,
-        defaultPriceCents: Int,
-        currencyCode: String,
-        trackStock: Bool,
-        stockOnHand: Int,
-        lowStockThreshold: Int,
-        actorID: String
-    ) async throws -> InventoryItem {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let body: [String: Any?] = [
-            "channel_id": channelID,
-            "item_id": itemID,
-            "name": name,
-            "sku": sku,
-            "description": description,
-            "default_price_cents": defaultPriceCents,
-            "currency_code": currencyCode,
-            "track_stock": trackStock,
-            "stock_on_hand": stockOnHand,
-            "low_stock_threshold": lowStockThreshold,
-        ]
-
-        let row: InventoryItemRow = try await client.edgeCall(
-            functionName: "inventory-upsert-item",
-            accessToken: accessToken,
-            body: sanitizeDictionary(body)
-        )
-
-        return mapInventoryItem(row)
-    }
-
-    func upsertInventoryVariant(
-        channelID: String,
-        itemID: String,
-        variantID: String?,
-        name: String,
-        sku: String,
-        priceCents: Int,
-        stockOnHand: Int,
-        isActive: Bool,
-        actorID: String
-    ) async throws -> InventoryVariant {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let body: [String: Any?] = [
-            "channel_id": channelID,
-            "item_id": itemID,
-            "variant_id": variantID,
-            "name": name,
-            "sku": sku,
-            "price_cents": priceCents,
-            "stock_on_hand": stockOnHand,
-            "is_active": isActive,
-        ]
-
-        let row: InventoryVariantRow = try await client.edgeCall(
-            functionName: "inventory-upsert-variant",
-            accessToken: accessToken,
-            body: sanitizeDictionary(body)
-        )
-
-        return mapInventoryVariant(row)
-    }
-
-    func adjustInventoryStock(
-        channelID: String,
-        itemID: String,
-        variantID: String?,
-        delta: Int,
-        reason: String,
-        actorID: String
-    ) async throws -> InventoryStockEvent {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let body: [String: Any?] = [
-            "channel_id": channelID,
-            "item_id": itemID,
-            "variant_id": variantID,
-            "delta": delta,
-            "reason": reason,
-        ]
-
-        let row: InventoryStockRow = try await client.edgeCall(
-            functionName: "inventory-adjust-stock",
-            accessToken: accessToken,
-            body: sanitizeDictionary(body)
-        )
-
-        return mapInventoryStock(row)
-    }
-
-    func fetchInventoryCatalog(channelID: String, includeInactive: Bool, includeLedger: Bool, actorID: String) async throws -> InventoryCatalog {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let data: InventoryCatalogResponse = try await client.edgeCall(
-            functionName: "inventory-list",
-            accessToken: accessToken,
-            body: [
-                "channel_id": channelID,
-                "include_inactive": includeInactive,
-                "include_ledger": includeLedger,
-            ]
-        )
-
-        let items = data.items.map(mapInventoryItem)
-        let ledger = data.ledger.map(mapInventoryStock)
-        return InventoryCatalog(channelID: data.channel_id, items: items, ledger: ledger)
-    }
-
-    // MARK: - Admin
-
-    func archiveChannel(channelID: String, reason: String, actorID: String) async throws {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        _ = try await client.edgeCall(
-            functionName: "admin-archive-channel",
-            accessToken: accessToken,
-            body: [
-                "channel_id": channelID,
-                "reason": reason,
-            ]
-        ) as [String: JSONValue]
-    }
-
-    func deleteOrder(orderID: String, mode: AdminDeleteMode, reason: String, actorID: String) async throws {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let body: [String: Any] = [
-            "order_id": orderID,
-            "reason": reason,
-            "hard_delete": mode == .hardDelete,
-        ]
-
-        _ = try await client.edgeCall(
-            functionName: "admin-delete-order",
-            accessToken: accessToken,
-            body: body
-        ) as [String: JSONValue]
-    }
-
-    func unassignDriver(orderID: String, reason: String, actorID: String) async throws {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        _ = try await client.edgeCall(
-            functionName: "admin-unassign-driver",
-            accessToken: accessToken,
-            body: [
-                "order_id": orderID,
-                "reason": reason,
-            ]
-        ) as [String: JSONValue]
-    }
-
-    func upsertDriverMembership(channelID: String, driverUserID: String, operation: DriverMembershipOperation, reason: String, actorID: String) async throws {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        _ = try await client.edgeCall(
-            functionName: "admin-driver-memberships-upsert",
-            accessToken: accessToken,
-            body: [
-                "channel_id": channelID,
-                "driver_user_id": driverUserID,
-                "operation": operation.rawValue,
-                "reason": reason,
-            ]
-        ) as [String: JSONValue]
-    }
-
-    func fetchAdminAuditEvents(channelID: String, action: String?, limit: Int, actorID: String) async throws -> [AdminAuditEvent] {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let body: [String: Any?] = [
-            "channel_id": channelID,
-            "action": action,
-            "limit": limit,
-        ]
-
-        let data: AdminAuditEventsResponse = try await client.edgeCall(
-            functionName: "admin-audit-events-list",
-            accessToken: accessToken,
-            body: sanitizeDictionary(body)
-        )
-
-        return data.events.map(mapAdminAudit)
-    }
-
-    // MARK: - Dispatch
-
-    func fetchRoutes(userID: String, role: UserRole) async throws -> [DeliveryRoute] {
-        let accessToken = try requireAccessToken()
-        let query: String
-
-        switch role {
-        case .owner:
-            let ownerChannels = try await fetchOwnedChannelIDs(userID: userID, accessToken: accessToken)
-            guard !ownerChannels.isEmpty else { return [] }
-            query = "delivery_routes?select=id,channel_id,driver_id,status,approximate,created_at,started_at,completed_at&channel_id=in.\(inFilter(ownerChannels))&order=created_at.desc"
-        case .driver:
-            query = "delivery_routes?select=id,channel_id,driver_id,status,approximate,created_at,started_at,completed_at&driver_id=eq.\(escape(userID))&order=created_at.desc"
-        case .follower:
-            return []
-        }
-
-        let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
-        let routeRows = try decode([RouteRow].self, from: data)
-        return try await hydrateRoutes(routeRows: routeRows, accessToken: accessToken)
-    }
-
-    func buildRoute(channelID: String, driverID: String, start: GeoPoint, actorID: String) async throws -> DeliveryRoute {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let data: BuildRouteResponse = try await client.edgeCall(
-            functionName: "build-route",
-            accessToken: accessToken,
-            body: [
-                "channel_id": channelID,
-                "driver_id": driverID,
-                "start_lat": start.lat,
-                "start_lng": start.lng,
-            ]
-        )
-
-        return try await fetchRouteByID(data.route.id, accessToken: accessToken)
-    }
-
-    func reorderRouteStops(routeID: String, orderedStopIDs: [String], actorID: String) async throws -> DeliveryRoute {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let data: ReorderStopsResponse = try await client.edgeCall(
-            functionName: "reorder-route-stops",
-            accessToken: accessToken,
-            body: [
-                "route_id": routeID,
-                "ordered_stop_ids": orderedStopIDs
-            ]
-        )
-
-        return try await fetchRouteByID(data.route_id, accessToken: accessToken)
-    }
-
-    func completeStop(routeID: String, stopID: String, actorID: String) async throws -> DeliveryRoute {
-        let accessToken = try requireAccessToken()
-        _ = actorID
-
-        let data: CompleteStopResponse = try await client.edgeCall(
-            functionName: "complete-stop",
-            accessToken: accessToken,
-            body: [
-                "route_id": routeID,
-                "stop_id": stopID,
-            ]
-        )
-
-        return try await fetchRouteByID(data.route_id, accessToken: accessToken)
+        self.sessionStore.migrateFromLegacyStoreIfNeeded()
     }
 
     // MARK: - Helpers
 
-    private func requireAccessToken() throws -> String {
-        guard let token = sessionStore.accessToken else {
+    func requireAccessToken() throws -> String {
+        guard let token = sessionStore.readTokens()?.accessToken else {
             throw SupabaseClientError.missingSession
         }
         return token
     }
 
-    private func resolveSessionUser(userID: String, fallbackPhone: String, accessToken: String) async throws -> SessionUser {
+    func resolveSessionUser(userID: String, fallbackPhone: String, accessToken: String) async throws -> SessionUser {
         let memberships = try await fetchMemberships(userID: userID, accessToken: accessToken)
         let role: UserRole
         if memberships.contains(where: { $0.role == "owner" }) {
@@ -1039,7 +452,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
-    private func upsertProfile(userID: String, phoneE164: String, displayName: String?, accessToken: String) async throws {
+    func upsertProfile(userID: String, phoneE164: String, displayName: String?, accessToken: String) async throws {
         let body = [[
             "id": userID,
             "phone_e164": phoneE164,
@@ -1054,26 +467,26 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
-    private func fetchProfile(userID: String, accessToken: String) async throws -> ProfileRow? {
+    func fetchProfile(userID: String, accessToken: String) async throws -> ProfileRow? {
         let query = "profiles?select=id,phone_e164,display_name&id=eq.\(escape(userID))&limit=1"
         let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
         return try decode([ProfileRow].self, from: data).first
     }
 
-    private func fetchMemberships(userID: String, accessToken: String) async throws -> [MembershipRow] {
+    func fetchMemberships(userID: String, accessToken: String) async throws -> [MembershipRow] {
         let query = "channel_memberships?select=channel_id,role&user_id=eq.\(escape(userID))"
         let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
         return try decode([MembershipRow].self, from: data)
     }
 
-    private func fetchOwnedChannelIDs(userID: String, accessToken: String) async throws -> [String] {
+    func fetchOwnedChannelIDs(userID: String, accessToken: String) async throws -> [String] {
         let query = "channels?select=id&owner_id=eq.\(escape(userID))&is_active=eq.true"
         let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
         let rows = try decode([[String: String]].self, from: data)
         return rows.compactMap { $0["id"] }
     }
 
-    private func fetchChannelByID(_ channelID: String, accessToken: String) async throws -> Channel {
+    func fetchChannelByID(_ channelID: String, accessToken: String) async throws -> Channel {
         let query = "channels?select=id,title,description,is_active&id=eq.\(escape(channelID))&limit=1"
         let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
         let rows = try decode([ChannelRow].self, from: data)
@@ -1084,8 +497,8 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         return Channel(id: row.id, title: row.title, description: row.description, isActive: row.isActive)
     }
 
-    private func fetchOrderByID(_ orderID: String, accessToken: String) async throws -> OrderRequest {
-        let query = "order_requests?select=id,channel_id,post_id,customer_id,customer_phone,delivery_address_json,lat,lng,quote_note,status,assigned_driver_id,created_at,updated_at&id=eq.\(escape(orderID))&limit=1"
+    func fetchOrderByID(_ orderID: String, accessToken: String) async throws -> OrderRequest {
+        let query = "order_requests?select=id,channel_id,post_id,customer_id,customer_phone,delivery_address_json,lat,lng,quote_note,status,assigned_driver_id,external_ref,summary_title,summary_image_url,summary_total_cents,summary_eta_text,created_at,updated_at&id=eq.\(escape(orderID))&limit=1"
         let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
         let rows = try decode([OrderRow].self, from: data)
         guard let first = rows.first, let order = mapOrder(first) else {
@@ -1094,7 +507,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         return order
     }
 
-    private func fetchRouteByID(_ routeID: String, accessToken: String) async throws -> DeliveryRoute {
+    func fetchRouteByID(_ routeID: String, accessToken: String) async throws -> DeliveryRoute {
         let routeQuery = "delivery_routes?select=id,channel_id,driver_id,status,approximate,created_at,started_at,completed_at&id=eq.\(escape(routeID))&limit=1"
         let routeData = try await client.restGet(pathAndQuery: routeQuery, accessToken: accessToken)
         let routeRows = try decode([RouteRow].self, from: routeData)
@@ -1109,7 +522,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         return first
     }
 
-    private func hydrateRoutes(routeRows: [RouteRow], accessToken: String) async throws -> [DeliveryRoute] {
+    func hydrateRoutes(routeRows: [RouteRow], accessToken: String) async throws -> [DeliveryRoute] {
         guard !routeRows.isEmpty else { return [] }
 
         let routeIDs = routeRows.map(\.id)
@@ -1145,7 +558,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         .sorted(by: { $0.createdAt > $1.createdAt })
     }
 
-    private func mapPost(_ row: PostRow) -> ChannelPost? {
+    func mapPost(_ row: PostRow) -> ChannelPost? {
         guard let type = PostType(rawValue: row.postType) else { return nil }
         return ChannelPost(
             id: row.id,
@@ -1154,11 +567,15 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             postType: type,
             caption: row.caption ?? "",
             mediaPath: row.mediaPath,
+            slotRemaining: row.slotRemaining,
+            slotLabel: row.slotLabel,
+            heroSubtitle: row.heroSubtitle,
+            heroAspectRatio: row.heroAspectRatio,
             createdAt: row.createdAt
         )
     }
 
-    private func mapOrder(_ row: OrderRow) -> OrderRequest? {
+    func mapOrder(_ row: OrderRow) -> OrderRequest? {
         guard let status = OrderStatus(rawValue: row.status) else { return nil }
 
         let address = DeliveryAddress(
@@ -1182,12 +599,17 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             quoteNote: row.quoteNote ?? "",
             status: status,
             assignedDriverID: row.assignedDriverID,
+            externalRef: row.externalRef,
+            summaryTitle: row.summaryTitle,
+            summaryImageURL: row.summaryImageURL,
+            summaryTotalCents: row.summaryTotalCents,
+            summaryEtaText: row.summaryEtaText,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt
         )
     }
 
-    private func mapOrderLineItem(_ row: OrderLineItemRow) -> OrderLineItem {
+    func mapOrderLineItem(_ row: OrderLineItemRow) -> OrderLineItem {
         OrderLineItem(
             id: row.id,
             orderID: row.orderID,
@@ -1202,7 +624,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
-    private func mapInventoryVariant(_ row: InventoryVariantRow) -> InventoryVariant {
+    func mapInventoryVariant(_ row: InventoryVariantRow) -> InventoryVariant {
         InventoryVariant(
             id: row.id,
             itemID: row.itemID,
@@ -1216,7 +638,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
-    private func mapInventoryItem(_ row: InventoryItemRow) -> InventoryItem {
+    func mapInventoryItem(_ row: InventoryItemRow) -> InventoryItem {
         InventoryItem(
             id: row.id,
             channelID: row.channelID,
@@ -1229,13 +651,17 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             stockOnHand: row.stockOnHand,
             lowStockThreshold: row.lowStockThreshold,
             isActive: row.isActive,
+            thumbnailURL: row.thumbnailURL,
+            category: row.category,
+            activeOrderCount: row.activeOrderCount,
+            showInCatalog: row.showInCatalog,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
             variants: (row.variants ?? []).map(mapInventoryVariant)
         )
     }
 
-    private func mapInventoryStock(_ row: InventoryStockRow) -> InventoryStockEvent {
+    func mapInventoryStock(_ row: InventoryStockRow) -> InventoryStockEvent {
         InventoryStockEvent(
             id: row.id,
             itemID: row.itemID,
@@ -1247,7 +673,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
-    private func mapAdminAudit(_ row: AdminAuditRow) -> AdminAuditEvent {
+    func mapAdminAudit(_ row: AdminAuditRow) -> AdminAuditEvent {
         AdminAuditEvent(
             id: row.id,
             channelID: row.channelID,
@@ -1261,11 +687,11 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
-    private func mapRouteStatus(_ value: String) -> RouteStatus {
+    func mapRouteStatus(_ value: String) -> RouteStatus {
         RouteStatus(rawValue: value) ?? .planned
     }
 
-    private func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+    func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         do {
             return try JSONDecoder.supabase.decode(T.self, from: data)
         } catch {
@@ -1273,15 +699,15 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         }
     }
 
-    private func inFilter(_ ids: [String]) -> String {
+    func inFilter(_ ids: [String]) -> String {
         "(\(ids.map(escape).joined(separator: ",")))"
     }
 
-    private func escape(_ raw: String) -> String {
+    func escape(_ raw: String) -> String {
         raw.addingPercentEncoding(withAllowedCharacters: .supabaseFilterAllowed) ?? raw
     }
 
-    private func sanitizeDictionary(_ value: [String: Any?]) -> [String: Any] {
+    func sanitizeDictionary(_ value: [String: Any?]) -> [String: Any] {
         value.reduce(into: [String: Any]()) { partial, entry in
             if let unwrapped = entry.value {
                 partial[entry.key] = unwrapped
@@ -1331,7 +757,7 @@ private extension ISO8601DateFormatter {
     }()
 }
 
-private enum JSONValue: Decodable {
+enum JSONValue: Decodable {
     case object([String: JSONValue])
     case array([JSONValue])
     case string(String)

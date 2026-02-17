@@ -17,10 +17,10 @@ struct AdminPanelCard: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(AppTheme.inter(14, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(subtitle)
-                    .font(.caption)
+                    .font(AppTheme.inter(12, weight: .regular))
                     .foregroundStyle(AppTheme.textMuted)
             }
 

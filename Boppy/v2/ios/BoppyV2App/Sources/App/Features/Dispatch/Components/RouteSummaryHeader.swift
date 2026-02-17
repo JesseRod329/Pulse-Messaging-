@@ -11,11 +11,11 @@ struct RouteSummaryHeader: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Route Summary")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(AppTheme.inter(17, weight: .bold, relativeTo: .headline))
                     .foregroundStyle(AppTheme.textPrimary)
                 if isOwner {
                     Text("OWNER")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(AppTheme.accentBlue.opacity(0.20), in: Capsule())
@@ -35,27 +35,27 @@ struct RouteSummaryHeader: View {
             if let route {
                 HStack(spacing: 10) {
                     Label("\(remainingStops(route)) stops remaining", systemImage: "flag.checkered")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textSecondary)
                     Text("•")
                         .foregroundStyle(AppTheme.textMuted)
                     Text(routeDurationLabel)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
                 HStack(spacing: 8) {
                     Label("NEXT", systemImage: "location.fill")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
                         .foregroundStyle(AppTheme.accentBlue)
                     Text(nextStopLabel)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(AppTheme.inter(15, weight: .semibold, relativeTo: .subheadline))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
                 }
             } else {
                 Text("No active route yet")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(AppTheme.inter(14, weight: .medium, relativeTo: .subheadline))
                     .foregroundStyle(AppTheme.textMuted)
             }
         }

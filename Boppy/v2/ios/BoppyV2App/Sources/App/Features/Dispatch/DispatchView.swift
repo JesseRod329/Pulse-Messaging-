@@ -1,15 +1,23 @@
 import SwiftUI
 import MapKit
+import UIKit
+import CoreLocation
 import BoppyV2Core
 
 struct DispatchView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
+    @EnvironmentObject private var authStore: AuthStore
+    @EnvironmentObject private var feedStore: FeedStore
+    @EnvironmentObject private var orderStore: OrderStore
+    @EnvironmentObject private var dispatchStore: DispatchStore
 
     @State private var selectedDriverID: String = ""
+    @State private var startAddress = "Austin, TX"
     @State private var startLat = "30.2672"
     @State private var startLng = "-97.7431"
     @State private var routePathCoordinates: [CLLocationCoordinate2D] = []
     @State private var isRoutePathLoading = false
+    @State private var isRouteActionInFlight = false
     @State private var selectedStopOrder: OrderRequest?
     @State private var mapPosition = MapCameraPosition.region(
         MKCoordinateRegion(
@@ -30,37 +38,32 @@ struct DispatchView: View {
                         await refreshRoutePath()
                     }
                 }
-                .onChange(of: coordinator.routes) { _, _ in
+                .onChange(of: dispatchStore.routes) { _, _ in
                     syncMapCamera()
                     Task { await refreshRoutePath() }
                 }
-                .onChange(of: coordinator.orders) { _, _ in
+                .onChange(of: orderStore.orders) { _, _ in
                     syncMapCamera()
                     Task { await refreshRoutePath() }
                 }
-                .onChange(of: coordinator.drivers) { _, _ in
+                .onChange(of: feedStore.drivers) { _, _ in
                     syncDriverSelectionIfNeeded()
                 }
         }
         .appScreenBackground()
-        .sheet(item: $selectedStopOrder) { order in
+        .fullScreenCover(item: $selectedStopOrder) { order in
             DispatchStopDetailsSheet(order: order)
         }
     }
 
     private var dispatchScreen: some View {
-        ZStack {
-            AppTheme.screenGradient
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                dispatchHeader
-                mapHero
-                routesContent
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        DispatchShellView {
+            dispatchHeader
+        } mapSection: {
+            mapHero
+        } stopList: {
+            routesContent
+        } actionBar: {
             DispatchActionBar(
                 onRefresh: {
                     Task { await coordinator.refreshAll() }
@@ -69,51 +72,36 @@ struct DispatchView: View {
                 onSaveRouteChanges: {
                     Task { await coordinator.refreshAll() }
                 },
-                optimizeDisabled: selectedDriverID.isEmpty || coordinator.user?.role != .owner
+                optimizeDisabled: selectedDriverID.isEmpty || authStore.user?.role != .owner,
+                offline: authStore.isOffline,
+                isBusy: isRouteActionInFlight,
+                glass: coordinator.featureFlags.glassChromeV2
             )
-            .padding(.horizontal, AppTheme.screenHorizontalPadding)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
     @ViewBuilder
     private var routesContent: some View {
-        GeometryReader { proxy in
-            ScrollView {
-                LazyVStack(spacing: 10) {
-                    if coordinator.routes.isEmpty {
-                        RouteSummaryHeader(
-                            route: primaryRoute,
-                            isOwner: coordinator.user?.role == .owner,
-                            routeDurationLabel: routeDurationLabel,
-                            nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route"
-                        )
-
-                        emptyStateCard
-
-                        if coordinator.user?.role == .owner {
-                            ownerControls
-                        }
-                    } else {
-                        ForEach(coordinator.routes) { route in
-                            routeSection(route)
-                        }
-                    }
-                }
-                .padding(.horizontal, AppTheme.screenHorizontalPadding)
-                .padding(.top, 12)
-                .padding(.bottom, 16)
-                .frame(
-                    maxWidth: .infinity,
-                    minHeight: proxy.size.height + AppTheme.minimumViewportFill,
-                    alignment: .top
-                )
+        DispatchStopListView(
+            routes: dispatchStore.routes,
+            primaryRoute: primaryRoute,
+            isOwner: authStore.user?.role == .owner,
+            routeDurationLabel: routeDurationLabel,
+            nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route",
+            onRefresh: {
+                await coordinator.refreshAll()
+                await refreshRoutePath()
+            },
+            routeSection: { route in
+                routeSection(route)
+            },
+            ownerControls: {
+                ownerControls
+            },
+            emptyState: {
+                emptyStateCard
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .background(AppTheme.screenGradient)
-        }
+        )
     }
 
     private func routeSection(_ route: DeliveryRoute) -> some View {
@@ -121,13 +109,13 @@ struct DispatchView: View {
         let currentStopID = sortedStops.first(where: { $0.completedAt == nil })?.id
         return VStack(spacing: 10) {
             ForEach(Array(sortedStops.enumerated()), id: \.element.id) { index, stop in
-                let stopOrder = coordinator.orders.first(where: { $0.id == stop.orderID })
+                let stopOrder = orderStore.orders.first(where: { $0.id == stop.orderID })
                 RouteStopCard(
                     stop: stop,
                     route: route,
                     order: stopOrder,
-                    canReorder: canReorder(route: route),
-                    canComplete: coordinator.user?.role == .driver,
+                    canReorder: canReorder(route: route) && !isRouteActionInFlight,
+                    canComplete: authStore.user?.role == .driver && !isRouteActionInFlight,
                     isCurrentStop: stop.id == currentStopID,
                     isLastStop: index == sortedStops.count - 1,
                     onMoveUp: {
@@ -156,7 +144,7 @@ struct DispatchView: View {
     }
 
     private func canReorder(route: DeliveryRoute) -> Bool {
-        coordinator.user?.role == .owner && route.status == .planned
+        authStore.user?.role == .owner && route.status == .planned
     }
 
     private func routeStatusColor(_ status: RouteStatus) -> Color {
@@ -173,72 +161,41 @@ struct DispatchView: View {
     }
 
     private func buildOrOptimizeRoute() {
-        guard let lat = Double(startLat), let lng = Double(startLng), !selectedDriverID.isEmpty else {
+        guard !isRouteActionInFlight else { return }
+        guard authStore.user?.role == .owner else {
+            coordinator.present(.validation("Only owners can build or optimize routes."))
             return
         }
+        guard !selectedDriverID.isEmpty else {
+            coordinator.present(.validation("Select a driver before building a route."))
+            return
+        }
+        isRouteActionInFlight = true
         Task {
-            await coordinator.buildRoute(start: GeoPoint(lat: lat, lng: lng), driverID: selectedDriverID)
+            defer {
+                Task { @MainActor in
+                    isRouteActionInFlight = false
+                }
+            }
+            guard let coordinate = await resolveStartCoordinate() else { return }
+            await coordinator.buildRoute(
+                start: GeoPoint(lat: coordinate.latitude, lng: coordinate.longitude),
+                driverID: selectedDriverID
+            )
             await refreshRoutePath()
         }
     }
 
     private var ownerControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Route Setup")
-                .font(.headline)
-                .foregroundStyle(AppTheme.textPrimary)
-
-            Picker("Driver", selection: $selectedDriverID) {
-                Text("Select driver").tag("")
-                ForEach(coordinator.drivers) { driver in
-                    Text(driver.displayName).tag(driver.id)
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(AppTheme.textPrimary)
-
-            HStack {
-                TextField("Start lat", text: $startLat)
-                    .textFieldStyle(.plain)
-                    .keyboardType(.decimalPad)
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(AppTheme.border, lineWidth: 1)
-                    )
-                    .accessibilityIdentifier("dispatch.startLat")
-
-                TextField("Start lng", text: $startLng)
-                    .textFieldStyle(.plain)
-                    .keyboardType(.decimalPad)
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(AppTheme.border, lineWidth: 1)
-                    )
-                    .accessibilityIdentifier("dispatch.startLng")
-            }
-
-            Button("Build Route") {
+        DispatchRoutingControlsView(
+            selectedDriverID: $selectedDriverID,
+            startAddress: $startAddress,
+            drivers: feedStore.drivers,
+            isOffline: authStore.isOffline,
+            isBusy: isRouteActionInFlight,
+            onBuildRoute: {
                 buildOrOptimizeRoute()
             }
-            .buttonStyle(.borderedProminent)
-            .tint(AppTheme.accentBlue)
-            .disabled(selectedDriverID.isEmpty)
-            .accessibilityIdentifier("dispatch.buildRoute")
-        }
-        .padding(AppTheme.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.cardGradient, in: RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
         )
     }
 
@@ -252,23 +209,28 @@ struct DispatchView: View {
         }()
 
         return HStack(alignment: .top, spacing: 12) {
-            mapIconButton(systemName: "line.3.horizontal", identifier: "dispatch.map.refreshMenu") {
+            mapIconButton(
+                systemName: "line.3.horizontal",
+                identifier: "dispatch.map.refreshMenu",
+                accessibilityLabel: "Refresh dispatch",
+                accessibilityHint: "Refreshes dispatch data."
+            ) {
                 Task { await coordinator.refreshAll() }
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("Route Management")
-                        .font(.system(size: 21, weight: .bold))
+                        .font(AppTheme.inter(21, weight: .bold, relativeTo: .title3))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.92)
                 }
 
                 HStack(spacing: 8) {
-                    if coordinator.user?.role == .owner {
+                    if authStore.user?.role == .owner {
                         Text("OWNER")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
                             .background(AppTheme.accentBlue.opacity(0.18), in: Capsule())
@@ -276,7 +238,7 @@ struct DispatchView: View {
                     }
 
                     Text(statusLine)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textSecondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.92)
@@ -287,10 +249,20 @@ struct DispatchView: View {
             Spacer(minLength: 8)
 
             HStack(spacing: 8) {
-                mapIconButton(systemName: "scope", identifier: "dispatch.map.recenter") {
+                mapIconButton(
+                    systemName: "scope",
+                    identifier: "dispatch.map.recenter",
+                    accessibilityLabel: "Recenter map",
+                    accessibilityHint: "Centers the map on active route stops."
+                ) {
                     syncMapCamera()
                 }
-                mapIconButton(systemName: "gearshape.fill", identifier: "dispatch.map.refreshSettings") {
+                mapIconButton(
+                    systemName: "gearshape.fill",
+                    identifier: "dispatch.map.refreshSettings",
+                    accessibilityLabel: "Dispatch settings",
+                    accessibilityHint: "Refreshes dispatch controls."
+                ) {
                     Task { await coordinator.refreshAll() }
                 }
             }
@@ -298,7 +270,9 @@ struct DispatchView: View {
         .padding(.horizontal, AppTheme.screenHorizontalPadding)
         .padding(.top, 8)
         .padding(.bottom, 10)
-        .background(AppTheme.navBar.opacity(0.97))
+        .background {
+            AppTheme.chromeBackground(glass: coordinator.featureFlags.glassChromeV2)
+        }
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(AppTheme.border.opacity(0.5))
@@ -307,114 +281,23 @@ struct DispatchView: View {
     }
 
     private var mapHero: some View {
-        let activeRoute = primaryRoute
-        let activeOrder = primaryActiveOrder
-
-        return ZStack(alignment: .bottomLeading) {
-            Map(position: $mapPosition) {
-                UserAnnotation()
-
-                ForEach(routePins(for: activeRoute), id: \.id) { order in
-                    if let lat = order.lat, let lng = order.lng {
-                        Marker(order.deliveryAddress.line1, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
-                            .tint(order.id == primaryActiveStop?.orderID ? AppTheme.accentBlue : AppTheme.textMuted)
-                    }
-                }
-
-                if routePathCoordinates.count >= 2 {
-                    MapPolyline(coordinates: routePathCoordinates)
-                        .stroke(
-                            AppTheme.accentBlue.opacity(0.95),
-                            style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
-                        )
-                }
+        DispatchMapSectionView(
+            mapPosition: $mapPosition,
+            routePins: routePins(for: primaryRoute),
+            activeStopOrderID: primaryActiveStop?.orderID,
+            routePathCoordinates: routePathCoordinates,
+            nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route",
+            isRoutePathLoading: isRoutePathLoading,
+            isRouteActionInFlight: isRouteActionInFlight,
+            optimizeDisabled: selectedDriverID.isEmpty || authStore.user?.role != .owner || authStore.isOffline || isRouteActionInFlight,
+            canOpenMaps: canOpenMaps(for: primaryActiveOrder),
+            onOptimize: {
+                buildOrOptimizeRoute()
+            },
+            onOpenMaps: {
+                openActiveStopInMaps()
             }
-            .mapStyle(.standard(elevation: .realistic))
-            .mapControls {
-                MapCompass()
-                MapUserLocationButton()
-            }
-            .accessibilityIdentifier("dispatch.map")
-
-            LinearGradient(
-                colors: [Color.clear, Color.black.opacity(0.34), Color.black.opacity(0.52)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-
-            HStack(alignment: .bottom, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("NEXT STOP")
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(0.8)
-                        .foregroundStyle(AppTheme.accentBlue)
-                    Text(activeOrder.map(nextStopLabel(for:)) ?? "Waiting for route")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(AppTheme.textPrimary)
-                        .lineLimit(1)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(AppTheme.navBar.opacity(0.92), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(AppTheme.border.opacity(0.8), lineWidth: 1)
-                )
-
-                Button {
-                    buildOrOptimizeRoute()
-                } label: {
-                    Label("Optimize", systemImage: "sparkles")
-                        .font(.system(size: 12, weight: .bold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(AppTheme.textPrimary)
-                .background(AppTheme.navBar.opacity(0.92), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(AppTheme.border.opacity(0.8), lineWidth: 1)
-                )
-                .disabled(selectedDriverID.isEmpty || coordinator.user?.role != .owner)
-                .accessibilityIdentifier("dispatch.optimizeInline")
-
-                Button {
-                    openActiveStopInMaps()
-                } label: {
-                    Image(systemName: "location.north.fill")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(AppTheme.textPrimary)
-                        .frame(width: 48, height: 48)
-                        .background(AppTheme.accentBlue, in: Circle())
-                }
-                .disabled(activeOrder?.lat == nil || activeOrder?.lng == nil)
-                .accessibilityIdentifier("dispatch.openAppleMaps")
-            }
-            .padding(.horizontal, AppTheme.screenHorizontalPadding)
-            .padding(.bottom, 14)
-
-            if isRoutePathLoading {
-                ProgressView("Routing")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .background(AppTheme.surface.opacity(0.9), in: Capsule())
-                    .overlay(
-                        Capsule()
-                            .stroke(AppTheme.border, lineWidth: 1)
-                    )
-                    .padding(.top, 58)
-                    .padding(.leading, AppTheme.screenHorizontalPadding)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 300)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(AppTheme.border.opacity(0.75))
-                .frame(height: 1)
-        }
+        )
     }
 
     private var emptyStateCard: some View {
@@ -435,15 +318,23 @@ struct DispatchView: View {
         )
     }
 
-    private func mapIconButton(systemName: String, identifier: String, action: @escaping () -> Void) -> some View {
+    private func mapIconButton(
+        systemName: String,
+        identifier: String,
+        accessibilityLabel: String,
+        accessibilityHint: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 15, weight: .bold))
+                .font(AppTheme.inter(15, weight: .bold, relativeTo: .body))
                 .foregroundStyle(AppTheme.textPrimary)
                 .frame(width: 40, height: 40)
                 .background(AppTheme.surface.opacity(0.94), in: Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint(accessibilityHint)
         .accessibilityIdentifier(identifier)
         .overlay(
             Circle()
@@ -452,7 +343,7 @@ struct DispatchView: View {
     }
 
     private var routeDurationLabel: String {
-        let pendingStops = coordinator.routes.first?.stops.filter { $0.completedAt == nil } ?? []
+        let pendingStops = dispatchStore.routes.first?.stops.filter { $0.completedAt == nil } ?? []
         guard !pendingStops.isEmpty else { return "No active route" }
         let fallbackMinutes = max(1, pendingStops.count) * 15
         let etaMinutes = pendingStops.compactMap(\.etaMinutes).max() ?? fallbackMinutes
@@ -473,7 +364,7 @@ struct DispatchView: View {
     }
 
     private func syncMapCamera() {
-        let pins = routePins(for: coordinator.routes.first)
+        let pins = routePins(for: dispatchStore.routes.first)
         let coordinates = pins.compactMap { order -> CLLocationCoordinate2D? in
             guard let lat = order.lat, let lng = order.lng else { return nil }
             return CLLocationCoordinate2D(latitude: lat, longitude: lng)
@@ -517,7 +408,7 @@ struct DispatchView: View {
 
     private func routePins(for route: DeliveryRoute?) -> [OrderRequest] {
         guard let route else { return [] }
-        let orderByID = Dictionary(uniqueKeysWithValues: coordinator.orders.map { ($0.id, $0) })
+        let orderByID = Dictionary(uniqueKeysWithValues: orderStore.orders.map { ($0.id, $0) })
         return route.stops
             .sorted(by: { $0.stopIndex < $1.stopIndex })
             .compactMap { orderByID[$0.orderID] }
@@ -525,7 +416,7 @@ struct DispatchView: View {
     }
 
     private var primaryRoute: DeliveryRoute? {
-        coordinator.routes.first
+        dispatchStore.routes.first
     }
 
     private var primaryActiveStop: RouteStop? {
@@ -536,12 +427,16 @@ struct DispatchView: View {
 
     private var primaryActiveOrder: OrderRequest? {
         guard let orderID = primaryActiveStop?.orderID else { return nil }
-        return coordinator.orders.first(where: { $0.id == orderID })
+        return orderStore.orders.first(where: { $0.id == orderID })
     }
 
     private func syncDriverSelectionIfNeeded() {
         guard selectedDriverID.isEmpty else { return }
-        selectedDriverID = coordinator.drivers.first?.id ?? ""
+        if let routedDriver = primaryRoute?.driverID {
+            selectedDriverID = routedDriver
+            return
+        }
+        selectedDriverID = feedStore.drivers.first?.id ?? ""
     }
 
     @MainActor
@@ -614,18 +509,101 @@ struct DispatchView: View {
     }
 
     private func openActiveStopInMaps() {
-        guard
-            let activeOrder = primaryActiveOrder,
-            let lat = activeOrder.lat,
-            let lng = activeOrder.lng
-        else { return }
+        guard let activeOrder = primaryActiveOrder else {
+            coordinator.present(.validation("No active stop selected yet."))
+            return
+        }
 
-        let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-        let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
-        mapItem.name = activeOrder.deliveryAddress.line1
-        mapItem.openInMaps(launchOptions: [
-            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
-        ])
+        if let lat = activeOrder.lat, let lng = activeOrder.lng {
+            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+            let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
+            mapItem.name = activeOrder.deliveryAddress.line1
+            let opened = mapItem.openInMaps(launchOptions: [
+                MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+            ])
+            if !opened {
+                coordinator.present(.validation("Unable to open Apple Maps for this stop."))
+            }
+            return
+        }
+
+        let address = mapsDestinationAddress(for: activeOrder)
+
+        guard
+            !address.isEmpty,
+            let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+            let url = URL(string: "https://maps.apple.com/?daddr=\(encoded)&dirflg=d")
+        else {
+            coordinator.present(.validation("Unable to open Apple Maps for this stop."))
+            return
+        }
+
+        openInAppleMaps(url: url)
+    }
+
+    @MainActor
+    private func resolveStartCoordinate() async -> CLLocationCoordinate2D? {
+        let trimmedAddress = startAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedAddress.isEmpty {
+            do {
+                let placemarks = try await CLGeocoder().geocodeAddressString(trimmedAddress)
+                if let coordinate = placemarks.first?.location?.coordinate {
+                    startLat = String(format: "%.6f", coordinate.latitude)
+                    startLng = String(format: "%.6f", coordinate.longitude)
+                    return coordinate
+                }
+                coordinator.present(.validation("Couldn't find that start address. Try adding city and state."))
+                return nil
+            } catch {
+                coordinator.present(.validation("Couldn't geocode the start address. Check spelling and try again."))
+                return nil
+            }
+        }
+
+        guard let lat = Double(startLat), let lng = Double(startLng) else {
+            coordinator.present(.validation("Enter a valid start address."))
+            return nil
+        }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lng)
+    }
+
+    private func canOpenMaps(for order: OrderRequest?) -> Bool {
+        guard let order else { return false }
+        if order.lat != nil, order.lng != nil {
+            return true
+        }
+        let address = mapsDestinationAddress(for: order)
+        guard
+            !address.isEmpty,
+            let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+            let url = URL(string: "https://maps.apple.com/?daddr=\(encoded)&dirflg=d")
+        else {
+            return false
+        }
+        return UIApplication.shared.canOpenURL(url)
+    }
+
+    private func mapsDestinationAddress(for order: OrderRequest) -> String {
+        [
+            order.deliveryAddress.line1,
+            order.deliveryAddress.city,
+            order.deliveryAddress.state,
+            order.deliveryAddress.postalCode,
+        ]
+        .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        .joined(separator: ", ")
+    }
+
+    private func openInAppleMaps(url: URL) {
+        guard UIApplication.shared.canOpenURL(url) else {
+            coordinator.present(.validation("Apple Maps is unavailable on this device."))
+            return
+        }
+        UIApplication.shared.open(url, options: [:]) { success in
+            if !success {
+                coordinator.present(.validation("Unable to open Apple Maps for this stop."))
+            }
+        }
     }
 }
 
@@ -676,6 +654,8 @@ private struct DispatchStopDetailsSheet: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(AppTheme.accentBlue)
+                        .accessibilityLabel("Open in Apple Maps")
+                        .accessibilityHint("Launches turn-by-turn navigation for this stop.")
                         .accessibilityIdentifier("dispatch.stop.details.openMaps")
                     }
 
@@ -685,6 +665,8 @@ private struct DispatchStopDetailsSheet: View {
                     .buttonStyle(.bordered)
                     .tint(AppTheme.surfaceElevated)
                     .frame(maxWidth: .infinity)
+                    .accessibilityLabel("Close stop details")
+                    .accessibilityHint("Dismisses this stop details sheet.")
                     .accessibilityIdentifier("dispatch.stop.details.done")
                 }
                 .padding(AppTheme.cardPadding)
@@ -702,7 +684,23 @@ private struct DispatchStopDetailsSheet: View {
     }
 
     private var mapsURL: URL? {
-        guard let lat = order.lat, let lng = order.lng else { return nil }
-        return URL(string: "http://maps.apple.com/?daddr=\(lat),\(lng)&dirflg=d")
+        if let lat = order.lat, let lng = order.lng {
+            return URL(string: "https://maps.apple.com/?daddr=\(lat),\(lng)&dirflg=d")
+        }
+        let address = [
+            order.deliveryAddress.line1,
+            order.deliveryAddress.city,
+            order.deliveryAddress.state,
+            order.deliveryAddress.postalCode,
+        ]
+        .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        .joined(separator: ", ")
+        guard
+            !address.isEmpty,
+            let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        else {
+            return nil
+        }
+        return URL(string: "https://maps.apple.com/?daddr=\(encoded)&dirflg=d")
     }
 }

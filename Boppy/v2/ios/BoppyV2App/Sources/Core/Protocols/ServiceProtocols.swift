@@ -12,6 +12,7 @@ public protocol ChannelFeedServiceProtocol {
     func fetchChannels(userID: String) async throws -> [Channel]
     func fetchPosts(channelID: String) async throws -> [ChannelPost]
     func fetchDrivers(channelID: String) async throws -> [DriverProfile]
+    func fetchDriverCandidates(channelID: String, orderID: String?) async throws -> [DriverProfile]
     func createPost(
         channelID: String,
         authorID: String,
@@ -39,6 +40,7 @@ public protocol OrderServiceProtocol {
     ) async throws -> OrderRequest
     func fetchOrders(userID: String, role: UserRole) async throws -> [OrderRequest]
     func fetchLedgerEvents(orderID: String, userID: String, role: UserRole) async throws -> [OrderLedgerEvent]
+    func fetchOrderTimelineDetail(orderID: String, userID: String, role: UserRole) async throws -> OrderTimelineDetail
     func upsertOrderLineItems(orderID: String, lineItems: [OrderLineItemInput], actorID: String) async throws -> [OrderLineItem]
     func updateOrderStatus(orderID: String, status: OrderStatus, quoteNote: String?, actorID: String) async throws -> OrderRequest
     func assignDriver(orderID: String, driverID: String, actorID: String) async throws -> OrderRequest
@@ -101,6 +103,7 @@ public protocol InventoryServiceProtocol {
     ) async throws -> InventoryStockEvent
 
     func fetchInventoryCatalog(channelID: String, includeInactive: Bool, includeLedger: Bool, actorID: String) async throws -> InventoryCatalog
+    func fetchInventoryCatalogEnhanced(channelID: String, includeInactive: Bool, includeLedger: Bool, actorID: String) async throws -> InventoryCatalog
 }
 
 public protocol AdminServiceProtocol {
@@ -109,4 +112,28 @@ public protocol AdminServiceProtocol {
     func unassignDriver(orderID: String, reason: String, actorID: String) async throws
     func upsertDriverMembership(channelID: String, driverUserID: String, operation: DriverMembershipOperation, reason: String, actorID: String) async throws
     func fetchAdminAuditEvents(channelID: String, action: String?, limit: Int, actorID: String) async throws -> [AdminAuditEvent]
+}
+
+public extension ChannelFeedServiceProtocol {
+    func fetchDriverCandidates(channelID: String, orderID: String?) async throws -> [DriverProfile] {
+        _ = orderID
+        return try await fetchDrivers(channelID: channelID)
+    }
+}
+
+public extension OrderServiceProtocol {
+    func fetchOrderTimelineDetail(orderID: String, userID: String, role: UserRole) async throws -> OrderTimelineDetail {
+        let orders = try await fetchOrders(userID: userID, role: role)
+        guard let order = orders.first(where: { $0.id == orderID }) else {
+            throw NSError(domain: "OrderServiceProtocol", code: 404, userInfo: [NSLocalizedDescriptionKey: "Order not found."])
+        }
+        let events = try await fetchLedgerEvents(orderID: orderID, userID: userID, role: role)
+        return OrderTimelineDetail(order: order, events: events)
+    }
+}
+
+public extension InventoryServiceProtocol {
+    func fetchInventoryCatalogEnhanced(channelID: String, includeInactive: Bool, includeLedger: Bool, actorID: String) async throws -> InventoryCatalog {
+        try await fetchInventoryCatalog(channelID: channelID, includeInactive: includeInactive, includeLedger: includeLedger, actorID: actorID)
+    }
 }

@@ -60,6 +60,7 @@ Error form:
 - Follower: read joined channel posts, create own order requests, read own order statuses
 - Anonymous: invite token validation and OTP flow pre-join only
 - `inventory-list` supports owner and driver read access for channel inventory visibility; inventory mutation endpoints remain owner-only.
+- `inventory-list` response remains backward-compatible and now deterministically populates `items[].active_order_count` from non-terminal orders (`requested`, `quoted`, `accepted`, `assigned`, `out_for_delivery`, `address_review`).
 
 ## Client Contract Notes
 
@@ -76,8 +77,9 @@ Error form:
 ## Operational Guards
 
 - `update-order-status` enforces legal transitions and returns `409` with code `invalid_status_transition` when a transition is illegal.
-- `update-order-status` now links order workflow to inventory: first transition into `accepted` reserves stock for inventory-linked line items; transition to `cancelled` restocks previously reserved units (idempotent via order-scoped ledger reasons).
+- `update-order-status` now links order workflow to inventory through atomic RPCs (`reserve_order_inventory_atomic`, `restock_order_inventory_atomic`): first transition into `accepted` reserves stock for inventory-linked line items; transition to `cancelled` restocks previously reserved units (idempotent via order-scoped ledger reasons).
 - `assign-driver` enforces legal assignment states (`accepted`, `assigned`, `address_review`) and returns `409` with code `invalid_assignment_state` otherwise.
+- `build-route` now delegates route insert + stop insert + order status updates + per-order ledger append to a single transactional RPC (`build_delivery_route`) and keeps the edge response envelope unchanged.
 - `order-upsert-line-items` is replace-style upsert: existing line items for the order are deleted before inserting the submitted set, and it validates `item_id`/`variant_id` ownership against the order channel, returning `400 invalid_inventory_reference` on mismatch.
 - `admin-delete-order` hard delete is policy-gated by `ALLOW_HARD_DELETE=true` and terminal status (`cancelled`/`delivered`), returning `403 hard_delete_disabled` or `409 hard_delete_not_allowed_for_status` when blocked.
 - `admin-driver-memberships-upsert` and `admin-member-role-upsert` return `409 driver_has_active_orders` when removing/demoting a driver who still has active assigned orders.

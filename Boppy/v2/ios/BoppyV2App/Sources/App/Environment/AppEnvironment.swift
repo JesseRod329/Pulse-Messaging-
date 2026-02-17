@@ -16,11 +16,14 @@ struct AppEnvironment {
     let routingService: RoutingServiceProtocol
     let analyticsService: AnalyticsServiceProtocol
     let backendMode: BackendMode
+    let featureFlags: FeatureFlags
 
     static func bootstrap() -> AppEnvironment {
         let analytics = NoopAnalyticsService()
         let routing = DistanceRouter()
-        let forceLocalDemo = ProcessInfo.processInfo.arguments.contains("-force-local-demo")
+        let launchArguments = ProcessInfo.processInfo.arguments
+        let forceLocalDemo = launchArguments.contains("-force-local-demo")
+        let featureFlags = FeatureFlags.fromLaunchArguments(launchArguments)
 
         if !forceLocalDemo, let config = SupabaseConfig.fromBundle() {
             let backend = LiveSupabaseBackend(config: config, analytics: analytics)
@@ -33,7 +36,8 @@ struct AppEnvironment {
                 adminService: backend,
                 routingService: routing,
                 analyticsService: analytics,
-                backendMode: .liveSupabase
+                backendMode: .liveSupabase,
+                featureFlags: featureFlags
             )
         }
 
@@ -48,7 +52,8 @@ struct AppEnvironment {
             adminService: backend,
             routingService: routing,
             analyticsService: analytics,
-            backendMode: .localDemo
+            backendMode: .localDemo,
+            featureFlags: featureFlags
         )
     }
 }

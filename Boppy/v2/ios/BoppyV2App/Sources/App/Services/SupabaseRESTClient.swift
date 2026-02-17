@@ -44,6 +44,12 @@ struct AuthVerifyResponse: Decodable {
     let user: AuthUser
 }
 
+struct AuthRefreshResponse: Decodable {
+    let access_token: String
+    let refresh_token: String?
+    let user: AuthUser?
+}
+
 struct AuthUser: Decodable {
     let id: String
     let phone: String?
@@ -52,10 +58,16 @@ struct AuthUser: Decodable {
 final class SupabaseRESTClient {
     private let config: SupabaseConfig
     private let session: URLSession
+    private let tokenStore: SessionTokenStore
 
-    init(config: SupabaseConfig, session: URLSession = .shared) {
+    init(
+        config: SupabaseConfig,
+        session: URLSession? = nil,
+        tokenStore: SessionTokenStore = MigratingSessionTokenStore()
+    ) {
         self.config = config
-        self.session = session
+        self.session = session ?? Self.configuredSession()
+        self.tokenStore = tokenStore
     }
 
     func requestOTP(phoneE164: String) async throws {
@@ -81,12 +93,31 @@ final class SupabaseRESTClient {
         }
     }
 
-    func fetchAuthUser(accessToken: String) async throws -> AuthUser {
-        let data = try await authRequest(path: "/auth/v1/user", method: "GET", body: nil, accessToken: accessToken)
+    func refreshSession(refreshToken: String) async throws -> AuthRefreshResponse {
+        let payload: [String: Any] = [
+            "refresh_token": refreshToken
+        ]
+
+        let data = try await authRequest(
+            path: "/auth/v1/token?grant_type=refresh_token",
+            method: "POST",
+            body: payload
+        )
         do {
-            return try JSONDecoder.iso8601.decode(AuthUser.self, from: data)
+            return try JSONDecoder.iso8601.decode(AuthRefreshResponse.self, from: data)
         } catch {
             throw SupabaseClientError.decoding(error)
+        }
+    }
+
+    func fetchAuthUser(accessToken: String) async throws -> AuthUser {
+        try await executeWithRefreshRetry(initialAccessToken: accessToken) { token in
+            let data = try await self.authRequest(path: "/auth/v1/user", method: "GET", body: nil, accessToken: token)
+            do {
+                return try JSONDecoder.iso8601.decode(AuthUser.self, from: data)
+            } catch {
+                throw SupabaseClientError.decoding(error)
+            }
         }
     }
 
@@ -107,29 +138,31 @@ final class SupabaseRESTClient {
         accessToken: String,
         body: Any
     ) async throws -> T {
-        let url = config.edgeBaseURL.appendingPathComponent(functionName)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        try await executeWithRefreshRetry(initialAccessToken: accessToken) { token in
+            let url = self.config.edgeBaseURL.appendingPathComponent(functionName)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-        let (data, response) = try await session.data(for: request)
-        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-        guard (200..<300).contains(status) else {
-            throw try decodeError(status: status, data: data)
-        }
-
-        do {
-            let envelope = try JSONDecoder.iso8601.decode(EdgeEnvelope<T>.self, from: data)
-            if envelope.success, let payload = envelope.data {
-                return payload
+            let (data, response) = try await self.session.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            guard (200..<300).contains(status) else {
+                throw self.decodeError(status: status, data: data)
             }
-            throw SupabaseClientError.server(status: status, message: envelope.error?.message ?? "Function call failed")
-        } catch let error as SupabaseClientError {
-            throw error
-        } catch {
-            throw SupabaseClientError.decoding(error)
+
+            do {
+                let envelope = try JSONDecoder.iso8601.decode(EdgeEnvelope<T>.self, from: data)
+                if envelope.success, let payload = envelope.data {
+                    return payload
+                }
+                throw SupabaseClientError.server(status: status, message: envelope.error?.message ?? "Function call failed")
+            } catch let error as SupabaseClientError {
+                throw error
+            } catch {
+                throw SupabaseClientError.decoding(error)
+            }
         }
     }
 
@@ -152,39 +185,41 @@ final class SupabaseRESTClient {
         let (data, response) = try await session.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? -1
         guard (200..<300).contains(status) else {
-            throw try decodeError(status: status, data: data)
+            throw decodeError(status: status, data: data)
         }
 
         return data
     }
 
     private func restRequest(pathAndQuery: String, method: String, body: Any?, accessToken: String, prefer: String? = nil) async throws -> Data {
-        guard let url = URL(string: "/rest/v1/\(pathAndQuery)", relativeTo: config.url) else {
-            throw SupabaseClientError.invalidURL
-        }
+        try await executeWithRefreshRetry(initialAccessToken: accessToken) { token in
+            guard let url = URL(string: "/rest/v1/\(pathAndQuery)", relativeTo: self.config.url) else {
+                throw SupabaseClientError.invalidURL
+            }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue(config.anonKey, forHTTPHeaderField: "apikey")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let prefer {
-            request.setValue(prefer, forHTTPHeaderField: "Prefer")
-        }
-        if let body {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        }
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            request.setValue(self.config.anonKey, forHTTPHeaderField: "apikey")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let prefer {
+                request.setValue(prefer, forHTTPHeaderField: "Prefer")
+            }
+            if let body {
+                request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            }
 
-        let (data, response) = try await session.data(for: request)
-        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-        guard (200..<300).contains(status) else {
-            throw try decodeError(status: status, data: data)
-        }
+            let (data, response) = try await self.session.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            guard (200..<300).contains(status) else {
+                throw self.decodeError(status: status, data: data)
+            }
 
-        return data
+            return data
+        }
     }
 
-    private func decodeError(status: Int, data: Data) throws -> SupabaseClientError {
+    private func decodeError(status: Int, data: Data) -> SupabaseClientError {
         if status == 401 || status == 403 {
             return .unauthorized
         }
@@ -197,6 +232,55 @@ final class SupabaseRESTClient {
 
         let text = String(data: data, encoding: .utf8) ?? "Request failed with status \(status)"
         return .server(status: status, message: text)
+    }
+
+    private func executeWithRefreshRetry<T>(
+        initialAccessToken: String,
+        operation: (String) async throws -> T
+    ) async throws -> T {
+        let accessToken = tokenStore.readTokens()?.accessToken ?? initialAccessToken
+
+        do {
+            return try await operation(accessToken)
+        } catch let error as SupabaseClientError {
+            guard case .unauthorized = error else {
+                throw error
+            }
+
+            guard let refreshedAccessToken = try await refreshAccessTokenIfPossible() else {
+                throw error
+            }
+
+            return try await operation(refreshedAccessToken)
+        }
+    }
+
+    private func refreshAccessTokenIfPossible() async throws -> String? {
+        guard
+            let existing = tokenStore.readTokens(),
+            let refreshToken = existing.refreshToken,
+            !refreshToken.isEmpty
+        else {
+            return nil
+        }
+
+        let refreshed = try await refreshSession(refreshToken: refreshToken)
+        let merged = SessionTokens(
+            accessToken: refreshed.access_token,
+            refreshToken: refreshed.refresh_token ?? existing.refreshToken,
+            userID: refreshed.user?.id ?? existing.userID,
+            userPhone: refreshed.user?.phone ?? existing.userPhone
+        )
+        tokenStore.saveTokens(merged)
+        return merged.accessToken
+    }
+
+    private static func configuredSession() -> URLSession {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 20
+        configuration.timeoutIntervalForResource = 60
+        configuration.waitsForConnectivity = false
+        return URLSession(configuration: configuration)
     }
 }
 

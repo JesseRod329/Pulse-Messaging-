@@ -5,136 +5,106 @@ final class BoppyV2AppUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testOwnerPrimaryButtonsAcrossTabs() {
+    func testOwnerCanOpenPrimarySurfaces() {
         let app = launchApp()
-        XCTAssertTrue(app.buttons["auth.continueOwner"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["auth.continueOwner"].waitForExistence(timeout: 6))
+        XCTAssertTrue(waitForAnyElement(app, identifier: "auth.card", timeout: 2))
+        XCTAssertTrue(waitForAnyElement(app, identifier: "auth.trustStrip", timeout: 2))
         app.buttons["auth.continueOwner"].tap()
 
         XCTAssertTrue(app.buttons["tab.feed"].waitForExistence(timeout: 10))
 
         app.buttons["tab.feed"].tap()
         tapIfExists(app.buttons["feed.refresh"])
-        tapIfExists(app.buttons["feed.openThreads"])
-        tapIfExists(app.otherElements["feed.thread.card"].firstMatch)
-        tapIfExists(app.buttons["feed.closeThreads"])
-        tapIfExists(app.buttons["feed.createChannel"])
-        tapIfExists(app.buttons["feed.createInvite"])
-        tapIfExists(app.buttons["feed.publishPost"])
 
         app.buttons["tab.orders"].tap()
-        tapIfExists(app.buttons["orders.menu"])
-        tapIfExists(app.buttons["orders.refresh"])
-        tapIfExists(app.buttons["orders.filter.all"])
         tapIfExists(app.buttons["orders.filter.pending"])
-        tapIfExists(app.buttons["orders.filter.active"])
-        tapIfExists(app.buttons["orders.filter.done"])
-        tapIfExists(app.buttons["orders.toggleTimeline"].firstMatch)
-        tapIfExists(app.buttons["orders.updateStatus"])
+        tapIfExists(app.buttons["orders.row"].firstMatch)
         tapIfExists(app.buttons["orders.assignDriver"])
+        tapIfExists(app.buttons["Done"])
+        tapIfExists(app.buttons["orders.row"].firstMatch)
+        tapIfExists(app.buttons["Close"])
 
         app.buttons["tab.dispatch"].tap()
-        tapIfExists(app.buttons["dispatch.optimizeRoute"])
         tapIfExists(app.buttons["dispatch.refresh"])
-        tapIfExists(app.buttons["dispatch.saveRouteChanges"])
-        tapIfExists(app.buttons["dispatch.optimizeInline"])
-        tapIfExists(app.buttons["dispatch.recenterInline"])
-        tapIfExists(app.buttons["dispatch.openAppleMaps"])
-        tapIfExists(app.buttons["dispatch.stop.details"].firstMatch)
-        tapIfExists(app.buttons["dispatch.stop.details.done"])
-        tapIfExists(app.buttons["dispatch.stop.complete"].firstMatch)
-        tapIfExists(app.buttons["dispatch.stop.moveUp"].firstMatch)
-        tapIfExists(app.buttons["dispatch.stop.moveDown"].firstMatch)
-        tapIfExists(app.buttons["dispatch.buildRoute"])
 
         app.buttons["tab.profile"].tap()
         tapIfExists(app.buttons["profile.refreshAdmin"])
-        tapIfExists(app.buttons["profile.channelFilter.active"])
-        tapIfExists(app.buttons["profile.channelFilter.archived"])
-        tapIfExists(app.buttons["profile.selectChannel"].firstMatch)
-        tapIfExists(app.buttons["profile.archiveChannel"].firstMatch)
-        tapIfExists(app.buttons["profile.createInvite"])
-        tapIfExists(app.buttons["profile.generateInvite"])
-        tapIfExists(app.buttons["profile.inventory.decrement"])
-        tapIfExists(app.buttons["profile.inventory.increment"])
-        tapIfExists(app.buttons["profile.inventory.addSample"])
-        tapIfExists(app.buttons["profile.inventory.refresh"])
-        tapIfExists(app.buttons["profile.viewSensitiveActions"])
+        XCTAssertTrue(app.buttons["profile.openInventoryCatalog"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["profile.openAdminControls"].waitForExistence(timeout: 3))
+        tapIfExists(app.buttons["profile.signOut"])
     }
 
-    func testDriverPrimaryButtonsAcrossTabs() {
+    func testDriverCanUseOrdersAndDispatch() {
         let app = launchApp()
-        XCTAssertTrue(app.buttons["auth.continueDriver"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["auth.continueDriver"].waitForExistence(timeout: 6))
         app.buttons["auth.continueDriver"].tap()
 
         XCTAssertTrue(app.buttons["tab.orders"].waitForExistence(timeout: 10))
 
         app.buttons["tab.orders"].tap()
-        tapIfExists(app.buttons["orders.menu"])
-        tapIfExists(app.buttons["orders.refresh"])
-        tapIfExists(app.buttons["orders.filter.all"])
-        tapIfExists(app.buttons["orders.filter.pending"])
         tapIfExists(app.buttons["orders.filter.active"])
-        tapIfExists(app.buttons["orders.filter.done"])
-        tapIfExists(app.buttons["orders.toggleTimeline"].firstMatch)
+        tapIfExists(app.buttons["orders.row"].firstMatch)
 
         app.buttons["tab.dispatch"].tap()
         tapIfExists(app.buttons["dispatch.refresh"])
-        tapIfExists(app.buttons["dispatch.saveRouteChanges"])
-        tapIfExists(app.buttons["dispatch.stop.call"])
-        tapIfExists(app.buttons["dispatch.stop.details"])
-        tapIfExists(app.buttons["dispatch.stop.details.done"])
-        tapIfExists(app.buttons["dispatch.stop.complete"])
 
         app.buttons["tab.profile"].tap()
         tapIfExists(app.buttons["profile.signOut"])
     }
 
-    func testFollowerQuickOrderFlowButtons() {
+    func testFollowerCanOpenQuickOrder() {
         let app = launchApp()
-        XCTAssertTrue(app.buttons["auth.continueFollower"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["auth.continueFollower"].waitForExistence(timeout: 6))
         app.buttons["auth.continueFollower"].tap()
 
         XCTAssertTrue(app.buttons["tab.feed"].waitForExistence(timeout: 10))
 
         app.buttons["tab.feed"].tap()
-        tapIfExists(app.buttons["feed.refresh"])
-        tapIfExists(app.buttons["feed.openThreads"])
-        tapIfExists(app.otherElements["feed.thread.card"].firstMatch)
-        tapIfExists(app.buttons["feed.closeThreads"])
-        tapIfExists(app.buttons["feed.joinChannel"])
-        tapIfExists(app.buttons["feed.post.reaction"].firstMatch)
-
-        let quickOrderButton = app.buttons["feed.post.quickOrder"].firstMatch
-        if quickOrderButton.waitForExistence(timeout: 6), quickOrderButton.isHittable {
-            quickOrderButton.tap()
-            tapIfExists(app.buttons["feed.quickOrder.standard"])
-            fillIfExists(app.textFields["Street"], value: "123 Main St")
-            fillIfExists(app.textFields["City"], value: "Austin")
-            fillIfExists(app.textFields["State"], value: "TX")
-            fillIfExists(app.textFields["ZIP"], value: "78701")
-            if app.buttons["orderSheet.submit"].waitForExistence(timeout: 2), app.buttons["orderSheet.submit"].isEnabled {
-                app.buttons["orderSheet.submit"].tap()
-            } else {
-                tapIfExists(app.buttons["orderSheet.cancel"])
-            }
-        }
+        tapIfExists(app.buttons["feed.post.quickOrder"].firstMatch)
+        fillIfExists(app.textFields["Street"], value: "123 Main St")
+        fillIfExists(app.textFields["City"], value: "Austin")
+        fillIfExists(app.textFields["State"], value: "TX")
+        fillIfExists(app.textFields["ZIP"], value: "78701")
+        tapIfExists(app.buttons["orderSheet.submit"])
 
         app.buttons["tab.orders"].tap()
-        tapIfExists(app.buttons["orders.menu"])
-        tapIfExists(app.buttons["orders.refresh"])
         tapIfExists(app.buttons["orders.filter.all"])
-        tapIfExists(app.buttons["orders.filter.pending"])
-        tapIfExists(app.buttons["orders.filter.active"])
-        tapIfExists(app.buttons["orders.filter.done"])
-        tapIfExists(app.buttons["orders.toggleTimeline"].firstMatch)
+        tapIfExists(app.buttons["orders.row"].firstMatch)
+        tapIfExists(app.buttons["Close"])
 
         app.buttons["tab.profile"].tap()
         tapIfExists(app.buttons["profile.signOut"])
     }
 
-    private func launchApp() -> XCUIApplication {
+    func testMixedModeLegacyOrdersStillLoads() {
+        let app = launchApp(extraLaunchArguments: ["-legacy-orders"])
+        XCTAssertTrue(app.buttons["auth.continueOwner"].waitForExistence(timeout: 6))
+        app.buttons["auth.continueOwner"].tap()
+
+        XCTAssertTrue(app.buttons["tab.orders"].waitForExistence(timeout: 10))
+        app.buttons["tab.orders"].tap()
+        tapIfExists(app.buttons["orders.row"].firstMatch)
+    }
+
+    func testFollowerSeesRoleRestrictionToastOnDispatchTab() {
+        let app = launchApp()
+        XCTAssertTrue(app.buttons["auth.continueFollower"].waitForExistence(timeout: 6))
+        app.buttons["auth.continueFollower"].tap()
+
+        XCTAssertTrue(app.buttons["tab.dispatch"].waitForExistence(timeout: 8))
+        app.buttons["tab.dispatch"].tap()
+        XCTAssertTrue(app.staticTexts["shell.roleToast"].waitForExistence(timeout: 2))
+    }
+
+    private func launchApp(extraLaunchArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments.append("-force-local-demo")
+        app.launchArguments.append(contentsOf: [
+            "-force-local-demo",
+            "-show-auth-screen",
+            "-auth-demo-shortcuts"
+        ])
+        app.launchArguments.append(contentsOf: extraLaunchArguments)
         app.launch()
         return app
     }
@@ -142,6 +112,13 @@ final class BoppyV2AppUITests: XCTestCase {
     private func tapIfExists(_ element: XCUIElement, timeout: TimeInterval = 2.5) {
         guard element.waitForExistence(timeout: timeout), element.isHittable else { return }
         element.tap()
+    }
+
+    private func waitForAnyElement(_ app: XCUIApplication, identifier: String, timeout: TimeInterval) -> Bool {
+        app.descendants(matching: .any)
+            .matching(identifier: identifier)
+            .firstMatch
+            .waitForExistence(timeout: timeout)
     }
 
     private func fillIfExists(_ field: XCUIElement, value: String, timeout: TimeInterval = 2.5) {

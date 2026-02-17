@@ -21,11 +21,28 @@ Deno.serve(async (req) => {
     const cid = encodeURIComponent(body.channel_id);
     const includeInactive = body.include_inactive ?? false;
     const itemsQuery = includeInactive
-      ? `inventory_items?select=id,channel_id,name,sku,description,default_price_cents,currency_code,track_stock,stock_on_hand,low_stock_threshold,is_active,created_at,updated_at&channel_id=eq.${cid}&order=created_at.desc`
-      : `inventory_items?select=id,channel_id,name,sku,description,default_price_cents,currency_code,track_stock,stock_on_hand,low_stock_threshold,is_active,created_at,updated_at&channel_id=eq.${cid}&is_active=eq.true&order=created_at.desc`;
+      ? `inventory_items?select=id,channel_id,name,sku,description,default_price_cents,currency_code,track_stock,stock_on_hand,low_stock_threshold,is_active,thumbnail_url,category,show_in_catalog,created_at,updated_at&channel_id=eq.${cid}&order=created_at.desc`
+      : `inventory_items?select=id,channel_id,name,sku,description,default_price_cents,currency_code,track_stock,stock_on_hand,low_stock_threshold,is_active,thumbnail_url,category,show_in_catalog,created_at,updated_at&channel_id=eq.${cid}&is_active=eq.true&order=created_at.desc`;
 
     const items = await adminGet(itemsQuery) as Array<Record<string, unknown>>;
     const itemIds = items.map((item) => String(item.id));
+    const activeOrderStatuses = "requested,quoted,accepted,assigned,out_for_delivery,address_review";
+    const activeOrders = await adminGet(
+      `order_requests?select=id&channel_id=eq.${cid}&status=in.(${activeOrderStatuses})&archived_at=is.null&limit=1000`,
+    ) as Array<Record<string, unknown>>;
+    const activeOrderIds = activeOrders.map((order) => String(order.id));
+    const lineItems = activeOrderIds.length > 0
+      ? await adminGet(
+        `order_line_items?select=item_id,order_id&order_id=in.(${activeOrderIds.map(encodeURIComponent).join(",")})`,
+      ) as Array<Record<string, unknown>>
+      : [];
+    const activeOrderCountByItem = new Map<string, number>();
+    for (const lineItem of lineItems) {
+      const itemId = String(lineItem.item_id ?? "");
+      if (!itemId) continue;
+      activeOrderCountByItem.set(itemId, (activeOrderCountByItem.get(itemId) ?? 0) + 1);
+    }
+
     const variants = itemIds.length > 0
       ? await adminGet(
         `inventory_item_variants?select=id,item_id,name,sku,price_cents,stock_on_hand,is_active,created_at,updated_at&item_id=in.(${itemIds.map(encodeURIComponent).join(",")})&order=created_at.asc`
@@ -41,6 +58,9 @@ Deno.serve(async (req) => {
 
     const dataItems = items.map((item) => ({
       ...item,
+      active_order_count: typeof item.active_order_count === "number"
+        ? item.active_order_count
+        : (activeOrderCountByItem.get(String(item.id)) ?? 0),
       variants: groupedVariants[String(item.id)] ?? [],
     }));
 
