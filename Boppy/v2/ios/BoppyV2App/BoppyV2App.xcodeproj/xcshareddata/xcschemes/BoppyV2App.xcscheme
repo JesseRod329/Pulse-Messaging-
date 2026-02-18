@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C6EA84AB97DA21AE31587903"
-               BuildableName = "Boppy V2.app"
+               BuildableName = "BeamBox.app"
                BlueprintName = "BoppyV2App"
                ReferencedContainer = "container:BoppyV2App.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C6EA84AB97DA21AE31587903"
-            BuildableName = "Boppy V2.app"
+            BuildableName = "BeamBox.app"
             BlueprintName = "BoppyV2App"
             ReferencedContainer = "container:BoppyV2App.xcodeproj">
          </BuildableReference>
@@ -75,7 +75,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C6EA84AB97DA21AE31587903"
-            BuildableName = "Boppy V2.app"
+            BuildableName = "BeamBox.app"
             BlueprintName = "BoppyV2App"
             ReferencedContainer = "container:BoppyV2App.xcodeproj">
          </BuildableReference>
@@ -92,7 +92,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C6EA84AB97DA21AE31587903"
-            BuildableName = "Boppy V2.app"
+            BuildableName = "BeamBox.app"
             BlueprintName = "BoppyV2App"
             ReferencedContainer = "container:BoppyV2App.xcodeproj">
          </BuildableReference>
