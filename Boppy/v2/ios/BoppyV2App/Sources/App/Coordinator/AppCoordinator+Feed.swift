@@ -61,9 +61,12 @@ extension AppCoordinator {
         }
     }
 
-    func createPost(type: PostType, caption: String, mediaPath: String?) async {
+    func createPost(type: PostType, caption: String, mediaPath: String?, heroSubtitle: String? = nil, priceCents: Int? = nil) async {
         guard let user = authStore.user, let channelID = feedStore.selectedChannelID else { return }
         guard ensureOnline() else { return }
+
+        feedStore.isPublishing = true
+        defer { feedStore.isPublishing = false }
 
         do {
             try await feedStore.createPost(
@@ -72,6 +75,8 @@ extension AppCoordinator {
                 type: type,
                 caption: caption,
                 mediaPath: mediaPath,
+                heroSubtitle: heroSubtitle,
+                priceCents: priceCents,
                 channelFeedService: environment.channelFeedService
             )
             await refreshAll()
@@ -80,5 +85,39 @@ extension AppCoordinator {
         }
     }
 
+    func updatePost(postID: String, caption: String, mediaPath: String?, heroSubtitle: String?, priceCents: Int?) async {
+        guard let user = authStore.user, user.role == .owner else { return }
+        guard ensureOnline() else { return }
 
+        do {
+            try await feedStore.updatePost(
+                postID: postID,
+                caption: caption,
+                mediaPath: mediaPath,
+                heroSubtitle: heroSubtitle,
+                priceCents: priceCents,
+                actorID: user.id,
+                channelFeedService: environment.channelFeedService
+            )
+            await refreshAll()
+        } catch {
+            handleError(error)
+        }
+    }
+
+    func deletePost(postID: String) async {
+        guard let user = authStore.user, user.role == .owner else { return }
+        guard ensureOnline() else { return }
+
+        do {
+            try await feedStore.deletePost(
+                postID: postID,
+                actorID: user.id,
+                channelFeedService: environment.channelFeedService
+            )
+            await refreshAll()
+        } catch {
+            handleError(error)
+        }
+    }
 }

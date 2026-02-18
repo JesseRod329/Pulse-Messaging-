@@ -18,7 +18,9 @@ public protocol ChannelFeedServiceProtocol {
         authorID: String,
         postType: PostType,
         caption: String,
-        mediaPath: String?
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?
     ) async throws -> ChannelPost
     func createInvite(
         channelID: String,
@@ -27,6 +29,15 @@ public protocol ChannelFeedServiceProtocol {
         maxUses: Int?
     ) async throws -> ChannelInvite
     func joinChannel(token: String, userID: String) async throws -> Channel
+    func updatePost(
+        postID: String,
+        caption: String,
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?,
+        actorID: String
+    ) async throws -> ChannelPost
+    func deletePost(postID: String, actorID: String) async throws
 }
 
 public protocol OrderServiceProtocol {
@@ -56,6 +67,7 @@ public protocol DispatchServiceProtocol {
     ) async throws -> DeliveryRoute
     func reorderRouteStops(routeID: String, orderedStopIDs: [String], actorID: String) async throws -> DeliveryRoute
     func completeStop(routeID: String, stopID: String, actorID: String) async throws -> DeliveryRoute
+    func clearRoute(routeID: String, actorID: String) async throws
 }
 
 public protocol RoutingServiceProtocol {
@@ -111,6 +123,7 @@ public protocol AdminServiceProtocol {
     func deleteOrder(orderID: String, mode: AdminDeleteMode, reason: String, actorID: String) async throws
     func unassignDriver(orderID: String, reason: String, actorID: String) async throws
     func upsertDriverMembership(channelID: String, driverUserID: String, operation: DriverMembershipOperation, reason: String, actorID: String) async throws
+    func lookupUserByPhone(phoneE164: String) async throws -> SessionUser?
     func fetchAdminAuditEvents(channelID: String, action: String?, limit: Int, actorID: String) async throws -> [AdminAuditEvent]
 }
 

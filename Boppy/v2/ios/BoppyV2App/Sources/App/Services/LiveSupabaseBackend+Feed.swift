@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import BoppyV2Core
 
 extension LiveSupabaseBackend {
@@ -61,7 +62,7 @@ extension LiveSupabaseBackend {
 
     func fetchPosts(channelID: String) async throws -> [ChannelPost] {
         let accessToken = try requireAccessToken()
-        let query = "posts?select=id,channel_id,author_id,post_type,caption,media_path,slot_remaining,slot_label,hero_subtitle,hero_aspect_ratio,created_at&channel_id=eq.\(escape(channelID))&archived_at=is.null&order=created_at.desc"
+        let query = "posts?select=id,channel_id,author_id,post_type,caption,media_path,slot_remaining,slot_label,hero_subtitle,hero_aspect_ratio,price_cents,created_at&channel_id=eq.\(escape(channelID))&archived_at=is.null&order=created_at.desc"
         let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
         let rows = try decode([PostRow].self, from: data)
 
@@ -102,20 +103,56 @@ extension LiveSupabaseBackend {
         authorID: String,
         postType: PostType,
         caption: String,
-        mediaPath: String?
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?
     ) async throws -> ChannelPost {
         let accessToken = try requireAccessToken()
+
+        // Upload media to Supabase Storage if this is an image/video post
+        var resolvedMediaPath = mediaPath
+        if let localPath = mediaPath,
+           !localPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           postType != .text {
+            // Only upload local file:// URLs; leave existing HTTPS URLs as-is
+            if let fileURL = URL(string: localPath), fileURL.isFileURL {
+                let (uploadData, mimeType) = try compressImageIfNeeded(at: fileURL)
+
+                let fileExtension: String
+                if mimeType == "image/jpeg" { fileExtension = "jpg" }
+                else if mimeType == "image/png" { fileExtension = "png" }
+                else if mimeType.hasPrefix("video/") {
+                    fileExtension = fileURL.pathExtension.isEmpty ? "mp4" : fileURL.pathExtension
+                } else {
+                    fileExtension = fileURL.pathExtension.isEmpty ? "bin" : fileURL.pathExtension
+                }
+
+                let storagePath = "\(channelID)/\(UUID().uuidString).\(fileExtension)"
+                resolvedMediaPath = try await client.storageUpload(
+                    bucket: "posts",
+                    path: storagePath,
+                    data: uploadData,
+                    contentType: mimeType,
+                    accessToken: accessToken
+                )
+
+                try? FileManager.default.removeItem(at: fileURL)
+            }
+        }
+
         let body: [String: Any?] = [
             "channel_id": channelID,
             "author_id": authorID,
             "post_type": postType.rawValue,
             "caption": caption,
-            "media_path": mediaPath,
+            "media_path": resolvedMediaPath,
+            "hero_subtitle": heroSubtitle,
+            "price_cents": priceCents,
         ]
 
         let payload = sanitizeDictionary(body)
         let data = try await client.restPost(
-            pathAndQuery: "posts?select=id,channel_id,author_id,post_type,caption,media_path,slot_remaining,slot_label,hero_subtitle,hero_aspect_ratio,created_at",
+            pathAndQuery: "posts?select=id,channel_id,author_id,post_type,caption,media_path,slot_remaining,slot_label,hero_subtitle,hero_aspect_ratio,price_cents,created_at",
             body: payload,
             accessToken: accessToken,
             prefer: "return=representation"
@@ -171,5 +208,117 @@ extension LiveSupabaseBackend {
         return try await fetchChannelByID(data.channel_id, accessToken: accessToken)
     }
 
+    // MARK: - Update / Delete Posts
 
+    func updatePost(
+        postID: String,
+        caption: String,
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?,
+        actorID: String
+    ) async throws -> ChannelPost {
+        let accessToken = try requireAccessToken()
+
+        // Upload new local media if provided
+        var resolvedMediaPath = mediaPath
+        if let localPath = mediaPath,
+           !localPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if let fileURL = URL(string: localPath), fileURL.isFileURL {
+                let (uploadData, mimeType) = try compressImageIfNeeded(at: fileURL)
+
+                let fileExtension: String
+                if mimeType == "image/jpeg" { fileExtension = "jpg" }
+                else if mimeType == "image/png" { fileExtension = "png" }
+                else if mimeType.hasPrefix("video/") {
+                    fileExtension = fileURL.pathExtension.isEmpty ? "mp4" : fileURL.pathExtension
+                } else {
+                    fileExtension = fileURL.pathExtension.isEmpty ? "bin" : fileURL.pathExtension
+                }
+
+                let storagePath = "updates/\(UUID().uuidString).\(fileExtension)"
+                resolvedMediaPath = try await client.storageUpload(
+                    bucket: "posts",
+                    path: storagePath,
+                    data: uploadData,
+                    contentType: mimeType,
+                    accessToken: accessToken
+                )
+
+                try? FileManager.default.removeItem(at: fileURL)
+            }
+        }
+
+        let body: [String: Any?] = [
+            "caption": caption,
+            "media_path": resolvedMediaPath,
+            "hero_subtitle": heroSubtitle,
+            "price_cents": priceCents,
+        ]
+
+        let selectFields = "id,channel_id,author_id,post_type,caption,media_path,slot_remaining,slot_label,hero_subtitle,hero_aspect_ratio,price_cents,created_at"
+        let data = try await client.restPatch(
+            pathAndQuery: "posts?id=eq.\(escape(postID))&select=\(selectFields)",
+            body: sanitizeDictionary(body),
+            accessToken: accessToken,
+            prefer: "return=representation"
+        )
+
+        let rows = try decode([PostRow].self, from: data)
+        guard let first = rows.first, let post = mapPost(first) else {
+            throw SupabaseClientError.invalidResponse
+        }
+        return post
+    }
+
+    func deletePost(postID: String, actorID: String) async throws {
+        let accessToken = try requireAccessToken()
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let now = formatter.string(from: Date())
+
+        _ = try await client.restPatch(
+            pathAndQuery: "posts?id=eq.\(escape(postID))",
+            body: ["archived_at": now],
+            accessToken: accessToken
+        )
+    }
+
+    // MARK: - Storage Helpers
+
+    private func compressImageIfNeeded(at fileURL: URL, maxBytes: Int = 1_000_000) throws -> (Data, String) {
+        let data = try Data(contentsOf: fileURL)
+        let ext = fileURL.pathExtension.lowercased()
+
+        // Video files: return as-is
+        let videoExtensions = ["mp4", "mov", "m4v", "avi"]
+        if videoExtensions.contains(ext) {
+            let mimeType = ext == "mov" ? "video/quicktime" : "video/mp4"
+            return (data, mimeType)
+        }
+
+        // Try to decode as UIImage for compression
+        guard let uiImage = UIImage(data: data) else {
+            return (data, "application/octet-stream")
+        }
+
+        // Small enough already — return original
+        if data.count <= maxBytes {
+            let mimeType = ext == "png" ? "image/png" : "image/jpeg"
+            return (data, mimeType)
+        }
+
+        // Compress as JPEG with decreasing quality
+        for quality in stride(from: 0.8, through: 0.3, by: -0.1) {
+            if let compressed = uiImage.jpegData(compressionQuality: quality),
+               compressed.count <= maxBytes {
+                return (compressed, "image/jpeg")
+            }
+        }
+
+        // Last resort: lowest quality
+        let fallback = uiImage.jpegData(compressionQuality: 0.3) ?? data
+        return (fallback, "image/jpeg")
+    }
 }

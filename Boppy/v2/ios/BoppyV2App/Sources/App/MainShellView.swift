@@ -14,7 +14,7 @@ struct MainShellView: View {
         ZStack(alignment: .bottom) {
             currentTabView
                 .id(coordinator.selectedTab)
-                .transition(.opacity.combined(with: .offset(y: 6)))
+                .transition(.opacity)
                 .animation(.easeOut(duration: 0.2), value: coordinator.selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .appScreenBackground()
@@ -34,7 +34,7 @@ struct MainShellView: View {
         .overlay(alignment: .top) {
             if let roleToastMessage {
                 Text(roleToastMessage)
-                    .font(AppTheme.inter(12, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -112,7 +112,7 @@ struct MainShellView: View {
                             )
                                 .frame(width: tabIconFrameWidth, height: tabIconFrameHeight)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                         .fill(coordinator.selectedTab == tab && availableTabs.contains(tab) ? AppTheme.accentBlue.opacity(0.18) : .clear)
                                 )
 

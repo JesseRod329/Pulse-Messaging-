@@ -20,12 +20,17 @@ final class DispatchStore: ObservableObject {
         actorID: String,
         dispatchService: DispatchServiceProtocol
     ) async throws {
-        _ = try await dispatchService.buildRoute(
+        let newRoute = try await dispatchService.buildRoute(
             channelID: channelID,
             driverID: driverID,
             start: start,
             actorID: actorID
         )
+        if let existingIndex = routes.firstIndex(where: { $0.id == newRoute.id }) {
+            routes[existingIndex] = newRoute
+        } else {
+            routes.append(newRoute)
+        }
     }
 
     func reorderStop(
@@ -70,7 +75,19 @@ final class DispatchStore: ObservableObject {
         actorID: String,
         dispatchService: DispatchServiceProtocol
     ) async throws {
-        _ = try await dispatchService.completeStop(routeID: routeID, stopID: stopID, actorID: actorID)
+        let updatedRoute = try await dispatchService.completeStop(routeID: routeID, stopID: stopID, actorID: actorID)
+        if let routeIndex = routes.firstIndex(where: { $0.id == routeID }) {
+            routes[routeIndex] = updatedRoute
+        }
+    }
+
+    func clearRoute(
+        routeID: String,
+        actorID: String,
+        dispatchService: DispatchServiceProtocol
+    ) async throws {
+        try await dispatchService.clearRoute(routeID: routeID, actorID: actorID)
+        routes.removeAll(where: { $0.id == routeID })
     }
 
     func clear() {

@@ -12,7 +12,7 @@ This document tracks final production readiness for BeamBox V2.
 
 ## Readiness Gates
 
-## Current Snapshot (2026-02-17)
+## Current Snapshot (2026-02-17, post UI Audit PR #2)
 
 - Local iOS gate commands are passing:
   - `xcodebuild ... build` succeeded.
@@ -51,11 +51,15 @@ This document tracks final production readiness for BeamBox V2.
 
 ## 2) iOS App
 
-- [ ] `swift build` and `swift test` pass in CI and local.
+- [x] `swift build` and `swift test` pass in CI and local.
 - [x] Role-specific tabs/actions behave correctly.
 - [x] Dispatch and Profile match approved layout density.
+- [x] UI audit remediation complete (PR #2): Inter fonts, design tokens, hierarchy fixes.
+- [x] Fullscreen rendering verified (UIRequiresFullScreen locked in project.yml).
+- [x] Shared components: FilterChip, SearchField, AppEmptyStateView, CardSkeleton.
 - [ ] OTP demo and live modes validated.
 - [ ] Crash-free behavior acceptable in staging/TestFlight.
+- [ ] Final 22 system .font() calls migrated to AppTheme.inter().
 
 ## 3) Admin Web
 

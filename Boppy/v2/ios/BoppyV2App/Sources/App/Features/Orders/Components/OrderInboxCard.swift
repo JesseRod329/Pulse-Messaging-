@@ -23,21 +23,19 @@ struct OrderInboxCard: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(titleLine)
-                        .font(AppTheme.inter(15, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
 
                     HStack(spacing: 7) {
                         Text(subtitleLine)
-                            .font(AppTheme.inter(13, weight: .medium))
+                            .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium))
                             .foregroundStyle(AppTheme.textSecondary)
                             .lineLimit(1)
 
-                        OrderStatusPill(status: order.status)
-
                         if let externalRef = order.externalRef {
                             Text(externalRef)
-                                .font(AppTheme.interMonospaced(11, weight: .bold, relativeTo: .caption2))
+                                .font(.system(size: AppTheme.typeCaption, weight: .bold, design: .monospaced))
                                 .foregroundStyle(AppTheme.textMuted)
                         }
                     }
@@ -48,7 +46,7 @@ struct OrderInboxCard: View {
                                 onOpenAssign()
                             } label: {
                                 Label("Assign", systemImage: "person.badge.plus")
-                                    .font(AppTheme.inter(11, weight: .semibold))
+                                    .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold))
                             }
                             .buttonStyle(.bordered)
                             .tint(AppTheme.accentBlue)
@@ -63,7 +61,7 @@ struct OrderInboxCard: View {
 
                 VStack(alignment: .trailing, spacing: 6) {
                     Text(timestampLabel)
-                        .font(AppTheme.inter(11, weight: .medium))
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
                         .foregroundStyle(AppTheme.textMuted)
                     OrderStatusPill(status: order.status)
                     DesignIconView(icon: .chevronRight, size: 12, color: AppTheme.textMuted)
@@ -72,7 +70,7 @@ struct OrderInboxCard: View {
             .padding(.vertical, 8)
             .overlay(alignment: .bottom) {
                 Rectangle()
-                    .fill(AppTheme.border.opacity(0.4))
+                    .fill(AppTheme.borderSubtle)
                     .frame(height: 1)
             }
         }

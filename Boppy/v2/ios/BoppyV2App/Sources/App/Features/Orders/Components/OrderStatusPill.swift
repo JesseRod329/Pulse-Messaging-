@@ -6,7 +6,7 @@ struct OrderStatusPill: View {
 
     var body: some View {
         Text(title)
-            .font(.caption2.weight(.bold))
+            .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold, relativeTo: .caption2))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .foregroundStyle(foregroundColor)
@@ -47,7 +47,7 @@ struct OrderStatusPill: View {
         case .accepted, .assigned:
             return AppTheme.success
         case .outForDelivery:
-            return AppTheme.accentBlueSoft
+            return AppTheme.accentBlue
         case .delivered:
             return AppTheme.success
         case .cancelled:

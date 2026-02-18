@@ -4,8 +4,10 @@ import BoppyV2Core
 struct ProfileView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @EnvironmentObject private var authStore: AuthStore
+    @EnvironmentObject private var feedStore: FeedStore
     @ScaledMetric(relativeTo: .body) private var heroIconSize: CGFloat = 42
     @ScaledMetric(relativeTo: .body) private var heroGlyphSize: CGFloat = 16
+    @State private var showSignOutConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -20,7 +22,7 @@ struct ProfileView: View {
                         }
 
                         Button("Sign Out", role: .destructive) {
-                            Task { await coordinator.signOut() }
+                            showSignOutConfirmation = true
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(AppTheme.danger)
@@ -28,6 +30,14 @@ struct ProfileView: View {
                         .accessibilityLabel("Sign out")
                         .accessibilityHint("Signs out and clears your session.")
                         .accessibilityIdentifier("profile.signOut")
+                        .alert("Sign Out?", isPresented: $showSignOutConfirmation) {
+                            Button("Cancel", role: .cancel) {}
+                            Button("Sign Out", role: .destructive) {
+                                Task { await coordinator.signOut() }
+                            }
+                        } message: {
+                            Text("You will need to verify your phone number again to sign back in.")
+                        }
                     }
                     .padding(.horizontal, AppTheme.screenHorizontalPadding)
                     .padding(.top, 8)
@@ -85,10 +95,10 @@ struct ProfileView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("BeamBox Control")
-                    .font(AppTheme.inter(17, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text("Owner operations and channel governance")
-                    .font(AppTheme.inter(12, weight: .medium))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium))
                     .foregroundStyle(AppTheme.textMuted)
             }
 
@@ -110,7 +120,7 @@ struct ProfileView: View {
     private var sessionCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Session")
-                .font(AppTheme.inter(15, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold))
                 .foregroundStyle(AppTheme.textPrimary)
 
             if let user = authStore.user {
@@ -146,6 +156,8 @@ struct ProfileView: View {
             NavigationLink {
                 AdminControlsView()
                     .environmentObject(coordinator)
+                    .environmentObject(feedStore)
+                    .environmentObject(authStore)
             } label: {
                 AdminPanelCard(
                     title: "Admin Controls",
@@ -168,7 +180,7 @@ struct ProfileView: View {
                 .frame(width: 86, alignment: .leading)
 
             Text(value)
-                .font(AppTheme.inter(13, weight: .medium))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium))
                 .foregroundStyle(AppTheme.textPrimary)
                 .textSelection(.enabled)
 
@@ -178,14 +190,19 @@ struct ProfileView: View {
 }
 
 struct InventoryDraftInput {
+    let itemID: String?
     let name: String
     let sku: String
     let description: String
     let category: String
     let thumbnailURL: String?
+    let mediaItems: [String]
     let stockOnHand: Int
     let lowStockThreshold: Int
     let defaultPriceCents: Int
+    let wholesalePriceCents: Int?
+    let distributorPriceCents: Int?
+    let bulkPriceCents: Int?
     let showInCatalog: Bool
 }
 

@@ -3,7 +3,7 @@ import SwiftUI
 enum AppTheme {
     static let brandSymbolName = "shippingbox.fill"
     static let screenHorizontalPadding: CGFloat = 16
-    static let contentBottomPadding: CGFloat = 100
+    static let contentBottomPadding: CGFloat = tabBarOverlayHeight + space8 // 92
     static let minimumViewportFill: CGFloat = 0
     static let cardPadding: CGFloat = 14
     static let cardCornerRadius: CGFloat = 12
@@ -17,6 +17,27 @@ enum AppTheme {
     static let timelineNodeSize: CGFloat = 40
     static let controlHeight: CGFloat = 48
 
+    // MARK: - Radius Scale
+    static let radiusSmall: CGFloat = 8
+    static let radiusMedium: CGFloat = 12   // == cardCornerRadius
+    static let radiusLarge: CGFloat = 16    // == cardCornerRadiusLarge
+
+    // MARK: - Spacing Scale
+    static let space4: CGFloat = 4
+    static let space8: CGFloat = 8
+    static let space12: CGFloat = 12
+    static let space16: CGFloat = 16
+    static let space24: CGFloat = 24
+
+    // MARK: - Type Scale
+    static let typeCaption: CGFloat = 11
+    static let typeFootnote: CGFloat = 12
+    static let typeSubheadline: CGFloat = 14
+    static let typeBody: CGFloat = 16
+    static let typeTitle3: CGFloat = 20
+    static let typeTitle2: CGFloat = 24
+    static let typeLargeTitle: CGFloat = 34
+
     static let backgroundTop = Color(red: 0.06, green: 0.09, blue: 0.13) // #101722
     static let backgroundBottom = Color(red: 0.06, green: 0.09, blue: 0.13) // #101722
     static let navBar = Color(red: 0.06, green: 0.09, blue: 0.13)
@@ -24,6 +45,13 @@ enum AppTheme {
     static let surface = Color(red: 0.12, green: 0.16, blue: 0.23) // #1E293B
     static let surfaceElevated = Color(red: 0.15, green: 0.20, blue: 0.29)
     static let border = Color(red: 0.20, green: 0.27, blue: 0.33).opacity(0.95) // #334155
+
+    // MARK: - Card Backgrounds
+    static let surfaceCard = surface.opacity(0.90)
+    static let surfaceCardSecondary = surface.opacity(0.62)
+
+    // MARK: - Border Variants
+    static let borderSubtle = Color(red: 0.20, green: 0.27, blue: 0.33).opacity(0.45)
 
     static let accentBlue = Color(red: 0.23, green: 0.52, blue: 0.98)
     static let accentBlueSoft = Color(red: 0.11, green: 0.22, blue: 0.39)

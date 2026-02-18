@@ -41,7 +41,19 @@ struct AppEnvironment {
             )
         }
 
+        #if !DEBUG
+        // In Release builds, never silently fall back to demo mode.
+        // If Supabase config is missing, the app should fail visibly
+        // rather than shipping InMemoryBackend to TestFlight/App Store.
+        if !forceLocalDemo {
+            fatalError("Supabase configuration missing. Add a valid Release.xcconfig with SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_EDGE_BASE_URL.")
+        }
+        #endif
+
         let backend = InMemoryBackend()
+
+        var localFlags = featureFlags
+        localFlags.showDemoAuthShortcuts = true
 
         return AppEnvironment(
             authService: backend,
@@ -53,7 +65,7 @@ struct AppEnvironment {
             routingService: routing,
             analyticsService: analytics,
             backendMode: .localDemo,
-            featureFlags: featureFlags
+            featureFlags: localFlags
         )
     }
 }

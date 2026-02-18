@@ -19,9 +19,9 @@ struct RouteStopCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(spacing: 0) {
-                HStack(spacing: 2) {
+                VStack(spacing: 2) {
                     Button(action: onMoveUp) {
-                        Image(systemName: "line.3.horizontal")
+                        Image(systemName: "chevron.up")
                     }
                     .buttonStyle(.borderless)
                     .disabled(!canReorder || stop.stopIndex == 0)
@@ -30,15 +30,15 @@ struct RouteStopCard: View {
                     .accessibilityIdentifier("dispatch.stop.moveUp")
 
                     Button(action: onMoveDown) {
-                        Image(systemName: "line.3.horizontal")
+                        Image(systemName: "chevron.down")
                     }
                     .buttonStyle(.borderless)
-                    .disabled(!canReorder || stop.stopIndex == route.stops.count - 1)
+                    .disabled(!canReorder || isLastStop)
                     .accessibilityLabel("Move stop down")
                     .accessibilityHint("Reorders this stop later in the route.")
                     .accessibilityIdentifier("dispatch.stop.moveDown")
                 }
-                .font(AppTheme.inter(12, weight: .bold, relativeTo: .caption))
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                 .foregroundStyle(AppTheme.textMuted)
                 .opacity(canReorder ? 0.72 : 0.30)
                 .padding(.bottom, 8)
@@ -49,18 +49,18 @@ struct RouteStopCard: View {
                         .frame(width: 40, height: 40)
                     if stop.completedAt == nil {
                         Text("\(stop.stopIndex + 1)")
-                            .font(AppTheme.inter(17, weight: .bold, relativeTo: .headline))
+                            .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold, relativeTo: .headline))
                             .foregroundStyle(AppTheme.textPrimary)
                     } else {
                         Image(systemName: "checkmark")
-                            .font(AppTheme.inter(13, weight: .bold, relativeTo: .subheadline))
+                            .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold, relativeTo: .subheadline))
                             .foregroundStyle(AppTheme.success)
                     }
                 }
 
                 if !isLastStop {
                     Rectangle()
-                        .fill(AppTheme.border.opacity(0.72))
+                        .fill(AppTheme.borderSubtle)
                         .frame(width: 2, height: 72)
                         .padding(.top, 6)
                 }
@@ -70,7 +70,7 @@ struct RouteStopCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(primaryLine)
-                        .font(AppTheme.inter(22, weight: .bold, relativeTo: .title3))
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
                         .foregroundStyle(AppTheme.textPrimary)
                         .strikethrough(stop.completedAt != nil, color: AppTheme.textMuted)
                         .lineLimit(1)
@@ -79,13 +79,13 @@ struct RouteStopCard: View {
                 }
 
                 Text(secondaryLine)
-                    .font(AppTheme.inter(15, weight: .medium, relativeTo: .subheadline))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium, relativeTo: .subheadline))
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(2)
 
                 if let eta = stop.etaMinutes {
                     Text("ETA \(eta) min")
-                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.accentBlue)
                 }
 
@@ -101,12 +101,12 @@ struct RouteStopCard: View {
                     .accessibilityLabel("Call customer")
                     .accessibilityHint(callURL == nil ? "Phone number unavailable." : "Calls the customer for this stop.")
                     .accessibilityIdentifier("dispatch.stop.call")
-                    .font(AppTheme.inter(13, weight: .bold, relativeTo: .subheadline))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold, relativeTo: .subheadline))
                     .foregroundStyle(AppTheme.textPrimary)
                     .padding(.vertical, 9)
-                    .background(AppTheme.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .background(AppTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 1)
                     )
                     .disabled(callURL == nil)
@@ -121,12 +121,12 @@ struct RouteStopCard: View {
                     .accessibilityLabel("Stop details")
                     .accessibilityHint("Opens full details for this stop.")
                     .accessibilityIdentifier("dispatch.stop.details")
-                    .font(AppTheme.inter(13, weight: .bold, relativeTo: .subheadline))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold, relativeTo: .subheadline))
                     .foregroundStyle(AppTheme.textPrimary)
                     .padding(.vertical, 9)
-                    .background(AppTheme.surface.opacity(0.92), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .background(AppTheme.surfaceCard, in: RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 1)
                     )
                 }
@@ -144,12 +144,12 @@ struct RouteStopCard: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .fill(stopBackgroundStyle)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isCurrentStop ? AppTheme.accentBlue : AppTheme.border.opacity(0.65), lineWidth: isCurrentStop ? 2 : 1)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .stroke(isCurrentStop ? AppTheme.accentBlue : AppTheme.borderSubtle, lineWidth: isCurrentStop ? 2 : 1)
         )
         .shadow(color: isCurrentStop ? AppTheme.accentBlue.opacity(0.3) : .clear, radius: 12, y: 4)
         .opacity(stop.completedAt == nil ? 1 : 0.62)
@@ -159,7 +159,7 @@ struct RouteStopCard: View {
 
     private var callURL: URL? {
         guard let phone = order?.customerPhone else { return nil }
-        return URL(string: "tel://\(phone)")
+        return URL(string: "tel:\(phone)")
     }
 
     private var stopBackgroundStyle: AnyShapeStyle {
@@ -173,9 +173,9 @@ struct RouteStopCard: View {
             )
         }
         if stop.completedAt != nil {
-            return AnyShapeStyle(AppTheme.surface.opacity(0.62))
+            return AnyShapeStyle(AppTheme.surfaceCardSecondary)
         }
-        return AnyShapeStyle(AppTheme.surface.opacity(0.86))
+        return AnyShapeStyle(AppTheme.surfaceCard)
     }
 
     private var statusBadge: some View {

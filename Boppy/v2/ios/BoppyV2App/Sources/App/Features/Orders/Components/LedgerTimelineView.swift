@@ -8,15 +8,15 @@ struct LedgerTimelineView: View {
     var body: some View {
         if isLoading {
             HStack {
-                ShimmerBlock(cornerRadius: 8)
+                ShimmerBlock(cornerRadius: AppTheme.radiusSmall)
                     .frame(width: 28, height: 28)
                 Text("Loading timeline")
-                    .font(.caption)
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
                     .foregroundStyle(AppTheme.textMuted)
             }
         } else if events.isEmpty {
             Text("No ledger events yet")
-                .font(.caption)
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
                 .foregroundStyle(AppTheme.textMuted)
         } else {
             VStack(alignment: .leading, spacing: 10) {
@@ -31,7 +31,7 @@ struct LedgerTimelineView: View {
                                     .fill(color(for: event).opacity(0.24))
                                     .frame(width: AppTheme.timelineNodeSize - 8, height: AppTheme.timelineNodeSize - 8)
                                 Image(systemName: icon(for: event))
-                                    .font(AppTheme.inter(12, weight: .bold, relativeTo: .caption))
+                                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                                     .foregroundStyle(color(for: event))
                             }
 
@@ -48,16 +48,16 @@ struct LedgerTimelineView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
                                 Text(title(for: event))
-                                    .font(.caption.weight(.bold))
+                                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                                     .foregroundStyle(AppTheme.textPrimary)
                                 Spacer(minLength: 8)
                                 Text(event.createdAt, style: .time)
-                                    .font(.caption2.weight(.semibold))
+                                    .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold, relativeTo: .caption2))
                                     .foregroundStyle(AppTheme.textMuted)
                             }
 
                             Text(event.payloadSummary)
-                                .font(.caption2)
+                                .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium, relativeTo: .caption2))
                                 .foregroundStyle(AppTheme.textSecondary)
                                 .lineSpacing(2)
                                 .fixedSize(horizontal: false, vertical: true)

@@ -11,7 +11,7 @@ struct RouteSummaryHeader: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Route Summary")
-                    .font(AppTheme.inter(17, weight: .bold, relativeTo: .headline))
+                    .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold, relativeTo: .headline))
                     .foregroundStyle(AppTheme.textPrimary)
                 if isOwner {
                     Text("OWNER")
@@ -24,7 +24,7 @@ struct RouteSummaryHeader: View {
                 Spacer()
                 if let route {
                     Text(statusLabel(route.status))
-                        .font(.caption2.weight(.bold))
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold, relativeTo: .caption2))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(statusColor(route.status).opacity(0.20), in: Capsule())
@@ -35,12 +35,12 @@ struct RouteSummaryHeader: View {
             if let route {
                 HStack(spacing: 10) {
                     Label("\(remainingStops(route)) stops remaining", systemImage: "flag.checkered")
-                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textSecondary)
                     Text("•")
                         .foregroundStyle(AppTheme.textMuted)
                     Text(routeDurationLabel)
-                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
@@ -49,13 +49,13 @@ struct RouteSummaryHeader: View {
                         .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
                         .foregroundStyle(AppTheme.accentBlue)
                     Text(nextStopLabel)
-                        .font(AppTheme.inter(15, weight: .semibold, relativeTo: .subheadline))
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .semibold, relativeTo: .subheadline))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
                 }
             } else {
                 Text("No active route yet")
-                    .font(AppTheme.inter(14, weight: .medium, relativeTo: .subheadline))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium, relativeTo: .subheadline))
                     .foregroundStyle(AppTheme.textMuted)
             }
         }
@@ -63,7 +63,7 @@ struct RouteSummaryHeader: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.82))
+                .fill(AppTheme.surfaceCard)
         )
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)

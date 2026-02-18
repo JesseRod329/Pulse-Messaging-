@@ -21,7 +21,7 @@ struct RootView: View {
             VStack(spacing: 8) {
                 if !networkMonitor.isOnline {
                     Text("No connection — showing cached data")
-                        .font(AppTheme.inter(12, weight: .semibold))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                         .foregroundStyle(AppTheme.warning)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
@@ -39,15 +39,11 @@ struct RootView: View {
                 }
 
                 if authStore.isLoading {
-                    ProgressView("Syncing")
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .foregroundStyle(AppTheme.textPrimary)
-                        .background(AppTheme.surfaceElevated, in: Capsule())
-                        .overlay(
-                            Capsule()
-                                .stroke(AppTheme.border, lineWidth: 1)
-                        )
+                    ProgressView()
+                        .tint(AppTheme.textMuted)
+                        .scaleEffect(0.8)
+                        .padding(AppTheme.space8)
+                        .background(AppTheme.surfaceElevated.opacity(0.85), in: Circle())
                         .accessibilityLabel("Syncing data")
                         .accessibilityHint("Updates are in progress.")
                         .accessibilityIdentifier("root.syncing")

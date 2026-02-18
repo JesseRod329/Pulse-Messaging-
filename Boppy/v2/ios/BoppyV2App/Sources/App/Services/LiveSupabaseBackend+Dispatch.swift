@@ -74,5 +74,13 @@ extension LiveSupabaseBackend {
         return try await fetchRouteByID(data.route_id, accessToken: accessToken)
     }
 
+    func clearRoute(routeID: String, actorID: String) async throws {
+        let accessToken = try requireAccessToken()
 
+        _ = try await client.restPatch(
+            pathAndQuery: "delivery_routes?id=eq.\(escape(routeID))",
+            body: ["status": "cancelled"],
+            accessToken: accessToken
+        )
+    }
 }

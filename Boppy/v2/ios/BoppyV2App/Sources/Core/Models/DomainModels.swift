@@ -51,6 +51,7 @@ public struct ChannelPost: Identifiable, Codable, Equatable, Sendable {
     public let slotLabel: String?
     public let heroSubtitle: String?
     public let heroAspectRatio: Double?
+    public let priceCents: Int?
     public let createdAt: Date
 
     public init(
@@ -64,6 +65,7 @@ public struct ChannelPost: Identifiable, Codable, Equatable, Sendable {
         slotLabel: String? = nil,
         heroSubtitle: String? = nil,
         heroAspectRatio: Double? = nil,
+        priceCents: Int? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -76,6 +78,7 @@ public struct ChannelPost: Identifiable, Codable, Equatable, Sendable {
         self.slotLabel = slotLabel
         self.heroSubtitle = heroSubtitle
         self.heroAspectRatio = heroAspectRatio
+        self.priceCents = priceCents
         self.createdAt = createdAt
     }
 }

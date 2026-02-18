@@ -39,12 +39,12 @@ struct OrderRequestSheet: View {
                     heroImage
 
                     Text(post.caption.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Product request" : post.caption)
-                        .font(AppTheme.inter(20, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
 
                     if let subtitle = post.heroSubtitle {
                         Text(subtitle)
-                            .font(AppTheme.inter(13, weight: .medium))
+                            .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium))
                             .foregroundStyle(AppTheme.textSecondary)
                     }
 
@@ -115,15 +115,15 @@ struct OrderRequestSheet: View {
             }
         }
         .frame(height: heroHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
     }
 
     private var placeholderHero: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
             .fill(AppTheme.surfaceElevated)
             .overlay {
                 Text("Product image")
-                    .font(AppTheme.inter(12, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                     .foregroundStyle(AppTheme.textMuted)
             }
     }
@@ -131,7 +131,7 @@ struct OrderRequestSheet: View {
     private var addressBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Delivery Address")
-                .font(AppTheme.inter(13, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             TextField("Street", text: $line1)
@@ -165,14 +165,14 @@ struct OrderRequestSheet: View {
             Label("Verified Seller", systemImage: "checkmark.seal.fill")
             Label("Ships in 2-4 days", systemImage: "clock")
         }
-        .font(AppTheme.inter(11, weight: .semibold))
+        .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold))
         .foregroundStyle(AppTheme.textMuted)
     }
 
     private var quantityBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Quantity")
-                .font(AppTheme.inter(13, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             HStack(spacing: 10) {
@@ -180,22 +180,22 @@ struct OrderRequestSheet: View {
                     quantity = max(1, quantity - 1)
                 } label: {
                     Text("-")
-                        .font(AppTheme.inter(20, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                         .frame(width: quantityButtonSize, height: quantityButtonSize)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Decrease quantity")
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.surfaceElevated)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
 
                 Text("\(quantity)")
-                    .font(AppTheme.inter(16, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeBody, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                     .frame(minWidth: 30)
 
@@ -203,24 +203,24 @@ struct OrderRequestSheet: View {
                     quantity += 1
                 } label: {
                     Text("+")
-                        .font(AppTheme.inter(20, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                         .frame(width: quantityButtonSize, height: quantityButtonSize)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Increase quantity")
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.surfaceElevated)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
 
                 Spacer()
 
                 Text(estimatedPriceText)
-                    .font(AppTheme.inter(13, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                     .foregroundStyle(AppTheme.textSecondary)
             }
         }
@@ -231,7 +231,7 @@ struct OrderRequestSheet: View {
     private var tierGrid: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Pricing Tier")
-                .font(AppTheme.inter(13, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -241,20 +241,20 @@ struct OrderRequestSheet: View {
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(tier.title)
-                                .font(AppTheme.inter(13, weight: .bold))
+                                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                                 .foregroundStyle(AppTheme.textPrimary)
-                            Text(tier.priceLabel)
-                                .font(AppTheme.inter(12, weight: .medium))
+                            Text(tier.priceLabel(baseCents: basePriceCents))
+                                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium))
                                 .foregroundStyle(AppTheme.textSecondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
                         .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                 .fill(selectedTier == tier ? AppTheme.accentBlue.opacity(0.05) : AppTheme.surfaceElevated)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                 .stroke(selectedTier == tier ? AppTheme.accentBlue.opacity(0.7) : AppTheme.border, lineWidth: 1)
                         )
                     }
@@ -272,7 +272,7 @@ struct OrderRequestSheet: View {
     private var noteBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Details")
-                .font(AppTheme.inter(13, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             TextEditor(text: $quoteNote)
@@ -282,11 +282,11 @@ struct OrderRequestSheet: View {
                 .accessibilityLabel("Order details")
                 .accessibilityHint("Describe quantity, timing, or delivery details.")
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.surfaceElevated)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
         }
@@ -295,12 +295,16 @@ struct OrderRequestSheet: View {
     }
 
     private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(AppTheme.surface.opacity(0.88))
+        RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+            .fill(AppTheme.surfaceCard)
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .stroke(AppTheme.border, lineWidth: 1)
             )
+    }
+
+    private var basePriceCents: Int {
+        post.priceCents ?? 6900
     }
 
     private var canSubmit: Bool {
@@ -313,7 +317,7 @@ struct OrderRequestSheet: View {
     }
 
     private var estimatedPriceText: String {
-        let cents = selectedTier.priceCents * quantity
+        let cents = selectedTier.priceCents(baseCents: basePriceCents) * quantity
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
@@ -370,25 +374,30 @@ private enum PricingTier: String, CaseIterable {
         rawValue.capitalized
     }
 
-    var priceCents: Int {
+    var discountMultiplier: Double {
         switch self {
         case .retail:
-            return 6900
+            return 1.0
         case .wholesale:
-            return 6200
+            return 0.85
         case .distributor:
-            return 5900
+            return 0.75
         case .bulk:
-            return 5400
+            return 0.65
         }
     }
 
-    var priceLabel: String {
+    func priceCents(baseCents: Int) -> Int {
+        Int(Double(baseCents) * discountMultiplier)
+    }
+
+    func priceLabel(baseCents: Int) -> String {
+        let cents = priceCents(baseCents: baseCents)
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
-        let value = NSDecimalNumber(value: priceCents).dividing(by: 100)
-        return formatter.string(from: value).map { "\($0)/unit" } ?? "$\(Double(priceCents) / 100)/unit"
+        let value = NSDecimalNumber(value: cents).dividing(by: 100)
+        return formatter.string(from: value).map { "\($0)/unit" } ?? "$\(Double(cents) / 100)/unit"
     }
 }
 
@@ -399,11 +408,11 @@ private extension View {
             .padding(.vertical, 10)
             .foregroundStyle(AppTheme.textPrimary)
             .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .fill(AppTheme.surfaceElevated)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .stroke(AppTheme.border, lineWidth: 1)
             )
             .tint(AppTheme.accentBlue)

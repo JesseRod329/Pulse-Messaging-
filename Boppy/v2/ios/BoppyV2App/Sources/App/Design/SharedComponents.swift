@@ -105,8 +105,8 @@ struct FloatingActionButton: View {
 struct PressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 
@@ -156,7 +156,7 @@ struct PulseDot: View {
 }
 
 struct ShimmerBlock: View {
-    var cornerRadius: CGFloat = 12
+    var cornerRadius: CGFloat = AppTheme.radiusMedium
 
     @State private var phase: CGFloat = -1
 
@@ -179,5 +179,124 @@ struct ShimmerBlock: View {
                 }
             }
             .accessibilityHidden(true)
+    }
+}
+
+// MARK: - CardSkeleton
+
+struct CardSkeleton: View {
+    var height: CGFloat = 80
+
+    var body: some View {
+        ShimmerBlock(cornerRadius: AppTheme.radiusMedium)
+            .frame(height: height)
+    }
+}
+
+// MARK: - FilterChip
+
+struct FilterChip: View {
+    let title: String
+    var isSelected: Bool = false
+    var count: Int? = nil
+    var statusDot: Color? = nil
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: AppTheme.space4) {
+                if let statusDot {
+                    Circle()
+                        .fill(statusDot)
+                        .frame(width: 6, height: 6)
+                }
+                Text(title)
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: isSelected ? .semibold : .medium, relativeTo: .caption))
+                    .foregroundStyle(isSelected ? AppTheme.accentBlue : AppTheme.textSecondary)
+                if let count {
+                    Text("\(count)")
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold, relativeTo: .caption2))
+                        .foregroundStyle(isSelected ? AppTheme.accentBlue : AppTheme.textMuted)
+                }
+            }
+            .padding(.horizontal, AppTheme.space12)
+            .padding(.vertical, AppTheme.space8)
+            .background(
+                Capsule()
+                    .fill(isSelected ? AppTheme.accentBlue.opacity(0.18) : AppTheme.surface.opacity(0.6))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? AppTheme.accentBlue.opacity(0.4) : AppTheme.borderSubtle, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+// MARK: - SearchField
+
+struct SearchField: View {
+    var placeholder: String = "Search…"
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: AppTheme.space8) {
+            Image(systemName: DesignIcon.search.systemName)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(AppTheme.textMuted)
+            TextField(placeholder, text: $text)
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .regular, relativeTo: .subheadline))
+                .foregroundStyle(AppTheme.textPrimary)
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AppTheme.textMuted)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, AppTheme.space12)
+        .padding(.vertical, AppTheme.space8)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .fill(AppTheme.surface.opacity(0.6))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .stroke(AppTheme.borderSubtle, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - AppEmptyStateView
+
+struct AppEmptyStateView: View {
+    var icon: String = "tray"
+    var title: String
+    var subtitle: String? = nil
+
+    var body: some View {
+        VStack(spacing: AppTheme.space12) {
+            Image(systemName: icon)
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(AppTheme.textMuted)
+            Text(title)
+                .font(AppTheme.inter(AppTheme.typeBody, weight: .semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+            if let subtitle {
+                Text(subtitle)
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .regular, relativeTo: .subheadline))
+                    .foregroundStyle(AppTheme.textMuted)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+        .accessibilityElement(children: .combine)
     }
 }

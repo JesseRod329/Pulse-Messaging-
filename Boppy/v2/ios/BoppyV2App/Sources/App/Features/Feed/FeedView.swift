@@ -17,58 +17,98 @@ struct FeedView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isFileImporterPresented = false
     @State private var isChannelThreadSheetPresented = false
+    @State private var isOwnerActionsSheetPresented = false
     @State private var quickOrderPost: ChannelPost?
     @State private var selectedReactionByPostID: [String: String] = [:]
+    @State private var newPrice = ""
+    @State private var newHeroSubtitle = ""
+    @State private var editingPost: ChannelPost?
+    @State private var postToDelete: ChannelPost?
 
     var body: some View {
         NavigationStack {
-            FeedShellView(selectedChannelTitle: selectedChannelTitle) {
-                await coordinator.refreshAll()
-            } content: {
-                if let user = authStore.user, user.role == .follower {
-                    inviteJoinCard
-                }
+            ZStack {
+                AppTheme.screenGradient
+                    .ignoresSafeArea()
 
-                if authStore.user?.role == .owner {
-                    ownerChannelBuilder
-                }
+                GeometryReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            FeedHeaderStrip(
+                                title: selectedChannelTitle,
+                                subtitle: "Owner Channel"
+                            )
 
-                channelPicker
+                            if let user = authStore.user, user.role == .follower {
+                                inviteJoinCard
+                            }
 
-                if authStore.user?.role == .owner {
-                    ownerComposer
-                }
+                            channelPicker
 
-                latestInviteCard
-
-                FeedPostListView(
-                    posts: feedStore.posts,
-                    isFollower: authStore.user?.role == .follower,
-                    selectedReactionByPostID: $selectedReactionByPostID
-                ) { post in
-                    quickOrderPost = post
+                            if feedStore.posts.isEmpty {
+                                AppEmptyStateView(
+                                    icon: "text.bubble",
+                                    title: "No Posts",
+                                    subtitle: "Owner posts will appear here."
+                                )
+                            } else {
+                                postListSection
+                            }
+                        }
+                        .padding(.horizontal, AppTheme.screenHorizontalPadding)
+                        .padding(.top, 8)
+                        .padding(.bottom, AppTheme.contentBottomPadding)
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: proxy.size.height + AppTheme.minimumViewportFill,
+                            alignment: .top
+                        )
+                    }
+                    .scrollDismissesKeyboard(.immediately)
+                    .refreshable {
+                        await coordinator.refreshAll()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .background(AppTheme.screenGradient)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .navigationTitle("Feed")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            await coordinator.refreshAll()
+                    HStack(spacing: 12) {
+                        if authStore.user?.role == .owner {
+                            Button {
+                                isOwnerActionsSheetPresented = true
+                            } label: {
+                                DesignIconView(icon: .add, size: 16, color: AppTheme.textSecondary)
+                            }
+                            .accessibilityLabel("Owner tools")
+                            .accessibilityHint("Opens channel management and post creation.")
+                            .accessibilityIdentifier("feed.ownerActions")
                         }
-                    } label: {
-                        DesignIconView(icon: .refresh, size: 16, color: AppTheme.textSecondary)
+
+                        Button {
+                            Task {
+                                await coordinator.refreshAll()
+                            }
+                        } label: {
+                            DesignIconView(icon: .refresh, size: 16, color: AppTheme.textSecondary)
+                        }
+                        .accessibilityLabel("Refresh feed")
+                        .accessibilityHint("Loads the latest posts and channels.")
+                        .accessibilityIdentifier("feed.refresh")
                     }
-                    .accessibilityLabel("Refresh feed")
-                    .accessibilityHint("Loads the latest posts and channels.")
-                    .accessibilityIdentifier("feed.refresh")
                 }
             }
             .onAppear {
                 Task { await coordinator.refreshAll() }
             }
+        }
+        .sheet(isPresented: $isOwnerActionsSheetPresented) {
+            ownerActionsSheet
         }
         .fullScreenCover(isPresented: $isChannelThreadSheetPresented) {
             channelThreadSheet
@@ -77,6 +117,40 @@ struct FeedView: View {
             QuickOrderMenuSheet(post: post) { option in
                 openQuickOrderFlow(for: post, option: option)
             }
+        }
+        .fullScreenCover(item: $editingPost) { post in
+            NavigationStack {
+                EditPostView(post: post) { caption, mediaPath, heroSubtitle, priceCents in
+                    Task {
+                        await coordinator.updatePost(
+                            postID: post.id,
+                            caption: caption,
+                            mediaPath: mediaPath,
+                            heroSubtitle: heroSubtitle,
+                            priceCents: priceCents
+                        )
+                        editingPost = nil
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        .alert(
+            "Delete Post",
+            isPresented: Binding(
+                get: { postToDelete != nil },
+                set: { if !$0 { postToDelete = nil } }
+            )
+        ) {
+            Button("Cancel", role: .cancel) { postToDelete = nil }
+            Button("Delete", role: .destructive) {
+                if let post = postToDelete {
+                    Task { await coordinator.deletePost(postID: post.id) }
+                    postToDelete = nil
+                }
+            }
+        } message: {
+            Text("This post will be permanently removed from the feed.")
         }
         .fileImporter(
             isPresented: $isFileImporterPresented,
@@ -102,18 +176,68 @@ struct FeedView: View {
         feedStore.channels.first(where: { $0.id == feedStore.selectedChannelID })?.title ?? "BeamBox Global"
     }
 
+    @ViewBuilder
+    private var postListSection: some View {
+        let isOwner = authStore.user?.role == .owner
+        List {
+            ForEach(feedStore.posts) { post in
+                FeedPostCard(
+                    post: post,
+                    channelTitle: selectedChannelTitle,
+                    showsFollowerHint: !isOwner,
+                    selectedReaction: selectedReactionByPostID[post.id],
+                    onReactionSelected: { emoji in
+                        selectedReactionByPostID[post.id] = emoji
+                    },
+                    onQuickOrder: {
+                        quickOrderPost = post
+                    }
+                )
+                .contentShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
+                .onTapGesture {
+                    if isOwner {
+                        editingPost = post
+                    } else {
+                        quickOrderPost = post
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    if isOwner {
+                        Button(role: .destructive) {
+                            postToDelete = post
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+
+                        Button {
+                            editingPost = post
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(AppTheme.accentBlue)
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+    }
+
     private var channelPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Active Channel")
-                    .font(.caption)
+                Text("Your Channel")
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
                     .foregroundStyle(AppTheme.textMuted)
                 Spacer()
                 Button {
                     isChannelThreadSheetPresented = true
                 } label: {
                     Label("Threads", systemImage: "text.bubble")
-                        .font(.caption.weight(.semibold))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
                 }
                 .buttonStyle(.bordered)
                 .accessibilityLabel("Open channel threads")
@@ -122,9 +246,16 @@ struct FeedView: View {
             }
 
             if feedStore.channels.isEmpty {
-                Text("No channels yet.")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textMuted)
+                VStack(spacing: 4) {
+                    Text("No channels yet")
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
+                        .foregroundStyle(AppTheme.textMuted)
+                    if authStore.user?.role == .follower {
+                        Text("Use an invite link from your supplier to join a channel.")
+                            .font(AppTheme.inter(AppTheme.typeCaption, weight: .regular))
+                            .foregroundStyle(AppTheme.textMuted)
+                    }
+                }
             } else {
                 Picker("Channel", selection: Binding(
                     get: { feedStore.selectedChannelID ?? "" },
@@ -155,7 +286,7 @@ struct FeedView: View {
     private var inviteJoinCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Join by Invite")
-                .font(.headline)
+                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
                 .foregroundStyle(AppTheme.textPrimary)
 
             TextField("Paste invite token", text: $authStore.inviteTokenInput)
@@ -189,7 +320,7 @@ struct FeedView: View {
     private var ownerChannelBuilder: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Create Channel")
-                .font(.headline)
+                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
                 .foregroundStyle(AppTheme.textPrimary)
 
             TextField("Channel title", text: $newChannelTitle)
@@ -226,44 +357,211 @@ struct FeedView: View {
     }
 
     private var ownerComposer: some View {
-        FeedOwnerComposerView(
-            newPostType: $newPostType,
-            newCaption: $newCaption,
-            newMediaPath: $newMediaPath,
-            selectedPhotoItem: $selectedPhotoItem,
-            isFileImporterPresented: $isFileImporterPresented,
-            selectedChannelID: feedStore.selectedChannelID,
-            isOffline: authStore.isOffline,
-            selectedMediaLabel: selectedMediaLabel,
-            onCreateInvite: {
-                Task {
-                    await coordinator.createInvite(expiresInHours: 72, maxUses: nil)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("New Post")
+                    .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
+                    .foregroundStyle(AppTheme.textPrimary)
+                Spacer()
+                Button("Create Invite") {
+                    Task {
+                        await coordinator.createInvite(expiresInHours: 72, maxUses: nil)
+                    }
                 }
-            },
-            onPublish: {
+                .buttonStyle(.bordered)
+                .disabled(feedStore.selectedChannelID == nil || authStore.isOffline)
+                .accessibilityLabel("Create invite")
+                .accessibilityHint("Generates a new invite link for the active channel.")
+                .accessibilityIdentifier("feed.createInvite")
+            }
+
+            Picker("Post Type", selection: $newPostType) {
+                ForEach(PostType.allCases, id: \.self) { type in
+                    Text(type.rawValue.capitalized).tag(type)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            TextField("Caption", text: $newCaption)
+                .feedInputFieldStyle()
+
+            TextField("Subtitle (optional)", text: $newHeroSubtitle)
+                .feedInputFieldStyle()
+
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Text("$")
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .body))
+                        .foregroundStyle(AppTheme.textSecondary)
+                    TextField("Price", text: $newPrice)
+                        .keyboardType(.decimalPad)
+                }
+                .feedInputFieldStyle()
+            }
+
+            if newPostType != .text {
+                HStack(spacing: 8) {
+                    PhotosPicker(
+                        selection: $selectedPhotoItem,
+                        matching: newPostType == .video ? .videos : .any(of: [.images, .videos]),
+                        photoLibrary: .shared()
+                    ) {
+                        Label("Photos", systemImage: "photo.on.rectangle.angled")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Import from photos")
+                    .accessibilityHint("Select media from your photo library.")
+                    .accessibilityIdentifier("feed.importPhotos")
+
+                    Button {
+                        isFileImporterPresented = true
+                    } label: {
+                        Label("Files", systemImage: "folder")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Import from files")
+                    .accessibilityHint("Select media from files.")
+                    .accessibilityIdentifier("feed.importFiles")
+
+                    if !newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button("Clear") {
+                            newMediaPath = ""
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("Clear selected media")
+                        .accessibilityHint("Removes the currently selected media attachment.")
+                        .accessibilityIdentifier("feed.clearMedia")
+                    }
+                }
+
+                // Media preview thumbnail
+                if !newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    HStack(spacing: 10) {
+                        if let url = mediaPreviewURL {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image.resizable().scaledToFill()
+                                default:
+                                    Rectangle().fill(AppTheme.surfaceElevated)
+                                        .overlay(Image(systemName: "photo").foregroundStyle(AppTheme.textMuted))
+                                }
+                            }
+                            .frame(width: 56, height: 56)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusSmall, style: .continuous))
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(selectedMediaLabel)
+                                .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium, relativeTo: .caption2))
+                                .foregroundStyle(AppTheme.textSecondary)
+                                .lineLimit(1)
+                            Text(newPostType.rawValue.capitalized)
+                                .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold, relativeTo: .caption2))
+                                .foregroundStyle(AppTheme.accentBlue)
+                        }
+                        Spacer()
+                    }
+                }
+            }
+
+            Button {
                 let media = newPostType == .text ? nil : newMediaPath
+                let subtitle = newHeroSubtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : newHeroSubtitle
+                let parsedPriceCents: Int? = {
+                    let cleaned = newPrice.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !cleaned.isEmpty, let dollars = Double(cleaned) else { return nil }
+                    return Int(round(dollars * 100))
+                }()
                 Task {
-                    await coordinator.createPost(type: newPostType, caption: newCaption, mediaPath: media)
+                    await coordinator.createPost(
+                        type: newPostType,
+                        caption: newCaption,
+                        mediaPath: media,
+                        heroSubtitle: subtitle,
+                        priceCents: parsedPriceCents
+                    )
                     newCaption = ""
                     newMediaPath = ""
+                    newPrice = ""
+                    newHeroSubtitle = ""
                     selectedPhotoItem = nil
                     newPostType = .text
                 }
+            } label: {
+                if feedStore.isPublishing {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Uploading...")
+                    }
+                } else {
+                    Text("Publish")
+                }
             }
+            .buttonStyle(.borderedProminent)
+            .disabled(
+                authStore.isOffline
+                || feedStore.isPublishing
+                || feedStore.selectedChannelID == nil
+                || newCaption.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || (newPostType != .text && newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            )
+            .accessibilityLabel("Publish post")
+            .accessibilityHint("Posts this update to the active channel.")
+            .accessibilityIdentifier("feed.publishPost")
+        }
+        .padding(AppTheme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.cardGradient, in: RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 1)
         )
     }
+
+    @State private var inviteCopied = false
 
     @ViewBuilder
     private var latestInviteCard: some View {
         if let invite = authStore.latestInvite {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Latest invite")
-                    .font(.caption.bold())
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(invite.inviteURL)
-                    .font(.caption2)
+                    .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium, relativeTo: .caption2))
                     .foregroundStyle(AppTheme.textSecondary)
                     .textSelection(.enabled)
+
+                HStack(spacing: 8) {
+                    ShareLink(item: invite.inviteURL) {
+                        Label("Share Invite", systemImage: "square.and.arrow.up")
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.accentBlue)
+                    .accessibilityLabel("Share invite link")
+                    .accessibilityHint("Opens the share sheet with the invite link.")
+                    .accessibilityIdentifier("feed.shareInvite")
+
+                    Button {
+                        UIPasteboard.general.string = invite.inviteURL
+                        inviteCopied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            inviteCopied = false
+                        }
+                    } label: {
+                        Label(inviteCopied ? "Copied!" : "Copy", systemImage: inviteCopied ? "checkmark" : "doc.on.doc")
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Copy invite link")
+                    .accessibilityHint("Copies the invite link to your clipboard.")
+                    .accessibilityIdentifier("feed.copyInvite")
+                }
             }
             .padding(AppTheme.cardPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -278,6 +576,44 @@ struct FeedView: View {
         }
     }
 
+    private var ownerActionsSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 12) {
+                    ownerChannelBuilder
+                    ownerComposer
+                    latestInviteCard
+                }
+                .padding(.horizontal, AppTheme.screenHorizontalPadding)
+                .padding(.top, AppTheme.space8)
+                .padding(.bottom, AppTheme.space24)
+            }
+            .background(AppTheme.screenGradient)
+            .navigationTitle("Owner Tools")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        isOwnerActionsSheetPresented = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private var mediaPreviewURL: URL? {
+        let trimmed = newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if let url = URL(string: trimmed), url.scheme != nil {
+            return url
+        }
+        if FileManager.default.fileExists(atPath: trimmed) {
+            return URL(fileURLWithPath: trimmed)
+        }
+        return nil
+    }
+
     private var selectedMediaLabel: String {
         let trimmed = newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "None" }
@@ -289,19 +625,115 @@ struct FeedView: View {
     }
 
     private var channelThreadSheet: some View {
-        FeedChannelThreadSheetView(
-            channels: feedStore.channels,
-            selectedChannelID: feedStore.selectedChannelID,
-            posts: feedStore.posts,
-            onSelectChannel: { channelID in
-                Task {
-                    await coordinator.selectChannel(channelID)
+        NavigationStack {
+            ZStack {
+                AppTheme.screenGradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(feedStore.channels) { channel in
+                            channelThreadCard(for: channel)
+                        }
+                    }
+                    .padding(.horizontal, AppTheme.screenHorizontalPadding)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .top)
                 }
-            },
-            onClose: {
-                isChannelThreadSheetPresented = false
             }
+            .navigationTitle("Channel Threads")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        isChannelThreadSheetPresented = false
+                    }
+                    .accessibilityLabel("Close threads")
+                    .accessibilityHint("Dismisses the channel threads sheet.")
+                    .accessibilityIdentifier("feed.closeThreads")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func channelThreadCard(for channel: Channel) -> some View {
+        let isSelected = channel.id == feedStore.selectedChannelID
+
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                Circle()
+                    .fill(isSelected ? AppTheme.accentBlue : AppTheme.surfaceElevated)
+                    .frame(width: 14, height: 14)
+                    .padding(.top, 4)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(channel.title)
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text(channel.description)
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium, relativeTo: .subheadline))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .lineLimit(2)
+                    Text(isSelected ? "Current thread" : "Tap to open thread")
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold, relativeTo: .caption2))
+                        .foregroundStyle(isSelected ? AppTheme.accentBlue : AppTheme.textMuted)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
+                    .foregroundStyle(AppTheme.textMuted)
+            }
+
+            if isSelected {
+                Divider()
+                    .overlay(AppTheme.border)
+
+                if feedStore.posts.isEmpty {
+                    Text("No posts yet in this thread.")
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
+                        .foregroundStyle(AppTheme.textMuted)
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(feedStore.posts.prefix(3))) { post in
+                            HStack(alignment: .top, spacing: 8) {
+                                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                                    .fill(AppTheme.border)
+                                    .frame(width: 2, height: 22)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(post.caption.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled post" : post.caption)
+                                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
+                                        .foregroundStyle(AppTheme.textPrimary)
+                                        .lineLimit(1)
+                                    Text(post.postType.rawValue.capitalized)
+                                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium, relativeTo: .caption2))
+                                        .foregroundStyle(AppTheme.textMuted)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(AppTheme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .fill(AppTheme.cardGradient)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .stroke(isSelected ? AppTheme.accentBlue.opacity(0.75) : AppTheme.border, lineWidth: 1)
+        )
+        .onTapGesture {
+            Task {
+                await coordinator.selectChannel(channel.id)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel(channel.title)
+        .accessibilityHint(isSelected ? "Current thread." : "Opens this channel thread.")
+        .accessibilityIdentifier("feed.thread.card")
     }
 
     @MainActor
@@ -413,7 +845,7 @@ private struct QuickOrderMenuSheet: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text(post.caption.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Quick order" : post.caption)
-                        .font(.headline)
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(2)
 
@@ -424,25 +856,25 @@ private struct QuickOrderMenuSheet: View {
                             HStack(spacing: 10) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(option.title)
-                                        .font(.subheadline.weight(.semibold))
+                                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold, relativeTo: .subheadline))
                                         .foregroundStyle(AppTheme.textPrimary)
                                     Text(option.subtitle)
-                                        .font(.caption)
+                                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
                                         .foregroundStyle(AppTheme.textSecondary)
                                 }
                                 Spacer(minLength: 8)
                                 Image(systemName: "arrow.right")
-                                    .font(.caption.bold())
+                                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                                     .foregroundStyle(AppTheme.accentBlue)
                             }
-                            .padding(AppTheme.cardPadding)
+                            .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                     .fill(AppTheme.surfaceElevated)
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                     .stroke(AppTheme.border, lineWidth: 1)
                             )
                         }
@@ -453,7 +885,7 @@ private struct QuickOrderMenuSheet: View {
                     }
 
                     Text("Select an option to continue to the full order card.")
-                        .font(.caption)
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textMuted)
                 }
                 .padding(AppTheme.cardPadding)
@@ -464,3 +896,4 @@ private struct QuickOrderMenuSheet: View {
         }
     }
 }
+

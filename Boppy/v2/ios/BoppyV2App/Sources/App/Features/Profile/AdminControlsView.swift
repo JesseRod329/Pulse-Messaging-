@@ -9,6 +9,8 @@ struct AdminControlsView: View {
     @State private var filter: ChannelFilter = .active
     @State private var maxUses = ""
     @State private var inviteExpiry = Date().addingTimeInterval(72 * 3600)
+    @State private var inviteCopied = false
+    @State private var showArchiveConfirmation = false
     @ScaledMetric(relativeTo: .caption) private var inviteStatusDotSize: CGFloat = 6
     @ScaledMetric(relativeTo: .body) private var sectionSpacing: CGFloat = 12
     @ScaledMetric(relativeTo: .body) private var sectionPadding: CGFloat = 10
@@ -16,6 +18,7 @@ struct AdminControlsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: sectionSpacing) {
+                driverManagementLink
                 channelManagement
                 invitesCard
                 securityLogsCard
@@ -41,10 +44,47 @@ struct AdminControlsView: View {
         }
     }
 
+    private var driverManagementLink: some View {
+        NavigationLink {
+            DriverManagementView()
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                        .fill(AppTheme.accentBlue.opacity(0.15))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: "person.badge.plus")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(AppTheme.accentBlue)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Manage Drivers")
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text("\(feedStore.drivers.count) active driver\(feedStore.drivers.count == 1 ? "" : "s")")
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
+                        .foregroundStyle(AppTheme.textMuted)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppTheme.textMuted)
+            }
+            .padding(sectionPadding)
+            .profileCardStyle()
+        }
+        .accessibilityLabel("Manage drivers")
+        .accessibilityHint("View, add, or remove drivers from your channel.")
+        .accessibilityIdentifier("profile.admin.manageDrivers")
+    }
+
     private var channelManagement: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Channel Management")
-                .font(AppTheme.inter(13, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             Picker("Filter", selection: $filter) {
@@ -60,14 +100,14 @@ struct AdminControlsView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(channel.title)
-                            .font(AppTheme.inter(14, weight: .semibold))
+                            .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                             .foregroundStyle(AppTheme.textPrimary)
                         Text(channel.description)
-                            .font(AppTheme.inter(12, weight: .regular))
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .regular))
                             .foregroundStyle(AppTheme.textMuted)
                             .lineLimit(1)
                         Text(channelMeta(channel))
-                            .font(AppTheme.inter(11, weight: .medium))
+                            .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
                             .foregroundStyle(AppTheme.textMuted)
                     }
 
@@ -83,11 +123,11 @@ struct AdminControlsView: View {
                 }
                 .padding(sectionPadding)
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(AppTheme.surface.opacity(0.88))
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                        .fill(AppTheme.surfaceCard)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
             }
@@ -98,7 +138,7 @@ struct AdminControlsView: View {
     private var invitesCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Invite Links")
-                .font(AppTheme.inter(13, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             DatePicker("Expires", selection: $inviteExpiry, displayedComponents: [.date, .hourAndMinute])
@@ -114,11 +154,11 @@ struct AdminControlsView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.surfaceElevated)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
 
@@ -143,7 +183,7 @@ struct AdminControlsView: View {
                             .fill(AppTheme.success)
                             .frame(width: inviteStatusDotSize, height: inviteStatusDotSize)
                         Text(inviteUsageLabel(invite))
-                            .font(AppTheme.inter(11, weight: .bold))
+                            .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
                             .foregroundStyle(AppTheme.success)
                     }
                     .accessibilityLabel("Invite usage")
@@ -153,16 +193,44 @@ struct AdminControlsView: View {
 
             if let invite = authStore.latestInvite {
                 Text(invite.token)
-                    .font(AppTheme.interMonospaced(11, weight: .bold, relativeTo: .caption2))
+                    .font(.system(size: AppTheme.typeCaption, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppTheme.textMuted)
+                    .textSelection(.enabled)
                     .accessibilityLabel("Invite token")
                     .accessibilityValue(invite.token)
                     .accessibilityIdentifier("profile.admin.inviteToken")
                 Text("Expires \(invite.expiresAt.formatted(date: .abbreviated, time: .shortened))")
-                    .font(AppTheme.inter(11, weight: .regular))
+                    .font(AppTheme.inter(AppTheme.typeCaption, weight: .regular))
                     .foregroundStyle(AppTheme.textMuted)
                     .accessibilityLabel("Invite expiration")
                     .accessibilityValue(invite.expiresAt.formatted(date: .abbreviated, time: .shortened))
+
+                HStack(spacing: 8) {
+                    ShareLink(item: invite.inviteURL) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.accentBlue)
+                    .accessibilityLabel("Share invite link")
+                    .accessibilityIdentifier("profile.admin.shareInvite")
+
+                    Button {
+                        UIPasteboard.general.string = invite.inviteURL
+                        inviteCopied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            inviteCopied = false
+                        }
+                    } label: {
+                        Label(inviteCopied ? "Copied!" : "Copy Link", systemImage: inviteCopied ? "checkmark" : "doc.on.doc")
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Copy invite link")
+                    .accessibilityIdentifier("profile.admin.copyInvite")
+                }
             }
         }
         .profileCardStyle()
@@ -171,16 +239,16 @@ struct AdminControlsView: View {
     private var securityLogsCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Security & Logs")
-                .font(AppTheme.inter(13, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             ForEach(adminStore.adminAuditEvents.prefix(5), id: \.id) { event in
                 VStack(alignment: .leading, spacing: 2) {
                     Text(event.action)
-                        .font(AppTheme.inter(12, weight: .semibold))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(event.createdAt.formatted())
-                        .font(AppTheme.inter(11, weight: .regular))
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .regular))
                         .foregroundStyle(AppTheme.textMuted)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -189,7 +257,7 @@ struct AdminControlsView: View {
 
             if adminStore.adminAuditEvents.isEmpty {
                 Text("No audit events yet")
-                    .font(AppTheme.inter(12, weight: .medium))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium))
                     .foregroundStyle(AppTheme.textMuted)
             }
         }
@@ -202,15 +270,15 @@ struct AdminControlsView: View {
     private var dangerZone: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Danger Zone")
-                .font(AppTheme.inter(13, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                 .foregroundStyle(AppTheme.danger)
 
             Text("Archive the currently selected channel. This action is reversible through admin operations.")
-                .font(AppTheme.inter(12, weight: .regular))
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .regular))
                 .foregroundStyle(AppTheme.textSecondary)
 
             Button("Archive Active Channel", role: .destructive) {
-                Task { await coordinator.archiveActiveChannel() }
+                showArchiveConfirmation = true
             }
             .buttonStyle(.borderedProminent)
             .tint(AppTheme.danger)
@@ -218,6 +286,14 @@ struct AdminControlsView: View {
             .accessibilityLabel("Archive active channel")
             .accessibilityHint("Archives the currently selected channel.")
             .accessibilityIdentifier("profile.archiveChannel")
+            .alert("Archive Channel?", isPresented: $showArchiveConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Archive", role: .destructive) {
+                    Task { await coordinator.archiveActiveChannel() }
+                }
+            } message: {
+                Text("This will archive the currently selected channel. You can restore it later through admin operations.")
+            }
         }
         .profileCardStyle()
         .background(AppTheme.danger.opacity(0.05), in: RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous))

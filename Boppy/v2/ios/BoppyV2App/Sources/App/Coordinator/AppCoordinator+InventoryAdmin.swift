@@ -61,6 +61,23 @@ extension AppCoordinator {
         }
     }
 
+    func updateInventoryItem(from draft: InventoryDraftInput) async {
+        guard let user = authStore.user, user.role == .owner, let channelID = feedStore.selectedChannelID else { return }
+        guard ensureOnline() else { return }
+
+        do {
+            try await inventoryStore.updateItem(
+                channelID: channelID,
+                actorID: user.id,
+                draft: draft,
+                inventoryService: environment.inventoryService
+            )
+            await refreshInventoryAndAudit()
+        } catch {
+            handleError(error)
+        }
+    }
+
     func adjustInventory(itemID: String, delta: Int, reason: String) async {
         guard let user = authStore.user, user.role == .owner, let channelID = feedStore.selectedChannelID else { return }
         guard ensureOnline() else { return }
@@ -96,5 +113,52 @@ extension AppCoordinator {
         }
     }
 
+    func addDriver(phoneE164: String) async -> DriverManagementResult {
+        guard let user = authStore.user, user.role == .owner, let channelID = feedStore.selectedChannelID else {
+            return .error("Not authorized.")
+        }
+        guard ensureOnline() else { return .error("You're offline.") }
 
+        do {
+            guard let target = try await environment.adminService.lookupUserByPhone(phoneE164: phoneE164) else {
+                return .error("No account found for \(phoneE164). They need to sign in first.")
+            }
+
+            try await environment.adminService.upsertDriverMembership(
+                channelID: channelID,
+                driverUserID: target.id,
+                operation: .add,
+                reason: "Added by owner via Driver Management",
+                actorID: user.id
+            )
+            await refreshAll()
+            return .success(target.displayName)
+        } catch {
+            handleError(error)
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func removeDriver(driverUserID: String) async {
+        guard let user = authStore.user, user.role == .owner, let channelID = feedStore.selectedChannelID else { return }
+        guard ensureOnline() else { return }
+
+        do {
+            try await environment.adminService.upsertDriverMembership(
+                channelID: channelID,
+                driverUserID: driverUserID,
+                operation: .remove,
+                reason: "Removed by owner via Driver Management",
+                actorID: user.id
+            )
+            await refreshAll()
+        } catch {
+            handleError(error)
+        }
+    }
+}
+
+enum DriverManagementResult {
+    case success(String)
+    case error(String)
 }

@@ -12,19 +12,19 @@ struct FeedHeaderStrip: View {
                 .overlay {
                     Image(systemName: AppTheme.brandSymbolName)
                         .foregroundStyle(AppTheme.textPrimary)
-                        .font(AppTheme.inter(15, weight: .bold, relativeTo: .subheadline))
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .subheadline))
                 }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(AppTheme.inter(16, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeBody, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                 HStack(spacing: 6) {
                     Circle()
                         .fill(AppTheme.success)
                         .frame(width: 6, height: 6)
-                    Text(subtitle.uppercased().replacingOccurrences(of: "CHANNEL", with: "CHANNEL"))
-                        .font(AppTheme.inter(11, weight: .bold))
+                    Text(subtitle.uppercased())
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
                         .tracking(0.7)
                         .foregroundStyle(AppTheme.success)
                 }

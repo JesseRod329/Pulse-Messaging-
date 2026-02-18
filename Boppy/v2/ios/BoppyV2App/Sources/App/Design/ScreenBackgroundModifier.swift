@@ -10,7 +10,6 @@ struct ScreenBackgroundModifier: ViewModifier {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(AppTheme.screenGradient.ignoresSafeArea())
     }
 }
 

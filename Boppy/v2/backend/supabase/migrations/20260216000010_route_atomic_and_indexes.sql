@@ -124,8 +124,3 @@ begin
   );
 end;
 $$;
-
-create index if not exists idx_order_ledger_events_actor_id on public.order_ledger_events (actor_id);
-create index if not exists idx_inventory_stock_ledger_actor_id_created_at on public.inventory_stock_ledger (actor_id, created_at desc);
-create index if not exists idx_admin_audit_events_actor_id_created_at on public.admin_audit_events (actor_id, created_at desc);
-create index if not exists idx_delivery_route_stops_route_id_uncompleted on public.delivery_route_stops (route_id, completed_at) where completed_at is null;

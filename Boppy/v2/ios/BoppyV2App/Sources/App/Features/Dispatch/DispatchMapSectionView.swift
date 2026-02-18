@@ -103,6 +103,7 @@ struct DispatchMapSectionView: View {
                         .background(AppTheme.accentBlue, in: Circle())
                 }
                 .disabled(!canOpenMaps)
+                .opacity(canOpenMaps ? 1.0 : 0.35)
                 .accessibilityLabel("Open Apple Maps")
                 .accessibilityHint("Opens driving directions to the next stop.")
                 .accessibilityIdentifier("dispatch.openAppleMaps")

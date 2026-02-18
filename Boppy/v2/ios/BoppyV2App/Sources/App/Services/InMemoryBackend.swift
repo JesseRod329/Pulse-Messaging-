@@ -140,7 +140,8 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
                 slotRemaining: 12,
                 slotLabel: "12 SLOTS LEFT",
                 heroSubtitle: "Express lane available",
-                heroAspectRatio: 16.0 / 9.0
+                heroAspectRatio: 16.0 / 9.0,
+                priceCents: 8900
             ),
             ChannelPost(
                 id: "post-2",
@@ -152,7 +153,8 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
                 slotRemaining: 8,
                 slotLabel: "CONSOLIDATED SHIP",
                 heroSubtitle: "Bulk tier still open",
-                heroAspectRatio: 16.0 / 9.0
+                heroAspectRatio: 16.0 / 9.0,
+                priceCents: 6900
             )
         ]
 
@@ -190,6 +192,162 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             updatedAt: Date()
         )
         inventoryItems = [seedItem]
+
+        // Seed inventory variants for 4-tier pricing on Premium Canvas
+        inventoryVariants = [
+            InventoryVariantRecord(
+                id: "var-wholesale",
+                itemID: "item-1",
+                name: "Wholesale",
+                sku: "CANVAS-001-WH",
+                priceCents: 10800,
+                stockOnHand: 25,
+                isActive: true,
+                createdAt: Date(),
+                updatedAt: Date()
+            ),
+            InventoryVariantRecord(
+                id: "var-distributor",
+                itemID: "item-1",
+                name: "Distributor",
+                sku: "CANVAS-001-DS",
+                priceCents: 9600,
+                stockOnHand: 25,
+                isActive: true,
+                createdAt: Date(),
+                updatedAt: Date()
+            ),
+            InventoryVariantRecord(
+                id: "var-bulk",
+                itemID: "item-1",
+                name: "Bulk",
+                sku: "CANVAS-001-BK",
+                priceCents: 8400,
+                stockOnHand: 25,
+                isActive: true,
+                createdAt: Date(),
+                updatedAt: Date()
+            ),
+        ]
+
+        // Seed follower user (aligns with PhoneAuthView shortcut at +15550000003)
+        let follower = SessionUser(
+            id: "follower-1",
+            phoneE164: "+15550000003",
+            displayName: "Follower",
+            role: .follower
+        )
+        usersByPhone[follower.phoneE164] = follower
+        memberships.append(Membership(channelID: "channel-main", userID: follower.id, role: .follower))
+
+        // Seed 4 orders at different pipeline stages (Austin-area addresses)
+        orders = [
+            OrderRequest(
+                id: "order-seed-1",
+                channelID: "channel-main",
+                postID: "post-1",
+                customerID: follower.id,
+                customerPhone: follower.phoneE164,
+                deliveryAddress: DeliveryAddress(
+                    line1: "1100 Congress Ave",
+                    city: "Austin",
+                    state: "TX",
+                    postalCode: "78701"
+                ),
+                lat: 30.2747,
+                lng: -97.7404,
+                quoteNote: "tier=retail;qty=2;note=Needed by Friday",
+                status: .requested,
+                externalRef: "BXB-SEED1",
+                summaryTitle: "Premium Canvas",
+                summaryImageURL: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+                summaryTotalCents: 24000,
+                summaryEtaText: "ETA 2h 15m"
+            ),
+            OrderRequest(
+                id: "order-seed-2",
+                channelID: "channel-main",
+                postID: "post-1",
+                customerID: follower.id,
+                customerPhone: follower.phoneE164,
+                deliveryAddress: DeliveryAddress(
+                    line1: "2222 Rio Grande St",
+                    city: "Austin",
+                    state: "TX",
+                    postalCode: "78705"
+                ),
+                lat: 30.2860,
+                lng: -97.7470,
+                quoteNote: "tier=wholesale;qty=5;note=Wholesale order for gallery",
+                status: .assigned,
+                assignedDriverID: driver.id,
+                externalRef: "BXB-SEED2",
+                summaryTitle: "Premium Canvas",
+                summaryImageURL: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+                summaryTotalCents: 54000,
+                summaryEtaText: "ETA 1h 30m"
+            ),
+            OrderRequest(
+                id: "order-seed-3",
+                channelID: "channel-main",
+                postID: "post-2",
+                customerID: follower.id,
+                customerPhone: follower.phoneE164,
+                deliveryAddress: DeliveryAddress(
+                    line1: "500 E 4th St",
+                    city: "Austin",
+                    state: "TX",
+                    postalCode: "78701"
+                ),
+                lat: 30.2655,
+                lng: -97.7370,
+                quoteNote: "tier=distributor;qty=3;note=Distributor pickup",
+                status: .assigned,
+                assignedDriverID: driver.id,
+                externalRef: "BXB-SEED3",
+                summaryTitle: "Warehouse LED Kit",
+                summaryImageURL: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80",
+                summaryTotalCents: 28800,
+                summaryEtaText: "ETA 45m"
+            ),
+            OrderRequest(
+                id: "order-seed-4",
+                channelID: "channel-main",
+                postID: "post-1",
+                customerID: follower.id,
+                customerPhone: follower.phoneE164,
+                deliveryAddress: DeliveryAddress(
+                    line1: "301 W 2nd St",
+                    city: "Austin",
+                    state: "TX",
+                    postalCode: "78701"
+                ),
+                lat: 30.2640,
+                lng: -97.7460,
+                quoteNote: "tier=bulk;qty=10;note=Completed bulk order",
+                status: .delivered,
+                assignedDriverID: driver.id,
+                externalRef: "BXB-SEED4",
+                summaryTitle: "Premium Canvas",
+                summaryImageURL: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+                summaryTotalCents: 84000,
+                summaryEtaText: "Delivered"
+            ),
+        ]
+
+        // Seed ledger events for order history
+        for order in orders {
+            appendLedger(
+                orderID: order.id,
+                actorID: order.customerID,
+                eventType: "order_requested",
+                payloadSummary: "Request submitted"
+            )
+        }
+        appendLedger(orderID: "order-seed-2", actorID: owner.id, eventType: "driver_assigned", payloadSummary: "Assigned driver driver-1")
+        appendLedger(orderID: "order-seed-3", actorID: owner.id, eventType: "driver_assigned", payloadSummary: "Assigned driver driver-1")
+        appendLedger(orderID: "order-seed-4", actorID: owner.id, eventType: "driver_assigned", payloadSummary: "Assigned driver driver-1")
+        appendLedger(orderID: "order-seed-4", actorID: driver.id, eventType: "order_delivered", payloadSummary: "Completed route stop")
     }
 
     // MARK: - Auth
@@ -290,11 +448,21 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
         authorID: String,
         postType: PostType,
         caption: String,
-        mediaPath: String?
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?
     ) async throws -> ChannelPost {
         guard role(for: authorID, in: channelID) == .owner else {
             throw InMemoryBackendError.permissionDenied
         }
+
+        let resolvedSubtitle: String? = {
+            if let subtitle = heroSubtitle,
+               !subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return subtitle
+            }
+            return "Freshly posted"
+        }()
 
         let post = ChannelPost(
             id: "post-\(UUID().uuidString.prefix(8))",
@@ -305,12 +473,57 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             mediaPath: mediaPath,
             slotRemaining: postType == .text ? nil : 10,
             slotLabel: postType == .video ? "CONSOLIDATED SHIP" : "10 SLOTS LEFT",
-            heroSubtitle: "Freshly posted",
-            heroAspectRatio: 16.0 / 9.0
+            heroSubtitle: resolvedSubtitle,
+            heroAspectRatio: 16.0 / 9.0,
+            priceCents: priceCents
         )
 
         postsByChannel[channelID, default: []].insert(post, at: 0)
         return post
+    }
+
+    func updatePost(
+        postID: String,
+        caption: String,
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?,
+        actorID: String
+    ) async throws -> ChannelPost {
+        for (channelID, posts) in postsByChannel {
+            guard role(for: actorID, in: channelID) == .owner else { continue }
+            if let index = posts.firstIndex(where: { $0.id == postID }) {
+                let old = posts[index]
+                let updated = ChannelPost(
+                    id: old.id,
+                    channelID: old.channelID,
+                    authorID: old.authorID,
+                    postType: old.postType,
+                    caption: caption,
+                    mediaPath: mediaPath ?? old.mediaPath,
+                    slotRemaining: old.slotRemaining,
+                    slotLabel: old.slotLabel,
+                    heroSubtitle: heroSubtitle,
+                    heroAspectRatio: old.heroAspectRatio,
+                    priceCents: priceCents,
+                    createdAt: old.createdAt
+                )
+                postsByChannel[channelID]?[index] = updated
+                return updated
+            }
+        }
+        throw InMemoryBackendError.orderNotFound
+    }
+
+    func deletePost(postID: String, actorID: String) async throws {
+        for (channelID, posts) in postsByChannel {
+            guard role(for: actorID, in: channelID) == .owner else { continue }
+            if let index = posts.firstIndex(where: { $0.id == postID }) {
+                postsByChannel[channelID]?.remove(at: index)
+                return
+            }
+        }
+        throw InMemoryBackendError.orderNotFound
     }
 
     func createInvite(
@@ -343,7 +556,7 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             id: record.id,
             channelID: channelID,
             token: token,
-            inviteURL: "boppyv2://invite/\(token)",
+            inviteURL: "beambox://invite/\(token)",
             expiresAt: expiresAt,
             maxUses: maxUses
         )
@@ -704,6 +917,32 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
         return route
     }
 
+    func clearRoute(routeID: String, actorID: String) async throws {
+        guard let routeIndex = routes.firstIndex(where: { $0.id == routeID }) else {
+            throw InMemoryBackendError.routeNotFound
+        }
+
+        let route = routes[routeIndex]
+        guard role(for: actorID, in: route.channelID) == .owner else {
+            throw InMemoryBackendError.permissionDenied
+        }
+
+        for stop in route.stops where stop.completedAt == nil {
+            if let orderIdx = orders.firstIndex(where: { $0.id == stop.orderID }) {
+                orders[orderIdx].status = .assigned
+                orders[orderIdx].updatedAt = Date()
+                appendLedger(
+                    orderID: orders[orderIdx].id,
+                    actorID: actorID,
+                    eventType: "route_cleared",
+                    payloadSummary: "Route \(routeID) cleared by owner"
+                )
+            }
+        }
+
+        routes.remove(at: routeIndex)
+    }
+
     // MARK: - Inventory
 
     func upsertInventoryItem(
@@ -946,6 +1185,10 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             memberships.removeAll { $0.channelID == channelID && $0.userID == driverUserID && $0.role == .driver }
             appendAdminAudit(channelID: channelID, actorID: actorID, action: "driver_membership_removed", targetType: "channel_membership", targetID: "\(channelID):\(driverUserID)", reason: reason, payload: "")
         }
+    }
+
+    func lookupUserByPhone(phoneE164: String) async throws -> SessionUser? {
+        usersByPhone[phoneE164]
     }
 
     func fetchAdminAuditEvents(channelID: String, action: String?, limit: Int, actorID: String) async throws -> [AdminAuditEvent] {

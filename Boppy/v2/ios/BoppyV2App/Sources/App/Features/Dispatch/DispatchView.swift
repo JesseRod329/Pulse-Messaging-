@@ -17,11 +17,17 @@ struct DispatchView: View {
     @State private var startLng = "-97.7431"
     @State private var routePathCoordinates: [CLLocationCoordinate2D] = []
     @State private var isRoutePathLoading = false
-    @State private var isRouteActionInFlight = false
     @State private var selectedStopOrder: OrderRequest?
+    @State private var isRouteActionInFlight = false
+    @State private var isAddressSearching = false
+    @State private var searchedAddressCoordinate: CLLocationCoordinate2D?
+    @State private var isOwnerControlsExpanded = false
+    @State private var isMapExpanded = true
+    @State private var searchPreviewCoordinates: [CLLocationCoordinate2D] = []
+    @State private var scrollProxy: ScrollViewProxy?
     @State private var mapPosition = MapCameraPosition.region(
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+            center: CLLocationCoordinate2D(latitude: 30.2672, longitude: -97.7431),
             span: MKCoordinateSpan(latitudeDelta: 0.32, longitudeDelta: 0.32)
         )
     )
@@ -31,6 +37,7 @@ struct DispatchView: View {
             dispatchScreen
                 .toolbar(.hidden, for: .navigationBar)
                 .onAppear {
+                    isOwnerControlsExpanded = dispatchStore.routes.isEmpty
                     syncDriverSelectionIfNeeded()
                     syncMapCamera()
                     Task {
@@ -39,7 +46,9 @@ struct DispatchView: View {
                     }
                 }
                 .onChange(of: dispatchStore.routes) { _, _ in
+                    syncDriverSelectionIfNeeded()
                     syncMapCamera()
+                    searchPreviewCoordinates = []
                     Task { await refreshRoutePath() }
                 }
                 .onChange(of: orderStore.orders) { _, _ in
@@ -57,51 +66,86 @@ struct DispatchView: View {
     }
 
     private var dispatchScreen: some View {
-        DispatchShellView {
-            dispatchHeader
-        } mapSection: {
-            mapHero
-        } stopList: {
-            routesContent
-        } actionBar: {
-            DispatchActionBar(
-                onRefresh: {
-                    Task { await coordinator.refreshAll() }
-                },
-                onOptimizeRoute: buildOrOptimizeRoute,
-                onSaveRouteChanges: {
-                    Task { await coordinator.refreshAll() }
-                },
-                optimizeDisabled: selectedDriverID.isEmpty || authStore.user?.role != .owner,
-                offline: authStore.isOffline,
-                isBusy: isRouteActionInFlight,
-                glass: coordinator.featureFlags.glassChromeV2
-            )
+        ZStack {
+            AppTheme.screenGradient
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                dispatchHeader
+
+                if isMapExpanded {
+                    mapHero
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                } else {
+                    collapsedMapStrip
+                        .transition(.opacity)
+                }
+
+                routesContent
+            }
+            .animation(.easeInOut(duration: 0.25), value: isMapExpanded)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     @ViewBuilder
     private var routesContent: some View {
-        DispatchStopListView(
-            routes: dispatchStore.routes,
-            primaryRoute: primaryRoute,
-            isOwner: authStore.user?.role == .owner,
-            routeDurationLabel: routeDurationLabel,
-            nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route",
-            onRefresh: {
+        GeometryReader { proxy in
+            ScrollViewReader { scrollReader in
+            ScrollView {
+                VStack(spacing: 10) {
+                    LazyVStack(spacing: 10) {
+                        if authStore.user?.role == .owner {
+                            ownerControlsCollapsible
+                                .id("ownerControls")
+                        }
+
+                        if dispatchStore.routes.isEmpty {
+                            emptyStateCard
+                        } else {
+                            RouteSummaryHeader(
+                                route: primaryRoute,
+                                isOwner: authStore.user?.role == .owner,
+                                routeDurationLabel: routeDurationLabel,
+                                nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "No active stop"
+                            )
+
+                            ForEach(dispatchStore.routes) { route in
+                                routeSection(route)
+                            }
+                        }
+                    }
+
+                    DispatchActionBar(
+                        onRefresh: {
+                            Task { await coordinator.refreshAll() }
+                        },
+                        onOptimizeRoute: buildOrOptimizeRoute,
+                        optimizeDisabled: selectedDriverID.isEmpty || authStore.user?.role != .owner,
+                        offline: authStore.isOffline,
+                        isBusy: isRouteActionInFlight,
+                        glass: coordinator.featureFlags.glassChromeV2
+                    )
+                    .padding(.top, 8)
+                }
+                .padding(.horizontal, AppTheme.screenHorizontalPadding)
+                .padding(.top, 12)
+                .padding(.bottom, AppTheme.contentBottomPadding)
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: proxy.size.height + AppTheme.minimumViewportFill,
+                    alignment: .top
+                )
+            }
+            .refreshable {
                 await coordinator.refreshAll()
                 await refreshRoutePath()
-            },
-            routeSection: { route in
-                routeSection(route)
-            },
-            ownerControls: {
-                ownerControls
-            },
-            emptyState: {
-                emptyStateCard
             }
-        )
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(AppTheme.screenGradient)
+            .onAppear { scrollProxy = scrollReader }
+            }
+        }
     }
 
     private func routeSection(_ route: DeliveryRoute) -> some View {
@@ -114,8 +158,8 @@ struct DispatchView: View {
                     stop: stop,
                     route: route,
                     order: stopOrder,
-                    canReorder: canReorder(route: route) && !isRouteActionInFlight,
-                    canComplete: authStore.user?.role == .driver && !isRouteActionInFlight,
+                    canReorder: canReorder(route: route),
+                    canComplete: authStore.user?.role == .driver,
                     isCurrentStop: stop.id == currentStopID,
                     isLastStop: index == sortedStops.count - 1,
                     onMoveUp: {
@@ -161,7 +205,7 @@ struct DispatchView: View {
     }
 
     private func buildOrOptimizeRoute() {
-        guard !isRouteActionInFlight else { return }
+        searchPreviewCoordinates = []
         guard authStore.user?.role == .owner else {
             coordinator.present(.validation("Only owners can build or optimize routes."))
             return
@@ -170,13 +214,9 @@ struct DispatchView: View {
             coordinator.present(.validation("Select a driver before building a route."))
             return
         }
-        isRouteActionInFlight = true
         Task {
-            defer {
-                Task { @MainActor in
-                    isRouteActionInFlight = false
-                }
-            }
+            isRouteActionInFlight = true
+            defer { isRouteActionInFlight = false }
             guard let coordinate = await resolveStartCoordinate() else { return }
             await coordinator.buildRoute(
                 start: GeoPoint(lat: coordinate.latitude, lng: coordinate.longitude),
@@ -186,17 +226,198 @@ struct DispatchView: View {
         }
     }
 
-    private var ownerControls: some View {
-        DispatchRoutingControlsView(
-            selectedDriverID: $selectedDriverID,
-            startAddress: $startAddress,
-            drivers: feedStore.drivers,
-            isOffline: authStore.isOffline,
-            isBusy: isRouteActionInFlight,
-            onBuildRoute: {
+    private func searchAddress() {
+        let trimmed = startAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        Task {
+            isAddressSearching = true
+            defer { isAddressSearching = false }
+
+            do {
+                let placemarks = try await CLGeocoder().geocodeAddressString(trimmed)
+                if let coordinate = placemarks.first?.location?.coordinate {
+                    startLat = String(format: "%.6f", coordinate.latitude)
+                    startLng = String(format: "%.6f", coordinate.longitude)
+                    searchedAddressCoordinate = coordinate
+
+                    // If route already has stops, preview the segment from searched address to first stop
+                    if let firstStopOrder = routePins(for: primaryRoute).first,
+                       let stopLat = firstStopOrder.lat,
+                       let stopLng = firstStopOrder.lng {
+                        let stopCoord = CLLocationCoordinate2D(latitude: stopLat, longitude: stopLng)
+                        let previewSegment = await routeSegment(from: coordinate, to: stopCoord)
+                        searchPreviewCoordinates = previewSegment
+
+                        // Fit camera to show both search pin and first stop
+                        var allCoords = previewSegment
+                        allCoords.append(coordinate)
+                        let lats = allCoords.map(\.latitude)
+                        let lngs = allCoords.map(\.longitude)
+                        if let minLat = lats.min(), let maxLat = lats.max(),
+                           let minLng = lngs.min(), let maxLng = lngs.max() {
+                            let center = CLLocationCoordinate2D(
+                                latitude: (minLat + maxLat) / 2,
+                                longitude: (minLng + maxLng) / 2
+                            )
+                            withAnimation {
+                                mapPosition = .region(
+                                    MKCoordinateRegion(
+                                        center: center,
+                                        span: MKCoordinateSpan(
+                                            latitudeDelta: max((maxLat - minLat) * 1.6, 0.08),
+                                            longitudeDelta: max((maxLng - minLng) * 1.6, 0.08)
+                                        )
+                                    )
+                                )
+                            }
+                        }
+                    } else {
+                        searchPreviewCoordinates = []
+                        withAnimation {
+                            mapPosition = .region(
+                                MKCoordinateRegion(
+                                    center: coordinate,
+                                    span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    coordinator.present(.validation("Couldn't find that address. Try adding city and state."))
+                }
+            } catch {
+                coordinator.present(.validation("Couldn't geocode the address. Check spelling and try again."))
+            }
+        }
+    }
+
+    private func clearCurrentRoute() {
+        Task {
+            isRouteActionInFlight = true
+            defer { isRouteActionInFlight = false }
+            await coordinator.clearRoute()
+            routePathCoordinates = []
+            searchPreviewCoordinates = []
+            searchedAddressCoordinate = nil
+            selectedDriverID = ""
+            withAnimation(.easeInOut(duration: 0.25)) {
+                isOwnerControlsExpanded = true
+            }
+        }
+    }
+
+    private var ownerControlsCollapsible: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    isOwnerControlsExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Text("Route Setup")
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Spacer()
+                    Image(systemName: isOwnerControlsExpanded ? "chevron.up" : "chevron.down")
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
+                        .foregroundStyle(AppTheme.textMuted)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isOwnerControlsExpanded ? "Collapse route setup" : "Expand route setup")
+            .accessibilityHint("Toggles the route setup controls.")
+            .accessibilityIdentifier("dispatch.toggleSetup")
+
+            if isOwnerControlsExpanded {
+                ownerControlsBody
+                    .padding(.top, 10)
+            }
+        }
+        .padding(AppTheme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.cardGradient, in: RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 1)
+        )
+    }
+
+    private var ownerControlsBody: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Picker("Driver", selection: $selectedDriverID) {
+                Text("Select driver").tag("")
+                ForEach(feedStore.drivers) { driver in
+                    Text(driver.displayName).tag(driver.id)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(AppTheme.textPrimary)
+            .accessibilityLabel("Route driver")
+            .accessibilityHint("Selects which driver receives this route.")
+
+            if feedStore.drivers.isEmpty {
+                Text("No drivers found for this channel. Add a driver in Admin Controls first.")
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
+                    .foregroundStyle(AppTheme.warning)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            HStack(spacing: 8) {
+                TextField("Start address (e.g. 123 Main St, Austin, TX)", text: $startAddress)
+                    .textFieldStyle(.plain)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                            .stroke(AppTheme.border, lineWidth: 1)
+                    )
+                    .accessibilityLabel("Start address")
+                    .accessibilityHint("Starting address used for route optimization.")
+                    .accessibilityIdentifier("dispatch.startAddress")
+                    .onSubmit { searchAddress() }
+
+                Button {
+                    searchAddress()
+                } label: {
+                    Group {
+                        if isAddressSearching {
+                            ProgressView()
+                                .tint(AppTheme.textPrimary)
+                                .scaleEffect(0.75)
+                        } else {
+                            Image(systemName: "magnifyingglass")
+                                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .body))
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
+                    }
+                    .frame(width: 44, height: 44)
+                    .background(AppTheme.accentBlue, in: RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .disabled(isAddressSearching || startAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .accessibilityLabel("Search address")
+                .accessibilityHint("Geocodes the address and centers the map on the result.")
+                .accessibilityIdentifier("dispatch.searchAddress")
+            }
+
+            Text("Tap search to verify the address on the map, then build your route.")
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
+                .foregroundStyle(AppTheme.textMuted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(dispatchStore.routes.isEmpty ? "Build Route" : "Rebuild Route") {
                 buildOrOptimizeRoute()
             }
-        )
+            .buttonStyle(.borderedProminent)
+            .tint(AppTheme.accentBlue)
+            .disabled(selectedDriverID.isEmpty || authStore.isOffline)
+            .accessibilityLabel(dispatchStore.routes.isEmpty ? "Build route" : "Rebuild route")
+            .accessibilityHint("Builds a delivery route for selected pending orders.")
+            .accessibilityIdentifier("dispatch.buildRoute")
+        }
     }
 
     private var dispatchHeader: some View {
@@ -209,19 +430,43 @@ struct DispatchView: View {
         }()
 
         return HStack(alignment: .top, spacing: 12) {
-            mapIconButton(
-                systemName: "line.3.horizontal",
-                identifier: "dispatch.map.refreshMenu",
-                accessibilityLabel: "Refresh dispatch",
-                accessibilityHint: "Refreshes dispatch data."
-            ) {
-                Task { await coordinator.refreshAll() }
+            Menu {
+                Button {
+                    Task { await coordinator.refreshAll() }
+                } label: {
+                    Label("Refresh All", systemImage: "arrow.clockwise")
+                }
+
+                Button {
+                    syncMapCamera()
+                } label: {
+                    Label("Recenter on Route", systemImage: "scope")
+                }
+
+                if authStore.user?.role == .owner, !dispatchStore.routes.isEmpty {
+                    Divider()
+                    Button(role: .destructive) {
+                        clearCurrentRoute()
+                    } label: {
+                        Label("Clear Route", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "line.3.horizontal")
+                    .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .body))
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .frame(width: 40, height: 40)
+                    .background(AppTheme.surface.opacity(0.94), in: Circle())
+                    .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
             }
+            .accessibilityLabel("Dispatch menu")
+            .accessibilityHint("Opens dispatch actions menu.")
+            .accessibilityIdentifier("dispatch.map.menu")
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("Route Management")
-                        .font(AppTheme.inter(21, weight: .bold, relativeTo: .title3))
+                        .font(AppTheme.inter(AppTheme.typeTitle2, weight: .bold, relativeTo: .title3))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.92)
@@ -238,7 +483,7 @@ struct DispatchView: View {
                     }
 
                     Text(statusLine)
-                        .font(AppTheme.inter(12, weight: .semibold, relativeTo: .caption))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
                         .foregroundStyle(AppTheme.textSecondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.92)
@@ -255,15 +500,33 @@ struct DispatchView: View {
                     accessibilityLabel: "Recenter map",
                     accessibilityHint: "Centers the map on active route stops."
                 ) {
-                    syncMapCamera()
+                    if !isMapExpanded {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isMapExpanded = true
+                        }
+                    }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        syncMapCamera()
+                    }
                 }
-                mapIconButton(
-                    systemName: "gearshape.fill",
-                    identifier: "dispatch.map.refreshSettings",
-                    accessibilityLabel: "Dispatch settings",
-                    accessibilityHint: "Refreshes dispatch controls."
-                ) {
-                    Task { await coordinator.refreshAll() }
+                if authStore.user?.role == .owner {
+                    mapIconButton(
+                        systemName: isOwnerControlsExpanded ? "xmark" : "gearshape.fill",
+                        identifier: "dispatch.map.toggleSetup",
+                        accessibilityLabel: isOwnerControlsExpanded ? "Hide route setup" : "Show route setup",
+                        accessibilityHint: "Toggles the route setup controls panel."
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isOwnerControlsExpanded.toggle()
+                        }
+                        if isOwnerControlsExpanded {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                withAnimation {
+                                    scrollProxy?.scrollTo("ownerControls", anchor: .top)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -281,32 +544,187 @@ struct DispatchView: View {
     }
 
     private var mapHero: some View {
-        DispatchMapSectionView(
-            mapPosition: $mapPosition,
-            routePins: routePins(for: primaryRoute),
-            activeStopOrderID: primaryActiveStop?.orderID,
-            routePathCoordinates: routePathCoordinates,
-            nextStopLabel: primaryActiveOrder.map(nextStopLabel(for:)) ?? "Waiting for route",
-            isRoutePathLoading: isRoutePathLoading,
-            isRouteActionInFlight: isRouteActionInFlight,
-            optimizeDisabled: selectedDriverID.isEmpty || authStore.user?.role != .owner || authStore.isOffline || isRouteActionInFlight,
-            canOpenMaps: canOpenMaps(for: primaryActiveOrder),
-            onOptimize: {
-                buildOrOptimizeRoute()
-            },
-            onOpenMaps: {
-                openActiveStopInMaps()
+        let activeRoute = primaryRoute
+        let activeOrder = primaryActiveOrder
+
+        return ZStack(alignment: .bottomLeading) {
+            Map(position: $mapPosition) {
+                UserAnnotation()
+
+                if let searchCoord = searchedAddressCoordinate {
+                    Marker("Start", coordinate: searchCoord)
+                        .tint(.green)
+                }
+
+                ForEach(routePins(for: activeRoute), id: \.id) { order in
+                    if let lat = order.lat, let lng = order.lng {
+                        Marker(order.deliveryAddress.line1, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
+                            .tint(order.id == primaryActiveStop?.orderID ? AppTheme.accentBlue : AppTheme.textMuted)
+                    }
+                }
+
+                if routePathCoordinates.count >= 2 {
+                    MapPolyline(coordinates: routePathCoordinates)
+                        .stroke(
+                            AppTheme.accentBlue.opacity(0.95),
+                            style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                        )
+                }
+
+                if searchPreviewCoordinates.count >= 2 {
+                    MapPolyline(coordinates: searchPreviewCoordinates)
+                        .stroke(
+                            AppTheme.success.opacity(0.8),
+                            style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [8, 6])
+                        )
+                }
             }
-        )
+            .mapStyle(.standard(elevation: .realistic))
+            .mapControls {
+                MapCompass()
+                MapUserLocationButton()
+            }
+            .accessibilityLabel("Dispatch map")
+            .accessibilityHint("Shows route stops and current route path.")
+            .accessibilityIdentifier("dispatch.map")
+
+            LinearGradient(
+                colors: [Color.clear, Color.black.opacity(0.34), Color.black.opacity(0.52)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+
+            HStack(alignment: .bottom, spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("NEXT STOP")
+                        .font(AppTheme.inter(10, weight: .bold, relativeTo: .caption2))
+                        .tracking(0.8)
+                        .foregroundStyle(AppTheme.accentBlue)
+                    Text(activeOrder.map(nextStopLabel(for:)) ?? "Waiting for route")
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                        .stroke(AppTheme.border.opacity(0.8), lineWidth: 1)
+                )
+
+                Spacer()
+
+                Button {
+                    openActiveStopInMaps()
+                } label: {
+                    Image(systemName: "location.north.fill")
+                        .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold, relativeTo: .headline))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .frame(width: 48, height: 48)
+                        .background(AppTheme.accentBlue, in: Circle())
+                }
+                .disabled(!canOpenMaps(for: activeOrder))
+                .opacity(canOpenMaps(for: activeOrder) ? 1.0 : 0.35)
+                .accessibilityLabel("Open Apple Maps")
+                .accessibilityHint("Opens driving directions to the next stop.")
+                .accessibilityIdentifier("dispatch.openAppleMaps")
+            }
+            .padding(.horizontal, AppTheme.screenHorizontalPadding)
+            .padding(.bottom, 14)
+
+            if isRoutePathLoading {
+                ProgressView("Routing")
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .background(AppTheme.surface.opacity(0.9), in: Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(AppTheme.border, lineWidth: 1)
+                    )
+                    .padding(.top, 58)
+                    .padding(.leading, AppTheme.screenHorizontalPadding)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: max(260, UIScreen.main.bounds.height * 0.35))
+        .overlay(alignment: .topTrailing) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    isMapExpanded = false
+                }
+            } label: {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .frame(width: 32, height: 32)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(AppTheme.border.opacity(0.6), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 58)
+            .padding(.trailing, AppTheme.screenHorizontalPadding)
+            .accessibilityLabel("Collapse map")
+            .accessibilityIdentifier("dispatch.map.collapse")
+        }
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(AppTheme.border)
+                .frame(height: 1)
+        }
+    }
+
+    private var collapsedMapStrip: some View {
+        let remainingStops = primaryRoute?.stops.filter { $0.completedAt == nil }.count ?? 0
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                isMapExpanded = true
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "map.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AppTheme.accentBlue)
+
+                if remainingStops > 0 {
+                    Text("\(remainingStops) stops • \(routeDurationLabel)")
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                } else {
+                    Text("Show Map")
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .padding(.horizontal, AppTheme.screenHorizontalPadding)
+            .padding(.vertical, 14)
+            .background(AppTheme.surfaceCard)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(AppTheme.border)
+                    .frame(height: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Expand map")
+        .accessibilityIdentifier("dispatch.map.expand")
     }
 
     private var emptyStateCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("No Routes Yet", systemImage: "map")
-                .font(.headline.weight(.bold))
+                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .headline))
                 .foregroundStyle(AppTheme.textPrimary)
             Text("Assign a driver and build the first route to start deliveries.")
-                .font(.subheadline)
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium, relativeTo: .subheadline))
                 .foregroundStyle(AppTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -327,7 +745,7 @@ struct DispatchView: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(AppTheme.inter(15, weight: .bold, relativeTo: .body))
+                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .body))
                 .foregroundStyle(AppTheme.textPrimary)
                 .frame(width: 40, height: 40)
                 .background(AppTheme.surface.opacity(0.94), in: Circle())
@@ -431,12 +849,13 @@ struct DispatchView: View {
     }
 
     private func syncDriverSelectionIfNeeded() {
-        guard selectedDriverID.isEmpty else { return }
         if let routedDriver = primaryRoute?.driverID {
             selectedDriverID = routedDriver
             return
         }
-        selectedDriverID = feedStore.drivers.first?.id ?? ""
+        if selectedDriverID.isEmpty {
+            selectedDriverID = feedStore.drivers.first?.id ?? ""
+        }
     }
 
     @MainActor
@@ -509,36 +928,40 @@ struct DispatchView: View {
     }
 
     private func openActiveStopInMaps() {
-        guard let activeOrder = primaryActiveOrder else {
-            coordinator.present(.validation("No active stop selected yet."))
-            return
-        }
-
-        if let lat = activeOrder.lat, let lng = activeOrder.lng {
-            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-            let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
-            mapItem.name = activeOrder.deliveryAddress.line1
-            let opened = mapItem.openInMaps(launchOptions: [
-                MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
-            ])
-            if !opened {
-                coordinator.present(.validation("Unable to open Apple Maps for this stop."))
+        // If there's an active order with coordinates, open directions to it
+        if let activeOrder = primaryActiveOrder {
+            if let lat = activeOrder.lat, let lng = activeOrder.lng {
+                let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+                let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
+                mapItem.name = activeOrder.deliveryAddress.line1
+                mapItem.openInMaps(launchOptions: [
+                    MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+                ])
+                return
             }
+
+            let address = mapsDestinationAddress(for: activeOrder)
+            guard
+                !address.isEmpty,
+                let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                let url = URL(string: "https://maps.apple.com/?daddr=\(encoded)&dirflg=d")
+            else {
+                coordinator.present(.validation("Unable to open Apple Maps for this stop."))
+                return
+            }
+            UIApplication.shared.open(url)
             return
         }
 
-        let address = mapsDestinationAddress(for: activeOrder)
-
-        guard
-            !address.isEmpty,
-            let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-            let url = URL(string: "https://maps.apple.com/?daddr=\(encoded)&dirflg=d")
-        else {
-            coordinator.present(.validation("Unable to open Apple Maps for this stop."))
+        // No active order — fall back to opening Apple Maps at searched start location
+        if let coord = searchedAddressCoordinate {
+            let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coord))
+            mapItem.name = startAddress
+            mapItem.openInMaps()
             return
         }
 
-        openInAppleMaps(url: url)
+        coordinator.present(.validation("Build a route first, then tap to open directions."))
     }
 
     @MainActor
@@ -568,19 +991,13 @@ struct DispatchView: View {
     }
 
     private func canOpenMaps(for order: OrderRequest?) -> Bool {
-        guard let order else { return false }
-        if order.lat != nil, order.lng != nil {
-            return true
+        if let order {
+            if order.lat != nil, order.lng != nil { return true }
+            let address = mapsDestinationAddress(for: order)
+            if !address.isEmpty { return true }
         }
-        let address = mapsDestinationAddress(for: order)
-        guard
-            !address.isEmpty,
-            let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-            let url = URL(string: "https://maps.apple.com/?daddr=\(encoded)&dirflg=d")
-        else {
-            return false
-        }
-        return UIApplication.shared.canOpenURL(url)
+        // Allow opening maps to start address even without a route
+        return searchedAddressCoordinate != nil
     }
 
     private func mapsDestinationAddress(for order: OrderRequest) -> String {
@@ -594,17 +1011,6 @@ struct DispatchView: View {
         .joined(separator: ", ")
     }
 
-    private func openInAppleMaps(url: URL) {
-        guard UIApplication.shared.canOpenURL(url) else {
-            coordinator.present(.validation("Apple Maps is unavailable on this device."))
-            return
-        }
-        UIApplication.shared.open(url, options: [:]) { success in
-            if !success {
-                coordinator.present(.validation("Unable to open Apple Maps for this stop."))
-            }
-        }
-    }
 }
 
 private struct DispatchStopDetailsSheet: View {
@@ -620,17 +1026,17 @@ private struct DispatchStopDetailsSheet: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text(order.deliveryAddress.line1)
-                        .font(.headline.weight(.semibold))
+                        .font(AppTheme.inter(AppTheme.typeBody, weight: .semibold, relativeTo: .headline))
                         .foregroundStyle(AppTheme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     Text(addressLine)
-                        .font(.subheadline)
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium, relativeTo: .subheadline))
                         .foregroundStyle(AppTheme.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     Text(order.status.rawValue.replacingOccurrences(of: "_", with: " ").capitalized)
-                        .font(.caption.weight(.bold))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(AppTheme.accentBlue.opacity(0.18), in: Capsule())
@@ -639,7 +1045,7 @@ private struct DispatchStopDetailsSheet: View {
 
                     if !order.quoteNote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(order.quoteNote)
-                            .font(.caption)
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .caption))
                             .foregroundStyle(AppTheme.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -649,7 +1055,7 @@ private struct DispatchStopDetailsSheet: View {
                     if let mapURL = mapsURL {
                         Link(destination: mapURL) {
                             Label("Open in Apple Maps", systemImage: "map.fill")
-                                .font(.subheadline.weight(.semibold))
+                                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold, relativeTo: .subheadline))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)

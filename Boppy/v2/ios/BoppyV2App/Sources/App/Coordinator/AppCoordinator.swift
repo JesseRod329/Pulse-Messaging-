@@ -156,7 +156,7 @@ final class AppCoordinator: ObservableObject {
     }
 
     func handleDeepLink(_ url: URL) async {
-        guard url.scheme == "boppyv2" else { return }
+        guard url.scheme == "beambox" else { return }
 
         if url.host == "invite" {
             let token = url.pathComponents.dropFirst().joined(separator: "")
@@ -328,7 +328,18 @@ final class AppCoordinator: ObservableObject {
 
         if case .auth(.sessionExpired) = mapped, authStore.user != nil {
             Task { [weak self] in
-                await self?.signOut(preserveError: true)
+                guard let self else { return }
+                // Verify the token is truly invalid before nuking the session.
+                // A single 401 from a data/edge endpoint shouldn't sign out
+                // if the underlying auth token is still valid.
+                do {
+                    _ = try await self.environment.authService.currentSession()
+                    // Token is still good — the 401 was from a data endpoint,
+                    // not an expired session. Error is already shown, don't sign out.
+                } catch {
+                    // Token is truly expired/invalid — sign out.
+                    await self.signOut(preserveError: true)
+                }
             }
         }
     }

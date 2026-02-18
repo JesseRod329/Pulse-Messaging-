@@ -50,7 +50,7 @@ final class InventoryStore: ObservableObject {
 
         category=\(draft.category);show_in_catalog=\(draft.showInCatalog);thumbnail=\(draft.thumbnailURL ?? "")
         """
-        _ = try await inventoryService.upsertInventoryItem(
+        let item = try await inventoryService.upsertInventoryItem(
             channelID: channelID,
             itemID: nil,
             name: draft.name,
@@ -63,6 +63,78 @@ final class InventoryStore: ObservableObject {
             lowStockThreshold: draft.lowStockThreshold,
             actorID: actorID
         )
+
+        // Create variants for each non-nil pricing tier
+        let tiers: [(name: String, skuSuffix: String, cents: Int?)] = [
+            ("Wholesale", "WH", draft.wholesalePriceCents),
+            ("Distributor", "DS", draft.distributorPriceCents),
+            ("Bulk", "BK", draft.bulkPriceCents),
+        ]
+
+        for tier in tiers {
+            guard let priceCents = tier.cents else { continue }
+            _ = try await inventoryService.upsertInventoryVariant(
+                channelID: channelID,
+                itemID: item.id,
+                variantID: nil,
+                name: tier.name,
+                sku: "\(draft.sku)-\(tier.skuSuffix)",
+                priceCents: priceCents,
+                stockOnHand: draft.stockOnHand,
+                isActive: true,
+                actorID: actorID
+            )
+        }
+    }
+
+    func updateItem(
+        channelID: String,
+        actorID: String,
+        draft: InventoryDraftInput,
+        inventoryService: InventoryServiceProtocol
+    ) async throws {
+        guard let itemID = draft.itemID else { return }
+
+        let descriptionWithMeta = """
+        \(draft.description)
+
+        category=\(draft.category);show_in_catalog=\(draft.showInCatalog);thumbnail=\(draft.thumbnailURL ?? "")
+        """
+        _ = try await inventoryService.upsertInventoryItem(
+            channelID: channelID,
+            itemID: itemID,
+            name: draft.name,
+            sku: draft.sku,
+            description: descriptionWithMeta.trimmingCharacters(in: .whitespacesAndNewlines),
+            defaultPriceCents: draft.defaultPriceCents,
+            currencyCode: "USD",
+            trackStock: true,
+            stockOnHand: draft.stockOnHand,
+            lowStockThreshold: draft.lowStockThreshold,
+            actorID: actorID
+        )
+
+        // Upsert variants for each pricing tier
+        let tiers: [(name: String, skuSuffix: String, cents: Int?)] = [
+            ("Wholesale", "WH", draft.wholesalePriceCents),
+            ("Distributor", "DS", draft.distributorPriceCents),
+            ("Bulk", "BK", draft.bulkPriceCents),
+        ]
+
+        for tier in tiers {
+            guard let priceCents = tier.cents else { continue }
+            _ = try await inventoryService.upsertInventoryVariant(
+                channelID: channelID,
+                itemID: itemID,
+                variantID: nil,
+                name: tier.name,
+                sku: "\(draft.sku)-\(tier.skuSuffix)",
+                priceCents: priceCents,
+                stockOnHand: draft.stockOnHand,
+                isActive: true,
+                actorID: actorID
+            )
+        }
     }
 
     func adjustInventory(

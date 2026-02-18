@@ -7,6 +7,7 @@ struct InventoryCatalogView: View {
     @State private var searchText = ""
     @State private var selectedCategory = "All"
     @State private var isNewItemPresented = false
+    @State private var editingItem: InventoryItem?
     @ScaledMetric(relativeTo: .body) private var thumbnailSize: CGFloat = 64
     @ScaledMetric(relativeTo: .caption) private var lowStockDotSize: CGFloat = 6
     @ScaledMetric(relativeTo: .body) private var rowPadding: CGFloat = 10
@@ -20,11 +21,15 @@ struct InventoryCatalogView: View {
 
                     ForEach(filteredItems) { item in
                         inventoryRow(item)
+                            .contentShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
+                            .onTapGesture {
+                                editingItem = item
+                            }
                     }
 
                     if filteredItems.isEmpty {
                         Text("No inventory matches this filter.")
-                            .font(AppTheme.inter(13, weight: .medium))
+                            .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium))
                             .foregroundStyle(AppTheme.textMuted)
                             .padding(.top, 24)
                     }
@@ -60,6 +65,16 @@ struct InventoryCatalogView: View {
                 }
             }
         }
+        .fullScreenCover(item: $editingItem) { item in
+            NavigationStack {
+                EditItemView(item: item) { draft in
+                    Task {
+                        await coordinator.updateInventoryItem(from: draft)
+                        editingItem = nil
+                    }
+                }
+            }
+        }
     }
 
     private var items: [InventoryItem] {
@@ -81,26 +96,8 @@ struct InventoryCatalogView: View {
     }
 
     private var searchField: some View {
-        HStack(spacing: 8) {
-            DesignIconView(icon: .search, size: 14, color: AppTheme.textMuted)
-            TextField("Search name or SKU", text: $searchText)
-                .textInputAutocapitalization(.never)
-                .disableAutocorrection(true)
-                .foregroundStyle(AppTheme.textPrimary)
-                .accessibilityLabel("Search inventory")
-                .accessibilityHint("Filter inventory by name or SKU.")
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(AppTheme.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
-        )
-        .accessibilityIdentifier("profile.inventory.search")
+        SearchField(placeholder: "Search name or SKU", text: $searchText)
+            .accessibilityIdentifier("profile.inventory.search")
     }
 
     private var categoryChips: some View {
@@ -108,30 +105,13 @@ struct InventoryCatalogView: View {
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(renderedCategories, id: \.self) { category in
-                    Button {
+                    FilterChip(
+                        title: category,
+                        isSelected: selectedCategory == category,
+                        statusDot: category == "Low Stock" ? AppTheme.warning : nil
+                    ) {
                         selectedCategory = category
-                    } label: {
-                        HStack(spacing: 6) {
-                            if category == "Low Stock" {
-                                Circle()
-                                    .fill(AppTheme.warning)
-                                    .frame(width: 6, height: 6)
-                            }
-                            Text(category)
-                                .font(AppTheme.inter(12, weight: .semibold))
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(selectedCategory == category ? AppTheme.accentBlue.opacity(0.35) : AppTheme.surface)
-                        )
-                        .overlay(
-                            Capsule()
-                                .stroke(selectedCategory == category ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1)
-                        )
                     }
-                    .buttonStyle(.plain)
                     .accessibilityLabel("\(category) category")
                     .accessibilityHint("Filters inventory to \(category.lowercased()) items.")
                     .accessibilityIdentifier("profile.inventory.category.\(category.lowercased().replacingOccurrences(of: " ", with: ""))")
@@ -146,12 +126,20 @@ struct InventoryCatalogView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
-                    .font(AppTheme.inter(14, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
 
-                Text(item.sku)
-                    .font(AppTheme.interMonospaced(11, weight: .bold, relativeTo: .caption2))
-                    .foregroundStyle(AppTheme.textMuted)
+                HStack(spacing: 6) {
+                    Text(item.sku)
+                        .font(.system(size: AppTheme.typeCaption, weight: .bold, design: .monospaced))
+                        .foregroundStyle(AppTheme.textMuted)
+
+                    if item.defaultPriceCents > 0 {
+                        Text(Self.formatPrice(item.defaultPriceCents))
+                            .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
+                            .foregroundStyle(AppTheme.success)
+                    }
+                }
 
                 HStack(spacing: 8) {
                     if item.stockOnHand <= item.lowStockThreshold {
@@ -159,12 +147,12 @@ struct InventoryCatalogView: View {
                     }
 
                     Text(stockText(item))
-                        .font(AppTheme.inter(11, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
                         .foregroundStyle(stockColor(item))
 
                     if let activeOrderCount = item.activeOrderCount, activeOrderCount > 0 {
                         Text("\(activeOrderCount) active")
-                            .font(AppTheme.inter(11, weight: .bold))
+                            .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
                             .background(AppTheme.accentBlue.opacity(0.18), in: Capsule())
@@ -174,14 +162,18 @@ struct InventoryCatalogView: View {
             }
 
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: AppTheme.typeCaption, weight: .semibold))
+                .foregroundStyle(AppTheme.textMuted)
         }
         .padding(rowPadding)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .fill(AppTheme.surface.opacity(0.9))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
@@ -210,11 +202,11 @@ struct InventoryCatalogView: View {
             }
         }
         .frame(width: thumbnailSize, height: thumbnailSize)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
     }
 
     private var placeholderThumbnail: some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
+        RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
             .fill(AppTheme.surfaceElevated)
             .overlay(
                 Image(systemName: "photo")
@@ -237,6 +229,11 @@ struct InventoryCatalogView: View {
             return AppTheme.warning
         }
         return AppTheme.accentBlue
+    }
+
+    private static func formatPrice(_ cents: Int) -> String {
+        let dollars = Double(cents) / 100.0
+        return String(format: "$%.2f", dollars)
     }
 
     private func activeOrderSummary(_ item: InventoryItem) -> String {

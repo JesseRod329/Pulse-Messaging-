@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 import UIKit
 
 struct NewItemView: View {
@@ -16,11 +17,12 @@ struct NewItemView: View {
     @State private var lowStockAlert = true
     @State private var showInCatalog = true
     @State private var mediaItems: [String] = []
+    @State private var selectedPhotos: [PhotosPickerItem] = []
 
     @State private var retail = "12.00"
-    @State private var wholesale = "10.50"
-    @State private var distributor = "9.10"
-    @State private var bulk = "8.25"
+    @State private var wholesale = ""
+    @State private var distributor = ""
+    @State private var bulk = ""
     @ScaledMetric(relativeTo: .body) private var sectionSpacing: CGFloat = 12
     @ScaledMetric(relativeTo: .body) private var sectionPadding: CGFloat = 12
     @ScaledMetric(relativeTo: .body) private var mediaAttachHeight: CGFloat = 90
@@ -32,7 +34,7 @@ struct NewItemView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: sectionSpacing) {
                 Text("New Item")
-                    .font(AppTheme.inter(22, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeTitle2, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
 
                 fieldCard("Basics") {
@@ -40,7 +42,7 @@ struct NewItemView: View {
                     field("SKU", text: $sku)
 
                     Text("Category")
-                        .font(AppTheme.inter(12, weight: .semibold))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                         .foregroundStyle(AppTheme.textSecondary)
                     Picker("Category", selection: $category) {
                         ForEach(categories, id: \.self) { value in
@@ -64,11 +66,11 @@ struct NewItemView: View {
                         .accessibilityHint("Describe the item for catalog and dispatch context.")
                         .accessibilityIdentifier("profile.newItem.description")
                         .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                 .fill(AppTheme.surfaceElevated)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                 .stroke(AppTheme.border, lineWidth: 1)
                         )
                 }
@@ -76,7 +78,7 @@ struct NewItemView: View {
                 fieldCard("Quantity + Alerts") {
                     HStack {
                         Text("Initial quantity")
-                            .font(AppTheme.inter(12, weight: .semibold))
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                             .foregroundStyle(AppTheme.textSecondary)
                         Spacer()
                         Stepper("", value: $quantity, in: 0...500)
@@ -85,14 +87,14 @@ struct NewItemView: View {
                             .accessibilityHint("Adjusts starting stock count.")
                             .accessibilityIdentifier("profile.newItem.initialQuantity")
                         Text("\(quantity)")
-                            .font(AppTheme.inter(12, weight: .bold))
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold))
                             .foregroundStyle(AppTheme.textPrimary)
                             .frame(minWidth: 32)
                     }
 
                     HStack {
                         Text("Low stock threshold")
-                            .font(AppTheme.inter(12, weight: .semibold))
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                             .foregroundStyle(AppTheme.textSecondary)
                         Spacer()
                         Stepper("", value: $lowStockThreshold, in: 0...100)
@@ -101,7 +103,7 @@ struct NewItemView: View {
                             .accessibilityHint("Adjusts the stock level that triggers low stock state.")
                             .accessibilityIdentifier("profile.newItem.lowStockThreshold")
                         Text("\(lowStockThreshold)")
-                            .font(AppTheme.inter(12, weight: .bold))
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold))
                             .foregroundStyle(AppTheme.textPrimary)
                             .frame(minWidth: 32)
                     }
@@ -116,13 +118,15 @@ struct NewItemView: View {
                         .accessibilityIdentifier("profile.newItem.showInCatalog")
                 }
 
-                fieldCard("Pricing Variations") {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        priceField("Retail", text: $retail)
-                        priceField("Wholesale", text: $wholesale)
-                        priceField("Distributor", text: $distributor)
-                        priceField("Bulk", text: $bulk)
-                    }
+                fieldCard("Pricing") {
+                    priceField("Retail Price", text: $retail)
+                    priceField("Wholesale", text: $wholesale)
+                    priceField("Distributor", text: $distributor)
+                    priceField("Bulk", text: $bulk)
+
+                    Text("Leave blank to skip a tier. Retail is required.")
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
+                        .foregroundStyle(AppTheme.textMuted)
                 }
             }
             .padding(.horizontal, AppTheme.screenHorizontalPadding)
@@ -167,26 +171,31 @@ struct NewItemView: View {
 
     private var mediaCard: some View {
         fieldCard("Media") {
-            Button {
-                mediaItems.append("https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=80")
-            } label: {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+            PhotosPicker(
+                selection: $selectedPhotos,
+                maxSelectionCount: 5,
+                matching: .images
+            ) {
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .stroke(AppTheme.accentBlue.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4]))
                     .frame(height: mediaAttachHeight)
                     .overlay {
                         VStack(spacing: 6) {
                             Image(systemName: "camera")
                                 .foregroundStyle(AppTheme.textMuted)
-                            Text("Tap to attach media")
-                                .font(AppTheme.inter(12, weight: .semibold))
+                            Text("Tap to attach photos")
+                                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                                 .foregroundStyle(AppTheme.textMuted)
                         }
                     }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Attach media")
-            .accessibilityHint("Adds product photos or media.")
+            .accessibilityLabel("Attach photos")
+            .accessibilityHint("Opens photo library to select product images.")
             .accessibilityIdentifier("profile.newItem.attachMedia")
+            .onChange(of: selectedPhotos) { _, items in
+                Task { await loadPhotos(items) }
+            }
 
             if !mediaItems.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -202,7 +211,7 @@ struct NewItemView: View {
                                     }
                                 }
                                 .frame(width: mediaPreviewSize, height: mediaPreviewSize)
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusSmall, style: .continuous))
 
                                 Button {
                                     mediaItems.remove(at: idx)
@@ -230,17 +239,26 @@ struct NewItemView: View {
     }
 
     private func submit() {
-        let cents = max(0, Int((Double(retail) ?? 0) * 100))
+        let retailCents = max(0, Int((Double(retail) ?? 0) * 100))
+        let wholesaleCents = wholesale.isEmpty ? nil : max(0, Int((Double(wholesale) ?? 0) * 100))
+        let distributorCents = distributor.isEmpty ? nil : max(0, Int((Double(distributor) ?? 0) * 100))
+        let bulkCents = bulk.isEmpty ? nil : max(0, Int((Double(bulk) ?? 0) * 100))
+
         onSubmit(
             InventoryDraftInput(
+                itemID: nil,
                 name: name,
                 sku: sku,
                 description: description,
                 category: category,
                 thumbnailURL: mediaItems.first,
+                mediaItems: mediaItems,
                 stockOnHand: quantity,
                 lowStockThreshold: lowStockAlert ? lowStockThreshold : 0,
-                defaultPriceCents: cents,
+                defaultPriceCents: retailCents,
+                wholesalePriceCents: wholesaleCents,
+                distributorPriceCents: distributorCents,
+                bulkPriceCents: bulkCents,
                 showInCatalog: showInCatalog
             )
         )
@@ -249,17 +267,17 @@ struct NewItemView: View {
     private func fieldCard<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title.uppercased())
-                .font(AppTheme.inter(11, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
                 .foregroundStyle(AppTheme.textMuted)
             content()
         }
         .padding(sectionPadding)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.88))
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .fill(AppTheme.surfaceCard)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
     }
@@ -267,7 +285,7 @@ struct NewItemView: View {
     private func field(_ title: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
-                .font(AppTheme.inter(12, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
             TextField(title, text: text)
                 .padding(.horizontal, 12)
@@ -276,11 +294,11 @@ struct NewItemView: View {
                 .accessibilityLabel(title)
                 .accessibilityIdentifier("profile.newItem.field.\(title.lowercased().replacingOccurrences(of: " ", with: ""))")
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.surfaceElevated)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
         }
@@ -289,7 +307,7 @@ struct NewItemView: View {
     private func priceField(_ title: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
-                .font(AppTheme.inter(12, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
             TextField("0.00", text: text)
                 .keyboardType(.decimalPad)
@@ -299,14 +317,29 @@ struct NewItemView: View {
                 .accessibilityLabel("\(title) price")
                 .accessibilityIdentifier("profile.newItem.price.\(title.lowercased())")
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.surfaceElevated)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
         }
+    }
+
+    private func loadPhotos(_ items: [PhotosPickerItem]) async {
+        var urls: [String] = []
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data),
+               let jpeg = image.jpegData(compressionQuality: 0.8) {
+                let filename = UUID().uuidString + ".jpg"
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                try? jpeg.write(to: tempURL)
+                urls.append(tempURL.absoluteString)
+            }
+        }
+        mediaItems = urls
     }
 
     private func dismissKeyboard() {

@@ -4,23 +4,25 @@ import BoppyV2Core
 
 struct FeedPostCard: View {
     let post: ChannelPost
+    let channelTitle: String
     let showsFollowerHint: Bool
     let selectedReaction: String?
     let onReactionSelected: ((String) -> Void)?
     let onQuickOrder: (() -> Void)?
 
-    @State private var hasAppeared = false
     @ScaledMetric(relativeTo: .body) private var headerAvatarSize: CGFloat = 32
     @ScaledMetric(relativeTo: .caption) private var heroAvatarSize: CGFloat = 28
 
     init(
         post: ChannelPost,
+        channelTitle: String = "BeamBox Supply",
         showsFollowerHint: Bool,
         selectedReaction: String? = nil,
         onReactionSelected: ((String) -> Void)? = nil,
         onQuickOrder: (() -> Void)? = nil
     ) {
         self.post = post
+        self.channelTitle = channelTitle
         self.showsFollowerHint = showsFollowerHint
         self.selectedReaction = selectedReaction
         self.onReactionSelected = onReactionSelected
@@ -35,15 +37,21 @@ struct FeedPostCard: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(headlineCaption)
-                    .font(AppTheme.inter(20, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                     .lineLimit(2)
 
                 if let heroSubtitle {
                     Text(heroSubtitle)
-                        .font(AppTheme.inter(14, weight: .regular))
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .regular))
                         .foregroundStyle(AppTheme.textSecondary)
                         .lineLimit(2)
+                }
+
+                if let priceCents = post.priceCents, priceCents > 0 {
+                    Text(Self.formatPrice(priceCents))
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
+                        .foregroundStyle(AppTheme.success)
                 }
             }
 
@@ -51,22 +59,24 @@ struct FeedPostCard: View {
                 followerActions
             }
         }
-        .padding(AppTheme.cardPadding)
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.88))
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .fill(AppTheme.surfaceCard)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
-        .opacity(hasAppeared ? 1 : 0.4)
-        .offset(y: hasAppeared ? 0 : 10)
-        .animation(.easeOut(duration: 0.25), value: hasAppeared)
-        .onAppear {
-            hasAppeared = true
-        }
         .accessibilityIdentifier("feed.post.card.\(post.id)")
+    }
+
+    private var avatarInitials: String {
+        let words = channelTitle.split(separator: " ")
+        if words.count >= 2 {
+            return String(words[0].prefix(1) + words[1].prefix(1)).uppercased()
+        }
+        return String(channelTitle.prefix(2)).uppercased()
     }
 
     private var headerRow: some View {
@@ -75,17 +85,17 @@ struct FeedPostCard: View {
                 .fill(AppTheme.accentBlue.opacity(0.22))
                 .frame(width: headerAvatarSize, height: headerAvatarSize)
                 .overlay(
-                    Text("BB")
-                        .font(AppTheme.inter(11, weight: .bold))
+                    Text(avatarInitials)
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .bold))
                         .foregroundStyle(AppTheme.accentBlue)
                 )
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("BeamBox Supply")
-                    .font(AppTheme.inter(13, weight: .semibold))
+                Text(channelTitle)
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(dateLabel)
-                    .font(AppTheme.inter(11, weight: .medium))
+                    .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
                     .foregroundStyle(AppTheme.textMuted)
             }
 
@@ -101,9 +111,7 @@ struct FeedPostCard: View {
     }
 
     private var hero: some View {
-        let ratio = post.heroAspectRatio ?? (16.0 / 9.0)
-
-        return ZStack(alignment: .topLeading) {
+        ZStack(alignment: .topLeading) {
             if let mediaPath = post.mediaPath,
                let url = mediaURL(from: mediaPath) {
                 AsyncImage(url: url) { phase in
@@ -112,6 +120,8 @@ struct FeedPostCard: View {
                         image
                             .resizable()
                             .scaledToFill()
+                    case .failure:
+                        failedHero
                     default:
                         placeholderHero
                     }
@@ -128,25 +138,24 @@ struct FeedPostCard: View {
                 .background(.ultraThinMaterial, in: Capsule())
                 .padding(10)
 
-            HStack(spacing: -8) {
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(AppTheme.surface.opacity(0.9))
-                        .frame(width: heroAvatarSize, height: heroAvatarSize)
-                        .overlay(Circle().stroke(AppTheme.navBar, lineWidth: 2))
-                        .overlay(
-                            Text(String(index + 1))
-                                .font(AppTheme.inter(10, weight: .bold))
-                                .foregroundStyle(AppTheme.textSecondary)
-                        )
+            if let remaining = post.slotRemaining, remaining > 0 {
+                HStack(spacing: 4) {
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("\(remaining)")
+                        .font(AppTheme.inter(10, weight: .bold))
                 }
+                .foregroundStyle(AppTheme.textPrimary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
-        .aspectRatio(ratio, contentMode: .fit)
-        .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(maxWidth: .infinity, maxHeight: 180)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
     }
 
     private var placeholderHero: some View {
@@ -158,10 +167,28 @@ struct FeedPostCard: View {
         .overlay {
             VStack(spacing: 6) {
                 Image(systemName: "photo")
-                    .font(.title3.weight(.bold))
+                    .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold, relativeTo: .title3))
                     .foregroundStyle(AppTheme.textMuted)
                 Text("Media pending")
-                    .font(AppTheme.inter(12, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
+                    .foregroundStyle(AppTheme.textMuted)
+            }
+        }
+    }
+
+    private var failedHero: some View {
+        LinearGradient(
+            colors: [AppTheme.surfaceElevated, AppTheme.surface],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay {
+            VStack(spacing: 6) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold, relativeTo: .title3))
+                    .foregroundStyle(AppTheme.warning)
+                Text("Image failed to load")
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                     .foregroundStyle(AppTheme.textMuted)
             }
         }
@@ -175,7 +202,7 @@ struct FeedPostCard: View {
                         onReactionSelected?(emoji)
                     } label: {
                         Text(emoji)
-                            .font(.callout)
+                            .font(AppTheme.inter(AppTheme.typeBody, weight: .regular, relativeTo: .callout))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(
@@ -196,9 +223,15 @@ struct FeedPostCard: View {
             }
 
             HStack {
-                Label(etaLabel, systemImage: "clock")
-                    .font(AppTheme.inter(11, weight: .semibold))
-                    .foregroundStyle(AppTheme.textMuted)
+                if let priceCents = post.priceCents, priceCents > 0 {
+                    Label("From \(Self.formatPrice(priceCents))", systemImage: "tag.fill")
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold))
+                        .foregroundStyle(AppTheme.success)
+                } else {
+                    Label(etaLabel, systemImage: "clock")
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold))
+                        .foregroundStyle(AppTheme.textMuted)
+                }
                 Spacer()
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -208,11 +241,11 @@ struct FeedPostCard: View {
                         Text("Request Quote")
                         DesignIconView(icon: .chevronRight, size: 11, color: AppTheme.textPrimary)
                     }
-                    .font(AppTheme.inter(13, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.radiusSmall, style: .continuous)
                             .fill(AppTheme.accentBlue)
                     )
                     .foregroundStyle(AppTheme.textPrimary)
@@ -246,23 +279,19 @@ struct FeedPostCard: View {
 
     private var availabilityBadge: String {
         switch post.postType {
-        case .image:
-            return "72 SLOTS LEFT"
-        case .video:
-            return "CONSOLIDATED SHIP"
         case .text:
-            return "POLICY UPDATE"
+            return "UPDATE"
+        default:
+            return "AVAILABLE"
         }
     }
 
     private var etaLabel: String {
         switch post.postType {
-        case .image:
-            return "ETA 2 Days"
-        case .video:
-            return "ETA 4 Days"
         case .text:
-            return "Update Available"
+            return "Update available"
+        default:
+            return "Details in post"
         }
     }
 
@@ -300,6 +329,11 @@ struct FeedPostCard: View {
 
     private var reactionOptions: [String] {
         ["🔥", "👍", "❤️", "👏", "📦"]
+    }
+
+    private static func formatPrice(_ cents: Int) -> String {
+        let dollars = Double(cents) / 100.0
+        return String(format: "$%.2f", dollars)
     }
 
     private func mediaURL(from mediaPath: String) -> URL? {

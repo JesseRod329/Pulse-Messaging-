@@ -24,10 +24,10 @@ struct OrdersView: View {
                             filterBar
 
                             if filteredOrders.isEmpty {
-                                ContentUnavailableView(
-                                    selectedFilter == .all ? "No Orders" : "No \(selectedFilter.rawValue) Orders",
-                                    systemImage: "tray",
-                                    description: Text("Quote requests will appear here.")
+                                AppEmptyStateView(
+                                    icon: "tray",
+                                    title: selectedFilter == .all ? "No Orders" : "No \(selectedFilter.rawValue) Orders",
+                                    subtitle: "Quote requests will appear here."
                                 )
                             } else {
                                 ForEach(filteredOrders) { order in
@@ -67,18 +67,6 @@ struct OrdersView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        Task { await coordinator.refreshAll() }
-                    } label: {
-                        DesignIconView(icon: .menu, size: 18, color: AppTheme.textSecondary)
-                    }
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .accessibilityLabel("Orders menu")
-                    .accessibilityHint("Refreshes the orders inbox.")
-                    .accessibilityIdentifier("orders.menu")
-                }
-
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
                         Button {
@@ -96,7 +84,7 @@ struct OrdersView: View {
                             .frame(width: 28, height: 28)
                             .overlay(
                                 Text(avatarInitial)
-                                    .font(.caption.weight(.bold))
+                                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold, relativeTo: .caption))
                                     .foregroundStyle(AppTheme.textPrimary)
                             )
                     }
@@ -169,37 +157,13 @@ struct OrdersView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(InboxFilter.allCases, id: \.self) { filter in
-                    Button {
+                    FilterChip(
+                        title: filter.rawValue,
+                        isSelected: selectedFilter == filter,
+                        count: count(for: filter)
+                    ) {
                         selectedFilter = filter
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text(filter.rawValue)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.85)
-                            Text("\(count(for: filter))")
-                                .font(AppTheme.inter(10, weight: .bold))
-                                .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(selectedFilter == filter ? AppTheme.surface.opacity(0.55) : AppTheme.surface.opacity(0.24))
-                                )
-                        }
-                        .font(AppTheme.inter(13, weight: .semibold))
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 9)
-                        .background(
-                            Capsule()
-                                .fill(selectedFilter == filter ? AppTheme.accentBlue.opacity(0.30) : AppTheme.surface.opacity(0.88))
-                        )
-                        .overlay(
-                            Capsule()
-                                .stroke(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1)
-                        )
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textMuted)
                     .accessibilityLabel("\(filter.rawValue) filter")
                     .accessibilityHint("Shows \(count(for: filter)) \(filter.rawValue.lowercased()) orders.")
                     .accessibilityIdentifier("orders.filter.\(filter.rawValue.lowercased())")
@@ -209,7 +173,7 @@ struct OrdersView: View {
     }
 
     private var ordersFab: some View {
-        FloatingActionButton(title: "New Order", icon: .add) {
+        FloatingActionButton(title: "Pending", icon: .menu) {
             if coordinator.featureFlags.motionV2 {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             }
@@ -217,7 +181,7 @@ struct OrdersView: View {
         }
         .padding(.trailing, 18)
         .padding(.bottom, AppTheme.fabBottomPadding)
-        .accessibilityLabel("New order shortcut")
+        .accessibilityLabel("Show pending orders")
         .accessibilityHint("Switches the inbox to pending orders.")
         .accessibilityIdentifier("orders.fab")
     }

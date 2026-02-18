@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
     return ok(rid, {
       ...data,
-      invite_url: `boppyv2://invite/${token}`,
+      invite_url: `beambox://invite/${token}`,
     });
   } catch (error) {
     if (error instanceof SupabaseRequestError) {

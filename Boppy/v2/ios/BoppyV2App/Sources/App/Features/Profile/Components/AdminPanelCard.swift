@@ -8,7 +8,7 @@ struct AdminPanelCard: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .fill(iconColor.opacity(0.16))
                     .frame(width: 38, height: 38)
                 Image(systemName: icon)
@@ -17,17 +17,17 @@ struct AdminPanelCard: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(AppTheme.inter(14, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(subtitle)
-                    .font(AppTheme.inter(12, weight: .regular))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .regular))
                     .foregroundStyle(AppTheme.textMuted)
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
+                .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold, relativeTo: .caption))
                 .foregroundStyle(AppTheme.textMuted)
         }
         .padding(AppTheme.cardPadding)

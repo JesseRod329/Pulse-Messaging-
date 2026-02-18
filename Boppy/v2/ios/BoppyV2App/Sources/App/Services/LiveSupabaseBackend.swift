@@ -83,6 +83,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         let slotLabel: String?
         let heroSubtitle: String?
         let heroAspectRatio: Double?
+        let priceCents: Int?
         let createdAt: Date
 
         enum CodingKeys: String, CodingKey {
@@ -96,6 +97,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             case slotLabel = "slot_label"
             case heroSubtitle = "hero_subtitle"
             case heroAspectRatio = "hero_aspect_ratio"
+            case priceCents = "price_cents"
             case createdAt = "created_at"
         }
     }
@@ -571,6 +573,7 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
             slotLabel: row.slotLabel,
             heroSubtitle: row.heroSubtitle,
             heroAspectRatio: row.heroAspectRatio,
+            priceCents: row.priceCents,
             createdAt: row.createdAt
         )
     }

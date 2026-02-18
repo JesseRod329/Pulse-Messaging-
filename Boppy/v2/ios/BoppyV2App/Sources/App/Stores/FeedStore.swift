@@ -7,6 +7,7 @@ final class FeedStore: ObservableObject {
     @Published var selectedChannelID: String?
     @Published var posts: [ChannelPost] = []
     @Published var drivers: [DriverProfile] = []
+    @Published var isPublishing: Bool = false
 
     func refresh(
         userID: String,
@@ -80,6 +81,8 @@ final class FeedStore: ObservableObject {
         type: PostType,
         caption: String,
         mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?,
         channelFeedService: ChannelFeedServiceProtocol
     ) async throws {
         _ = try await channelFeedService.createPost(
@@ -87,8 +90,37 @@ final class FeedStore: ObservableObject {
             authorID: authorID,
             postType: type,
             caption: caption,
-            mediaPath: mediaPath
+            mediaPath: mediaPath,
+            heroSubtitle: heroSubtitle,
+            priceCents: priceCents
         )
+    }
+
+    func updatePost(
+        postID: String,
+        caption: String,
+        mediaPath: String?,
+        heroSubtitle: String?,
+        priceCents: Int?,
+        actorID: String,
+        channelFeedService: ChannelFeedServiceProtocol
+    ) async throws {
+        _ = try await channelFeedService.updatePost(
+            postID: postID,
+            caption: caption,
+            mediaPath: mediaPath,
+            heroSubtitle: heroSubtitle,
+            priceCents: priceCents,
+            actorID: actorID
+        )
+    }
+
+    func deletePost(
+        postID: String,
+        actorID: String,
+        channelFeedService: ChannelFeedServiceProtocol
+    ) async throws {
+        try await channelFeedService.deletePost(postID: postID, actorID: actorID)
     }
 
     func clear() {

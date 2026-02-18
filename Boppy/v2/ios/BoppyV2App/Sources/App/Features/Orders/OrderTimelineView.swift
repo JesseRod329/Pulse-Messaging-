@@ -6,9 +6,17 @@ struct OrderTimelineView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @EnvironmentObject private var authStore: AuthStore
     @EnvironmentObject private var orderStore: OrderStore
+    @EnvironmentObject private var feedStore: FeedStore
     @Environment(\.dismiss) private var dismiss
 
     let order: OrderRequest
+
+    @State private var showAssignDriver = false
+
+    private var canAssignDriver: Bool {
+        authStore.user?.role == .owner
+        && [.requested, .quoted, .addressReview].contains(order.status)
+    }
 
     var body: some View {
         NavigationStack {
@@ -17,7 +25,6 @@ struct OrderTimelineView: View {
                     summaryCard
                     mapCard
                     timelineCard
-                    actionRow
                 }
                 .padding(.horizontal, AppTheme.screenHorizontalPadding)
                 .padding(.vertical, 12)
@@ -49,9 +56,40 @@ struct OrderTimelineView: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if canAssignDriver {
+                    Button {
+                        showAssignDriver = true
+                    } label: {
+                        Label("Assign Driver", systemImage: "person.badge.plus")
+                            .font(AppTheme.inter(AppTheme.typeBody, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.accentBlue)
+                    .padding(.horizontal, AppTheme.screenHorizontalPadding)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.navBar.opacity(0.95))
+                    .accessibilityLabel("Assign driver")
+                    .accessibilityHint("Opens the driver assignment screen for this order.")
+                    .accessibilityIdentifier("orders.timeline.assignDriver")
+                }
+            }
             .task {
                 await coordinator.loadLedger(for: order.id)
             }
+        }
+        .fullScreenCover(isPresented: $showAssignDriver) {
+            AssignDriverView(order: order) { driverID in
+                Task {
+                    await coordinator.assignDriver(orderID: order.id, driverID: driverID)
+                    showAssignDriver = false
+                    dismiss()
+                }
+            }
+            .environmentObject(coordinator)
+            .environmentObject(feedStore)
         }
     }
 
@@ -68,16 +106,16 @@ struct OrderTimelineView: View {
                                 .resizable()
                                 .scaledToFill()
                         default:
-                            ShimmerBlock(cornerRadius: 12)
+                            ShimmerBlock(cornerRadius: AppTheme.radiusMedium)
                         }
                     }
                 } else {
-                    ShimmerBlock(cornerRadius: 12)
+                    ShimmerBlock(cornerRadius: AppTheme.radiusMedium)
                 }
 
                 if let total = order.summaryTotalCents {
                     Text(currency(total))
-                        .font(AppTheme.inter(13, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -86,17 +124,17 @@ struct OrderTimelineView: View {
                 }
             }
             .frame(height: 200)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
 
             Text(order.summaryTitle ?? "Order Summary")
-                .font(AppTheme.inter(18, weight: .bold))
+                .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                 .foregroundStyle(AppTheme.textPrimary)
 
             HStack {
                 OrderStatusPill(status: order.status)
                 Spacer()
                 Text(order.externalRef ?? order.id)
-                    .font(AppTheme.interMonospaced(12, weight: .bold, relativeTo: .caption))
+                    .font(.system(size: AppTheme.typeFootnote, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppTheme.textMuted)
             }
 
@@ -105,17 +143,17 @@ struct OrderTimelineView: View {
                     PulseDot(color: AppTheme.success, size: 8)
                 }
                 Text(order.summaryEtaText ?? "ETA pending")
-                    .font(AppTheme.inter(13, weight: .medium))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium))
                     .foregroundStyle(AppTheme.textSecondary)
             }
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .fill(AppTheme.surface.opacity(0.9))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
@@ -126,27 +164,27 @@ struct OrderTimelineView: View {
     private var mapCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Driver Location")
-                .font(AppTheme.inter(13, weight: .semibold))
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
             OrderMapPreview(order: order)
                 .frame(height: 170)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .fill(AppTheme.surface.opacity(0.9))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
     }
 
     private var timelineCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Immutable Ledger")
-                .font(AppTheme.inter(13, weight: .semibold))
+            Text("Order Timeline")
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
 
             LedgerTimelineView(
@@ -156,35 +194,13 @@ struct OrderTimelineView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .fill(AppTheme.surface.opacity(0.9))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
-    }
-
-    private var actionRow: some View {
-        HStack(spacing: 10) {
-            Button {
-            } label: {
-                Label("View Invoice", systemImage: "doc.text")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("View invoice")
-            .accessibilityHint("Opens invoice details for this order.")
-
-            Button {
-            } label: {
-                Label("Share", systemImage: "square.and.arrow.up")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("Share order")
-            .accessibilityHint("Shares this order timeline.")
-        }
     }
 
     private func currency(_ cents: Int) -> String {
@@ -238,17 +254,17 @@ struct OrderMapPreview: View {
                     )
                 }
             } else {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .fill(AppTheme.surfaceElevated)
                     .overlay {
                         Text("Location unavailable")
-                            .font(AppTheme.inter(12, weight: .semibold))
+                            .font(AppTheme.inter(AppTheme.typeFootnote, weight: .semibold))
                             .foregroundStyle(AppTheme.textMuted)
                     }
             }
         }
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
     }

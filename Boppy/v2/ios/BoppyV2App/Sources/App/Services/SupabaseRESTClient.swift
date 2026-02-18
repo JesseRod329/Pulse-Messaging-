@@ -133,6 +133,38 @@ final class SupabaseRESTClient {
         try await restRequest(pathAndQuery: pathAndQuery, method: "PATCH", body: body, accessToken: accessToken, prefer: prefer)
     }
 
+    /// Uploads raw file data to Supabase Storage and returns the public URL string.
+    func storageUpload(
+        bucket: String,
+        path: String,
+        data: Data,
+        contentType: String,
+        accessToken: String
+    ) async throws -> String {
+        try await executeWithRefreshRetry(initialAccessToken: accessToken) { token in
+            guard let url = URL(
+                string: "\(self.config.url.absoluteString)/storage/v1/object/\(bucket)/\(path)"
+            ) else {
+                throw SupabaseClientError.invalidURL
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = data
+            request.setValue(self.config.anonKey, forHTTPHeaderField: "apikey")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+
+            let (responseData, response) = try await self.session.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            guard (200..<300).contains(status) else {
+                throw self.decodeError(status: status, data: responseData)
+            }
+
+            return "\(self.config.url.absoluteString)/storage/v1/object/public/\(bucket)/\(path)"
+        }
+    }
+
     func edgeCall<T: Decodable>(
         functionName: String,
         accessToken: String,
@@ -145,6 +177,7 @@ final class SupabaseRESTClient {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue(self.config.anonKey, forHTTPHeaderField: "apikey")
 
             let (data, response) = try await self.session.data(for: request)
             let status = (response as? HTTPURLResponse)?.statusCode ?? -1
@@ -220,7 +253,7 @@ final class SupabaseRESTClient {
     }
 
     private func decodeError(status: Int, data: Data) -> SupabaseClientError {
-        if status == 401 || status == 403 {
+        if status == 401 {
             return .unauthorized
         }
 
@@ -287,7 +320,23 @@ final class SupabaseRESTClient {
 private extension JSONDecoder {
     static var iso8601: JSONDecoder {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let value = try container.decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: value) {
+                return date
+            }
+            formatter.formatOptions = [.withInternetDateTime]
+            if let date = formatter.date(from: value) {
+                return date
+            }
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Invalid ISO8601 date: \(value)"
+            )
+        }
         return decoder
     }
 }

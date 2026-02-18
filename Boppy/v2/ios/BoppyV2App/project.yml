@@ -1,6 +1,18 @@
 name: BoppyV2App
 options:
   createIntermediateGroups: true
+schemes:
+  BoppyV2App:
+    build:
+      targets:
+        BoppyV2App: all
+    run:
+      config: Release
+    test:
+      config: Debug
+      targets:
+        - BoppyV2AppTests
+        - BoppyV2AppUITests
 packages:
   BoppyV2Core:
     path: .
@@ -15,11 +27,36 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: Sources/App
+    resources:
+      - path: Sources/App/Resources
     configFiles:
       Debug: Config/xcconfig.template
-      Release: Config/xcconfig.template
+      Release: Config/Release.xcconfig
     info:
       path: Sources/App/Info.plist
+      properties:
+        CFBundleDisplayName: BeamBox
+        UIAppFonts:
+          - Inter-Regular.ttf
+          - Inter-Medium.ttf
+          - Inter-SemiBold.ttf
+          - Inter-Bold.ttf
+        UIRequiresFullScreen: true
+        UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen: {}
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.jesse.boppyv2.deeplink
+            CFBundleURLSchemes:
+              - beambox
+        CFBundleVersion: "2"
+        LSApplicationQueriesSchemes:
+          - maps
+        NSLocationWhenInUseUsageDescription: BeamBox uses your location to show your position on the dispatch map and optimize delivery routes.
+        NSPhotoLibraryUsageDescription: BeamBox needs access to your photo library to attach images and videos to posts and inventory items.
+        SUPABASE_URL: $(SUPABASE_URL)
+        SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
+        SUPABASE_EDGE_BASE_URL: $(SUPABASE_EDGE_BASE_URL)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jesse.boppyv2

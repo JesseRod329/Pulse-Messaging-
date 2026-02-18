@@ -8,6 +8,8 @@ struct FeedOwnerComposerView: View {
     @Binding var newMediaPath: String
     @Binding var selectedPhotoItem: PhotosPickerItem?
     @Binding var isFileImporterPresented: Bool
+    @Binding var newPrice: String
+    @Binding var newHeroSubtitle: String
 
     let selectedChannelID: String?
     let isOffline: Bool
@@ -43,16 +45,23 @@ struct FeedOwnerComposerView: View {
             TextField("Caption", text: $newCaption)
                 .feedInputFieldStyle()
 
-            if newPostType != .text {
-                TextField("Media URL or path", text: $newMediaPath)
-                    .feedInputFieldStyle()
-                    .textInputAutocapitalization(.never)
-                    .disableAutocorrection(true)
+            TextField("Subtitle (optional)", text: $newHeroSubtitle)
+                .feedInputFieldStyle()
 
+            HStack(spacing: 4) {
+                Text("$")
+                    .font(AppTheme.inter(AppTheme.typeBody, weight: .bold))
+                    .foregroundStyle(AppTheme.textSecondary)
+                TextField("Price", text: $newPrice)
+                    .keyboardType(.decimalPad)
+            }
+            .feedInputFieldStyle()
+
+            if newPostType != .text {
                 HStack(spacing: 8) {
                     PhotosPicker(
                         selection: $selectedPhotoItem,
-                        matching: newPostType == .video ? .videos : .images,
+                        matching: newPostType == .video ? .videos : .any(of: [.images, .videos]),
                         photoLibrary: .shared()
                     ) {
                         Label("Photos", systemImage: "photo.on.rectangle.angled")
@@ -84,10 +93,27 @@ struct FeedOwnerComposerView: View {
                 }
 
                 if !newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text("Selected: \(selectedMediaLabel)")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.textMuted)
-                        .lineLimit(1)
+                    HStack(spacing: 10) {
+                        if let url = mediaPreviewURL {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image.resizable().scaledToFill()
+                                default:
+                                    Rectangle().fill(AppTheme.surfaceElevated)
+                                        .overlay(Image(systemName: "photo").foregroundStyle(AppTheme.textMuted))
+                                }
+                            }
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusSmall, style: .continuous))
+                        }
+
+                        Text(selectedMediaLabel)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textMuted)
+                            .lineLimit(1)
+                        Spacer()
+                    }
                 }
             }
 
@@ -113,22 +139,16 @@ struct FeedOwnerComposerView: View {
                 .stroke(AppTheme.border, lineWidth: 1)
         )
     }
-}
 
-extension View {
-    func feedInputFieldStyle() -> some View {
-        self
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .foregroundStyle(AppTheme.textPrimary)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(AppTheme.surfaceElevated)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(AppTheme.border, lineWidth: 1)
-            )
-            .tint(AppTheme.accentBlue)
+    private var mediaPreviewURL: URL? {
+        let trimmed = newMediaPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if let url = URL(string: trimmed), url.scheme != nil {
+            return url
+        }
+        if FileManager.default.fileExists(atPath: trimmed) {
+            return URL(fileURLWithPath: trimmed)
+        }
+        return nil
     }
 }

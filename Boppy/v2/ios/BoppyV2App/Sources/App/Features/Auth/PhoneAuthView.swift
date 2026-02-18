@@ -5,9 +5,10 @@ struct PhoneAuthView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
 
     @State private var selectedCountry = CountryCode.us
-    @State private var phoneLocal = "5550000001"
+    @State private var phoneLocal = ""
     @State private var code = ""
     @State private var codeRequested = false
+    @State private var isSubmitting = false
     @ScaledMetric(relativeTo: .title) private var brandSize: CGFloat = 28
     @ScaledMetric(relativeTo: .body) private var authCardPadding: CGFloat = 18
     @ScaledMetric(relativeTo: .body) private var continueButtonVerticalPadding: CGFloat = 14
@@ -16,7 +17,6 @@ struct PhoneAuthView: View {
     @ScaledMetric(relativeTo: .body) private var headerOuterSize: CGFloat = 80
     @ScaledMetric(relativeTo: .body) private var headerInnerSize: CGFloat = 64
     @ScaledMetric(relativeTo: .title3) private var headerGlyphSize: CGFloat = 22
-    @ScaledMetric(relativeTo: .body) private var fieldHeight: CGFloat = 48
 
     var body: some View {
         authV2
@@ -48,11 +48,11 @@ struct PhoneAuthView: View {
                         headerIcon
 
                         VStack(spacing: 6) {
-                            Text("BeamBoxV2")
+                            Text("BeamBox")
                                 .font(AppTheme.inter(brandSize, weight: .bold, relativeTo: .largeTitle))
                                 .foregroundStyle(AppTheme.textPrimary)
                             Text("Secure phone verification")
-                                .font(AppTheme.inter(13, weight: .medium, relativeTo: .subheadline))
+                                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .medium, relativeTo: .subheadline))
                                 .foregroundStyle(AppTheme.textMuted)
                         }
 
@@ -68,11 +68,11 @@ struct PhoneAuthView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 12)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                         .fill(AppTheme.surfaceElevated)
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                         .stroke(AppTheme.border, lineWidth: 1)
                                 )
                                 .accessibilityLabel("Country code")
@@ -85,7 +85,7 @@ struct PhoneAuthView: View {
                                     keyboardType: .phonePad,
                                     disableActions: true
                                 )
-                                .frame(height: fieldHeight)
+                                .frame(height: 48)
                                 .accessibilityLabel("Phone number")
                                 .accessibilityHint("Enter your phone number to receive a verification code.")
                                 .accessibilityIdentifier("auth.phoneNumber")
@@ -98,7 +98,7 @@ struct PhoneAuthView: View {
                                     keyboardType: .numberPad,
                                     disableActions: true
                                 )
-                                .frame(height: fieldHeight)
+                                .frame(height: 48)
                                 .accessibilityLabel("Verification code")
                                 .accessibilityHint("Enter the 6 digit code sent to your phone.")
                                 .accessibilityIdentifier("auth.code")
@@ -133,6 +133,8 @@ struct PhoneAuthView: View {
 
                         Button {
                             Task {
+                                isSubmitting = true
+                                defer { isSubmitting = false }
                                 if codeRequested {
                                     await coordinator.verifyOTP(phone: resolvedPhone, code: code)
                                 } else {
@@ -145,19 +147,26 @@ struct PhoneAuthView: View {
                             }
                         } label: {
                             HStack(spacing: 8) {
-                                Text(codeRequested ? "Continue" : "Send Code")
-                                    .font(AppTheme.inter(16, weight: .semibold, relativeTo: .headline))
-                                DesignIconView(icon: .chevronRight, size: 14, color: AppTheme.textPrimary)
+                                if isSubmitting {
+                                    ProgressView()
+                                        .tint(AppTheme.textPrimary)
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Text(codeRequested ? "Continue" : "Send Code")
+                                        .font(AppTheme.inter(AppTheme.typeBody, weight: .semibold, relativeTo: .headline))
+                                    DesignIconView(icon: .chevronRight, size: 14, color: AppTheme.textPrimary)
+                                }
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, continueButtonVerticalPadding)
                             .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                     .fill(AppTheme.accentBlue)
                             )
                             .foregroundStyle(AppTheme.textPrimary)
                         }
                         .buttonStyle(.plain)
+                        .disabled(isSubmitting)
                         .accessibilityLabel(codeRequested ? "Verify code" : "Send code")
                         .accessibilityHint(codeRequested ? "Verifies your one-time passcode and signs you in." : "Sends a one-time passcode to your phone.")
                         .accessibilityIdentifier(codeRequested ? "auth.verifyCode" : "auth.sendCode")
@@ -166,16 +175,16 @@ struct PhoneAuthView: View {
                             Image(systemName: "info.circle")
                             Text("Invite-only network. Contact your supplier for access.")
                         }
-                        .font(AppTheme.inter(12, weight: .medium, relativeTo: .subheadline))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium, relativeTo: .subheadline))
                         .foregroundStyle(AppTheme.accentBlue)
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                 .fill(AppTheme.accentBlue.opacity(0.05))
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                                 .stroke(AppTheme.accentBlue.opacity(0.12), lineWidth: 1)
                         )
                         .accessibilityLabel("Invite-only access info")
@@ -185,11 +194,11 @@ struct PhoneAuthView: View {
                     .padding(authCardPadding)
                     .frame(maxWidth: 420)
                     .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.radiusLarge, style: .continuous)
                             .fill(AppTheme.cardGradient)
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.radiusLarge, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 1)
                     )
                     .padding(.horizontal, AppTheme.screenHorizontalPadding)
@@ -206,7 +215,7 @@ struct PhoneAuthView: View {
 
     private var headerIcon: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusLarge, style: .continuous)
                 .fill(AppTheme.accentBlue.opacity(0.2))
                 .frame(width: headerOuterSize, height: headerOuterSize)
             Circle()
@@ -214,7 +223,7 @@ struct PhoneAuthView: View {
                 .frame(width: headerInnerSize, height: headerInnerSize)
                 .overlay {
                     Image(systemName: "truck.box.fill")
-                        .font(AppTheme.symbolFont(headerGlyphSize, weight: .bold))
+                        .font(.system(size: headerGlyphSize, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                 }
         }
@@ -227,15 +236,15 @@ struct PhoneAuthView: View {
             Text("/")
             Text("VERIFIED")
             Text("/")
-            Text("BEAMBOX V2.0.4")
+            Text("BEAMBOX V1.0")
         }
-        .font(AppTheme.inter(11, weight: .semibold, relativeTo: .caption))
+        .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold, relativeTo: .caption))
         .foregroundStyle(AppTheme.textMuted)
         .padding(.horizontal, trustStripHorizontalPadding)
         .padding(.vertical, trustStripVerticalPadding)
         .background(
             Capsule()
-                .fill(AppTheme.surface.opacity(0.75))
+                .fill(AppTheme.surfaceCardSecondary)
         )
         .overlay(
             Capsule()
@@ -257,20 +266,20 @@ struct PhoneAuthView: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.accentBlueSoft)
                         .frame(width: 36, height: 36)
                     Image(systemName: icon)
-                        .font(AppTheme.inter(14, weight: .semibold, relativeTo: .subheadline))
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold, relativeTo: .subheadline))
                         .foregroundStyle(AppTheme.textPrimary)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(AppTheme.inter(14, weight: .semibold))
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(subtitle)
-                        .font(AppTheme.inter(12, weight: .regular))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .regular))
                         .foregroundStyle(AppTheme.textMuted)
                 }
 
@@ -282,11 +291,11 @@ struct PhoneAuthView: View {
             }
             .padding(13)
             .background(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(AppTheme.surface.opacity(0.88))
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                    .fill(AppTheme.surfaceCard)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                     .stroke(AppTheme.border, lineWidth: 1)
             )
         }
@@ -369,7 +378,7 @@ private struct InputTextField: UIViewRepresentable {
         field.backgroundColor = UIColor(AppTheme.surfaceElevated)
         field.textColor = UIColor(AppTheme.textPrimary)
         field.tintColor = UIColor(AppTheme.accentBlue)
-        field.layer.cornerRadius = 12
+        field.layer.cornerRadius = AppTheme.radiusMedium
         field.layer.borderWidth = 1
         field.layer.borderColor = UIColor(AppTheme.border).cgColor
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 1))

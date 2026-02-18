@@ -24,10 +24,10 @@ struct FollowerOrdersView: View {
                         filterRail
 
                         if filteredOrders.isEmpty {
-                            ContentUnavailableView(
-                                "No Orders",
-                                systemImage: "shippingbox",
-                                description: Text("Your order updates will appear here.")
+                            AppEmptyStateView(
+                                icon: "shippingbox",
+                                title: "No Orders",
+                                subtitle: "Your order updates will appear here."
                             )
                         } else {
                             LazyVStack(spacing: 0) {
@@ -46,7 +46,7 @@ struct FollowerOrdersView: View {
                     await coordinator.refreshAll()
                 }
 
-                FloatingActionButton(title: "Pending", icon: .add) {
+                FloatingActionButton(title: "Pending", icon: .menu) {
                     selectedFilter = .requested
                 }
                 .padding(.trailing, 18)
@@ -111,20 +111,14 @@ struct FollowerOrdersView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(FollowerOrderFilter.allCases, id: \.self) { filter in
-                    Button {
+                    FilterChip(
+                        title: filter.rawValue,
+                        isSelected: selectedFilter == filter
+                    ) {
                         selectedFilter = filter
-                    } label: {
-                        Text(filter.rawValue)
-                            .font(AppTheme.inter(12, weight: .semibold))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            .background(Capsule().fill(selectedFilter == filter ? AppTheme.accentBlue.opacity(0.24) : AppTheme.surface.opacity(0.9)))
-                            .overlay(Capsule().stroke(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1))
                     }
-                    .buttonStyle(.plain)
                     .accessibilityLabel("\(filter.rawValue) filter")
                     .accessibilityHint("Shows \(filter.rawValue.lowercased()) orders.")
-                    .foregroundStyle(selectedFilter == filter ? AppTheme.accentBlue : AppTheme.textSecondary)
                     .accessibilityIdentifier("orders.filter.\(filter.rawValue.lowercased().replacingOccurrences(of: " ", with: ""))")
                 }
             }
@@ -143,12 +137,12 @@ struct FollowerOrdersView: View {
         } label: {
             HStack(spacing: 10) {
                 ZStack(alignment: .bottomTrailing) {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                         .fill(AppTheme.accentBlue.opacity(0.16))
                         .frame(width: iconContainerSize, height: iconContainerSize)
                         .overlay(
                             Text(iconGlyph(order))
-                                .font(AppTheme.inter(18, weight: .bold))
+                                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold))
                                 .foregroundStyle(AppTheme.accentBlue)
                         )
 
@@ -161,16 +155,16 @@ struct FollowerOrdersView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(order.summaryTitle ?? "Order \(shortID(order.id))")
-                        .font(AppTheme.inter(14, weight: .bold))
+                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineLimit(1)
 
                     Text(order.externalRef ?? shortID(order.id))
-                        .font(AppTheme.interMonospaced(11, weight: .bold, relativeTo: .caption2))
+                        .font(.system(size: AppTheme.typeCaption, weight: .bold, design: .monospaced))
                         .foregroundStyle(AppTheme.textMuted)
 
                     Text(order.quoteNote.isEmpty ? "Awaiting update" : order.quoteNote)
-                        .font(AppTheme.inter(12, weight: .medium))
+                        .font(AppTheme.inter(AppTheme.typeFootnote, weight: .medium))
                         .foregroundStyle(AppTheme.textSecondary)
                         .lineLimit(1)
                 }
@@ -179,7 +173,7 @@ struct FollowerOrdersView: View {
 
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(order.updatedAt, style: .time)
-                        .font(AppTheme.inter(11, weight: .medium))
+                        .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
                         .foregroundStyle(AppTheme.textMuted)
 
                     OrderStatusPill(status: order.status)
@@ -194,7 +188,7 @@ struct FollowerOrdersView: View {
             .padding(.vertical, rowVerticalPadding)
             .overlay(alignment: .bottom) {
                 Rectangle()
-                    .fill(AppTheme.border.opacity(0.45))
+                    .fill(AppTheme.borderSubtle)
                     .frame(height: 1)
             }
         }

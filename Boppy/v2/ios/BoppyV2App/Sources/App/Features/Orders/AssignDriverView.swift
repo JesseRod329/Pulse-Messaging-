@@ -21,19 +21,28 @@ struct AssignDriverView: View {
                 contextBanner
 
                 ScrollView {
-                    LazyVStack(spacing: 10) {
-                        ForEach(filteredDrivers) { driver in
-                            driverRow(driver)
+                    if filteredDrivers.isEmpty {
+                        AppEmptyStateView(
+                            icon: "person.crop.circle.badge.xmark",
+                            title: "No Drivers Found",
+                            subtitle: "Try a different filter or search term."
+                        )
+                        .padding(.top, 40)
+                    } else {
+                        LazyVStack(spacing: 10) {
+                            ForEach(filteredDrivers) { driver in
+                                driverRow(driver)
+                            }
                         }
+                        .padding(.horizontal, AppTheme.screenHorizontalPadding)
+                        .padding(.top, 6)
+                        .padding(.bottom, 12)
                     }
-                    .padding(.horizontal, AppTheme.screenHorizontalPadding)
-                    .padding(.top, 6)
-                    .padding(.bottom, 12)
                 }
 
                 OrderMapPreview(order: order)
                     .frame(height: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous))
                     .padding(.horizontal, AppTheme.screenHorizontalPadding)
                     .padding(.bottom, 12)
             }
@@ -58,7 +67,7 @@ struct AssignDriverView: View {
                 return feedStore.drivers
             case .available:
                 return feedStore.drivers.filter { ($0.availability ?? "").lowercased() != "busy" }
-            case .favorites:
+            case .topRated:
                 return feedStore.drivers.sorted { ($0.rating ?? 0) > ($1.rating ?? 0) }
             }
         }()
@@ -74,49 +83,27 @@ struct AssignDriverView: View {
     }
 
     private var searchField: some View {
-        HStack(spacing: 8) {
-            DesignIconView(icon: .search, size: 14, color: AppTheme.textMuted)
-            TextField("Search nearby drivers", text: $searchText)
-                .foregroundStyle(AppTheme.textPrimary)
-                .textInputAutocapitalization(.never)
-                .disableAutocorrection(true)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 1)
-        )
-        .padding(.horizontal, AppTheme.screenHorizontalPadding)
-        .padding(.top, 10)
-        .accessibilityLabel("Search drivers")
-        .accessibilityHint("Filters available drivers by name.")
-        .accessibilityIdentifier("orders.assign.search")
+        SearchField(placeholder: "Search nearby drivers", text: $searchText)
+            .padding(.horizontal, AppTheme.screenHorizontalPadding)
+            .padding(.top, 10)
+            .accessibilityLabel("Search drivers")
+            .accessibilityHint("Filters available drivers by name.")
+            .accessibilityIdentifier("orders.assign.search")
     }
 
     private var tabRail: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(DriverFilterTab.allCases, id: \.self) { tab in
-                    Button {
+                    FilterChip(
+                        title: tab.rawValue,
+                        isSelected: selectedTab == tab
+                    ) {
                         selectedTab = tab
-                    } label: {
-                        Text(tab.rawValue)
-                            .font(AppTheme.inter(12, weight: .semibold))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 7)
-                            .background(Capsule().fill(selectedTab == tab ? AppTheme.accentBlue.opacity(0.25) : AppTheme.surface))
-                            .overlay(Capsule().stroke(selectedTab == tab ? AppTheme.accentBlue : AppTheme.border, lineWidth: 1))
                     }
-                    .buttonStyle(.plain)
                     .accessibilityLabel("\(tab.rawValue) drivers")
                     .accessibilityHint("Filters the driver list.")
                     .accessibilityIdentifier("orders.assign.tab.\(tab.rawValue.lowercased())")
-                    .foregroundStyle(selectedTab == tab ? AppTheme.accentBlue : AppTheme.textSecondary)
                 }
             }
             .padding(.horizontal, AppTheme.screenHorizontalPadding)
@@ -127,10 +114,10 @@ struct AssignDriverView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(order.summaryTitle ?? "Order")
-                    .font(AppTheme.inter(13, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(order.externalRef ?? order.id)
-                    .font(AppTheme.interMonospaced(11, weight: .bold, relativeTo: .caption2))
+                    .font(.system(size: AppTheme.typeCaption, weight: .bold, design: .monospaced))
                     .foregroundStyle(AppTheme.textMuted)
             }
             Spacer()
@@ -139,11 +126,11 @@ struct AssignDriverView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.9))
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .fill(AppTheme.surfaceCard)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
         .padding(.horizontal, AppTheme.screenHorizontalPadding)
@@ -169,7 +156,7 @@ struct AssignDriverView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(driver.displayName)
-                    .font(AppTheme.inter(14, weight: .semibold))
+                    .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                 HStack(spacing: 8) {
                     Text(distanceText)
@@ -177,7 +164,7 @@ struct AssignDriverView: View {
                     Text("★ \(String(format: "%.1f", driver.rating ?? 4.5))")
                     Text("\(driver.tripCount ?? 0) trips")
                 }
-                .font(AppTheme.inter(11, weight: .medium))
+                .font(AppTheme.inter(AppTheme.typeCaption, weight: .medium))
                 .foregroundStyle(AppTheme.textMuted)
             }
 
@@ -191,10 +178,10 @@ struct AssignDriverView: View {
                 onAssign(driver.id)
             } label: {
                 Text(isBusy ? "Busy" : "Assign")
-                    .font(AppTheme.inter(12, weight: .bold))
+                    .font(AppTheme.inter(AppTheme.typeFootnote, weight: .bold))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(isBusy ? AppTheme.surfaceElevated : AppTheme.accentBlue))
+                    .background(RoundedRectangle(cornerRadius: AppTheme.radiusSmall, style: .continuous).fill(isBusy ? AppTheme.surfaceElevated : AppTheme.accentBlue))
                     .foregroundStyle(isBusy ? AppTheme.textMuted : AppTheme.textPrimary)
             }
             .buttonStyle(.plain)
@@ -205,11 +192,11 @@ struct AssignDriverView: View {
         }
         .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.surface.opacity(0.9))
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
+                .fill(AppTheme.surfaceCard)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.radiusMedium, style: .continuous)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
     }
@@ -247,5 +234,5 @@ struct AssignDriverView: View {
 private enum DriverFilterTab: String, CaseIterable {
     case nearby = "Nearby"
     case available = "Available"
-    case favorites = "Favorites"
+    case topRated = "Top Rated"
 }

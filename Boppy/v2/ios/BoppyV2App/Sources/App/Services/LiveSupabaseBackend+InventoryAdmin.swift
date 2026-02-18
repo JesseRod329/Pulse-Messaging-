@@ -186,6 +186,33 @@ extension LiveSupabaseBackend {
         ) as [String: JSONValue]
     }
 
+    func lookupUserByPhone(phoneE164: String) async throws -> SessionUser? {
+        let accessToken = try requireAccessToken()
+        let query = "profiles?select=id,phone_e164,display_name&phone_e164=eq.\(escape(phoneE164))&limit=1"
+        let data = try await client.restGet(pathAndQuery: query, accessToken: accessToken)
+
+        struct ProfileRow: Decodable {
+            let id: String
+            let phoneE164: String?
+            let displayName: String?
+
+            enum CodingKeys: String, CodingKey {
+                case id
+                case phoneE164 = "phone_e164"
+                case displayName = "display_name"
+            }
+        }
+
+        let rows = try decode([ProfileRow].self, from: data)
+        guard let row = rows.first else { return nil }
+        return SessionUser(
+            id: row.id,
+            phoneE164: row.phoneE164 ?? phoneE164,
+            displayName: row.displayName ?? "Driver",
+            role: .follower
+        )
+    }
+
     func fetchAdminAuditEvents(channelID: String, action: String?, limit: Int, actorID: String) async throws -> [AdminAuditEvent] {
         let accessToken = try requireAccessToken()
         _ = actorID

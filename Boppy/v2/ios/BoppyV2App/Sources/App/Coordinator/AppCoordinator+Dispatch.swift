@@ -32,6 +32,7 @@ extension AppCoordinator {
                 direction: direction,
                 dispatchService: environment.dispatchService
             )
+            await refreshAll()
         } catch {
             handleError(error)
         }
@@ -54,5 +55,20 @@ extension AppCoordinator {
         }
     }
 
+    func clearRoute() async {
+        guard let user = authStore.user, user.role == .owner else { return }
+        guard ensureOnline() else { return }
+        guard let routeID = dispatchStore.routes.first?.id else { return }
 
+        do {
+            try await dispatchStore.clearRoute(
+                routeID: routeID,
+                actorID: user.id,
+                dispatchService: environment.dispatchService
+            )
+            await refreshAll()
+        } catch {
+            handleError(error)
+        }
+    }
 }
