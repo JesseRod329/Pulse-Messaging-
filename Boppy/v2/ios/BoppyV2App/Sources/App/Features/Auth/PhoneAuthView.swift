@@ -236,7 +236,7 @@ struct PhoneAuthView: View {
             Text("/")
             Text("VERIFIED")
             Text("/")
-            Text("BEAMBOX V1.0")
+            Text("BOPPYV1")
         }
         .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold, relativeTo: .caption))
         .foregroundStyle(AppTheme.textMuted)
