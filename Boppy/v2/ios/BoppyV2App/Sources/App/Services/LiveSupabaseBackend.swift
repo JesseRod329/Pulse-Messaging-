@@ -454,6 +454,16 @@ final class LiveSupabaseBackend: AuthServiceProtocol, ChannelFeedServiceProtocol
         )
     }
 
+    func updateDisplayName(userID: String, displayName: String, accessToken: String) async throws -> SessionUser {
+        let body: [String: Any] = ["display_name": displayName]
+        _ = try await client.restPatch(
+            pathAndQuery: "profiles?id=eq.\(escape(userID))&select=id",
+            body: body,
+            accessToken: accessToken
+        )
+        return try await resolveSessionUser(userID: userID, fallbackPhone: "", accessToken: accessToken)
+    }
+
     func upsertProfile(userID: String, phoneE164: String, displayName: String?, accessToken: String) async throws {
         let body = [[
             "id": userID,

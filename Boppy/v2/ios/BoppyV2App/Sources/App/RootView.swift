@@ -11,6 +11,10 @@ struct RootView: View {
         Group {
             if authStore.user == nil {
                 PhoneAuthView()
+            } else if needsProfileSetup(authStore.user) {
+                ProfileSetupView(role: authStore.user!.role) { name in
+                    Task { await coordinator.updateDisplayName(name) }
+                }
             } else {
                 MainShellView()
             }
@@ -81,6 +85,12 @@ struct RootView: View {
         .onChange(of: networkMonitor.isOnline) { _, isOnline in
             coordinator.setNetworkOnline(isOnline)
         }
+    }
+
+    private func needsProfileSetup(_ user: SessionUser?) -> Bool {
+        guard let user, user.role != .owner else { return false }
+        let defaults: Set<String> = ["Follower", "Driver", "follower", "driver", "Member", "member", ""]
+        return defaults.contains(user.displayName.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }
 

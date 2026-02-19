@@ -114,6 +114,32 @@ final class AppCoordinator: ObservableObject {
         }
     }
 
+    func updateDisplayName(_ name: String) async {
+        guard ensureOnline() else { return }
+        guard let user = authStore.user else { return }
+        do {
+            if let backend = environment.authService as? LiveSupabaseBackend {
+                let token = try backend.requireAccessToken()
+                let updatedUser = try await backend.updateDisplayName(
+                    userID: user.id,
+                    displayName: name,
+                    accessToken: token
+                )
+                authStore.user = updatedUser
+            } else {
+                // InMemory/demo fallback: update in-memory user directly
+                authStore.user = SessionUser(
+                    id: user.id,
+                    phoneE164: user.phoneE164,
+                    displayName: name,
+                    role: user.role
+                )
+            }
+        } catch {
+            handleError(error)
+        }
+    }
+
     func requestOTP(phone: String) async {
         guard ensureOnline() else { return }
         do {

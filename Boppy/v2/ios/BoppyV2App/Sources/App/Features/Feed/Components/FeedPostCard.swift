@@ -48,11 +48,7 @@ struct FeedPostCard: View {
                         .lineLimit(2)
                 }
 
-                if let priceCents = post.priceCents, priceCents > 0 {
-                    Text(Self.formatPrice(priceCents))
-                        .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
-                        .foregroundStyle(AppTheme.success)
-                }
+                priceRow
             }
 
             if showsFollowerHint {
@@ -224,7 +220,7 @@ struct FeedPostCard: View {
 
             HStack {
                 if let priceCents = post.priceCents, priceCents > 0 {
-                    Label("From \(Self.formatPrice(priceCents))", systemImage: "tag.fill")
+                    Label("lb \(Self.formatPrice(priceCents))", systemImage: "tag.fill")
                         .font(AppTheme.inter(AppTheme.typeCaption, weight: .semibold))
                         .foregroundStyle(AppTheme.success)
                 } else {
@@ -257,6 +253,57 @@ struct FeedPostCard: View {
                 .accessibilityIdentifier("feed.post.quickOrder")
             }
         }
+    }
+
+    /// Displays lb / hp / qp prices. lb comes from priceCents; hp and qp are encoded
+    /// in heroSubtitle as "hp: $X.XX / qp: $X.XX" by the post composer.
+    @ViewBuilder
+    private var priceRow: some View {
+        let lbPrice = post.priceCents.flatMap { $0 > 0 ? Self.formatPrice($0) : nil }
+        // Parse hp/qp from heroSubtitle if it contains our encoded format
+        let (hpPrice, qpPrice) = Self.parsePriceSubtitle(post.heroSubtitle)
+        let hasPrices = lbPrice != nil || hpPrice != nil || qpPrice != nil
+        if hasPrices {
+            HStack(spacing: 12) {
+                if let lb = lbPrice {
+                    priceChip(label: "lb", value: lb)
+                }
+                if let hp = hpPrice {
+                    priceChip(label: "hp", value: hp)
+                }
+                if let qp = qpPrice {
+                    priceChip(label: "qp", value: qp)
+                }
+            }
+        }
+    }
+
+    private func priceChip(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label)
+                .font(AppTheme.inter(9, weight: .bold, relativeTo: .caption2))
+                .foregroundStyle(AppTheme.textMuted)
+            Text(value)
+                .font(AppTheme.inter(AppTheme.typeSubheadline, weight: .bold))
+                .foregroundStyle(AppTheme.success)
+        }
+    }
+
+    /// Parses "hp: $X.XX / qp: $X.XX" (or partial) from heroSubtitle.
+    private static func parsePriceSubtitle(_ subtitle: String?) -> (hp: String?, qp: String?) {
+        guard let subtitle else { return (nil, nil) }
+        var hp: String?
+        var qp: String?
+        let parts = subtitle.components(separatedBy: "/")
+        for part in parts {
+            let trimmed = part.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("hp:") {
+                hp = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+            } else if trimmed.hasPrefix("qp:") {
+                qp = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+            }
+        }
+        return (hp, qp)
     }
 
     private var slotBadge: String {

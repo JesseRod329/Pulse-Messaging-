@@ -20,7 +20,9 @@ struct FeedView: View {
     @State private var isOwnerActionsSheetPresented = false
     @State private var quickOrderPost: ChannelPost?
     @State private var selectedReactionByPostID: [String: String] = [:]
-    @State private var newPrice = ""
+    @State private var newPriceLb = ""
+    @State private var newPriceHp = ""
+    @State private var newPriceQp = ""
     @State private var newHeroSubtitle = ""
     @State private var editingPost: ChannelPost?
     @State private var postToDelete: ChannelPost?
@@ -173,7 +175,7 @@ struct FeedView: View {
     }
 
     private var selectedChannelTitle: String {
-        feedStore.channels.first(where: { $0.id == feedStore.selectedChannelID })?.title ?? "BeamBox Global"
+        feedStore.channels.first(where: { $0.id == feedStore.selectedChannelID })?.title ?? "Beamly"
     }
 
     @ViewBuilder
@@ -389,14 +391,21 @@ struct FeedView: View {
                 .feedInputFieldStyle()
 
             HStack(spacing: 8) {
-                HStack(spacing: 4) {
-                    Text("$")
-                        .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .body))
-                        .foregroundStyle(AppTheme.textSecondary)
-                    TextField("Price", text: $newPrice)
-                        .keyboardType(.decimalPad)
+                ForEach([("lb", $newPriceLb), ("hp", $newPriceHp), ("qp", $newPriceQp)], id: \.0) { label, binding in
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(label)
+                            .font(AppTheme.inter(11, weight: .bold, relativeTo: .caption2))
+                            .foregroundStyle(AppTheme.textSecondary)
+                        HStack(spacing: 3) {
+                            Text("$")
+                                .font(AppTheme.inter(AppTheme.typeBody, weight: .bold, relativeTo: .body))
+                                .foregroundStyle(AppTheme.textSecondary)
+                            TextField("0.00", text: binding)
+                                .keyboardType(.decimalPad)
+                        }
+                        .feedInputFieldStyle()
+                    }
                 }
-                .feedInputFieldStyle()
             }
 
             if newPostType != .text {
@@ -467,23 +476,34 @@ struct FeedView: View {
 
             Button {
                 let media = newPostType == .text ? nil : newMediaPath
-                let subtitle = newHeroSubtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : newHeroSubtitle
-                let parsedPriceCents: Int? = {
-                    let cleaned = newPrice.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !cleaned.isEmpty, let dollars = Double(cleaned) else { return nil }
-                    return Int(round(dollars * 100))
-                }()
+                let lbCents = Self.parsePriceCents(newPriceLb)
+                let hpCents = Self.parsePriceCents(newPriceHp)
+                let qpCents = Self.parsePriceCents(newPriceQp)
+                // Pack hp and qp into heroSubtitle as "hp:$X.XX / qp:$X.XX"
+                let priceSubtitle = Self.buildPriceSubtitle(hp: hpCents, qp: qpCents)
+                // Prefer explicit subtitle; append price breakdown if no subtitle entered
+                let userSubtitle = newHeroSubtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+                let finalSubtitle: String?
+                if !userSubtitle.isEmpty, let ps = priceSubtitle {
+                    finalSubtitle = "\(userSubtitle) · \(ps)"
+                } else if !userSubtitle.isEmpty {
+                    finalSubtitle = userSubtitle
+                } else {
+                    finalSubtitle = priceSubtitle
+                }
                 Task {
                     await coordinator.createPost(
                         type: newPostType,
                         caption: newCaption,
                         mediaPath: media,
-                        heroSubtitle: subtitle,
-                        priceCents: parsedPriceCents
+                        heroSubtitle: finalSubtitle,
+                        priceCents: lbCents
                     )
                     newCaption = ""
                     newMediaPath = ""
-                    newPrice = ""
+                    newPriceLb = ""
+                    newPriceHp = ""
+                    newPriceQp = ""
                     newHeroSubtitle = ""
                     selectedPhotoItem = nil
                     newPostType = .text
@@ -802,6 +822,24 @@ struct FeedView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             coordinator.openOrderSheet(for: post, prefilledQuote: option.prefilledNote)
         }
+    }
+
+    private static func parsePriceCents(_ raw: String) -> Int? {
+        let cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleaned.isEmpty, let dollars = Double(cleaned), dollars > 0 else { return nil }
+        return Int(round(dollars * 100))
+    }
+
+    private static func buildPriceSubtitle(hp: Int?, qp: Int?) -> String? {
+        var parts: [String] = []
+        if let hp { parts.append("hp: \(formatCents(hp))") }
+        if let qp { parts.append("qp: \(formatCents(qp))") }
+        return parts.isEmpty ? nil : parts.joined(separator: " / ")
+    }
+
+    private static func formatCents(_ cents: Int) -> String {
+        let dollars = Double(cents) / 100.0
+        return String(format: "$%.2f", dollars)
     }
 }
 

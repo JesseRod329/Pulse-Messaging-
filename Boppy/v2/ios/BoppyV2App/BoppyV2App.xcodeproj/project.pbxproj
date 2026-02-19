@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -68,6 +68,7 @@
 		B37FA07E30A3C4F65843A9C8 /* DispatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F8B36D00945CC850925CA1 /* DispatchStore.swift */; };
 		B93FBA82DCD1BCF2E56BB323 /* AppCoordinator+Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB6D01CC9EECF9C75026A5F /* AppCoordinator+Dispatch.swift */; };
 		C02D1D412CE0A95EBC976A23 /* BoppyV2Core in Frameworks */ = {isa = PBXBuildFile; productRef = B3F672361D88A92AC66113B7 /* BoppyV2Core */; };
+		C2C162BFE771B6007A38E2EB /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2695112D80B60919823162EB /* ProfileSetupView.swift */; };
 		C417F95D12B488129F12E544 /* SupabaseSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F6AC291A75E687BEB40E3F6 /* SupabaseSessionStore.swift */; };
 		CB8A19E93738723ED3AB7DAA /* BoppyV2AppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C059BCD02780174D1D3B94 /* BoppyV2AppUITests.swift */; };
 		D1595F6A7AFC115268854CD7 /* LiveSupabaseBackend+Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B47D0CD427E965C60AA4C7 /* LiveSupabaseBackend+Feed.swift */; };
@@ -115,6 +116,7 @@
 		182D458DEA0A3C14624EE451 /* InventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryStore.swift; sourceTree = "<group>"; };
 		23413FD33BB70603998484C6 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 		241AF661813BBD1D197D2A01 /* FeedChannelThreadSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedChannelThreadSheetView.swift; sourceTree = "<group>"; };
+		2695112D80B60919823162EB /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
 		2A9AD3F414631B8FF8B6388F /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		2C5DC2231190744F5BDB60EF /* FollowerOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerOrdersView.swift; sourceTree = "<group>"; };
 		332C9154B463C809092F3C29 /* RouteStopCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteStopCard.swift; sourceTree = "<group>"; };
@@ -136,7 +138,7 @@
 		4F02665F2FA7EE284629E051 /* OrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersView.swift; sourceTree = "<group>"; };
 		4F25F0787FAE3E33329E02DB /* SessionTokenStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTokenStoreTests.swift; sourceTree = "<group>"; };
 		5228F074F73C7A7045F5FCB0 /* FeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedStore.swift; sourceTree = "<group>"; };
-		5FDF677D36E10625F0701C30 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5FDF677D36E10625F0701C30 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		73D6DD811F2DE532911BA22C /* SessionTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTokenStore.swift; sourceTree = "<group>"; };
 		7926513E176EAA435C5F9AE2 /* InventoryCatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryCatalogView.swift; sourceTree = "<group>"; };
 		7F46566F24EAC76CB55ACCA8 /* ScreenBackgroundModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenBackgroundModifier.swift; sourceTree = "<group>"; };
@@ -147,7 +149,7 @@
 		8BF1D1879A40355776153D15 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		91389C37A5FFE874A58CE260 /* LedgerTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerTimelineView.swift; sourceTree = "<group>"; };
 		939C1BF6F146DC40A1E574C2 /* AdminPanelCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminPanelCard.swift; sourceTree = "<group>"; };
-		943DC77321F6DBE85FAB4619 /* xcconfig.template */ = {isa = PBXFileReference; lastKnownFileType = text; path = xcconfig.template; sourceTree = "<group>"; };
+		943DC77321F6DBE85FAB4619 /* xcconfig.template */ = {isa = PBXFileReference; path = xcconfig.template; sourceTree = "<group>"; };
 		97B9D7F2C976F9EF430E5E64 /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-SemiBold.ttf"; sourceTree = "<group>"; };
 		9C2492E60A2E60957BC043B6 /* LiveSupabaseBackend+Orders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveSupabaseBackend+Orders.swift"; sourceTree = "<group>"; };
 		9E16CE200FBC01E052DA2442 /* PhoneAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneAuthView.swift; sourceTree = "<group>"; };
@@ -161,7 +163,7 @@
 		BB9AACDD76264F382A2550E4 /* FeedHeaderStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedHeaderStrip.swift; sourceTree = "<group>"; };
 		BC43C0FD3A21C2F88BAB9FCA /* AppCoordinator+InventoryAdmin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppCoordinator+InventoryAdmin.swift"; sourceTree = "<group>"; };
 		C057C793B2BA73ADD1D76988 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
-		C1B783AD1BD8F04CA9253360 /* BeamBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeamBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1B783AD1BD8F04CA9253360 /* BoppyV2App.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BoppyV2App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D349B2F2ACAD6FD50A378968 /* BoppyV2App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoppyV2App.swift; sourceTree = "<group>"; };
 		D445D8C0A8712957166CA13E /* Inter-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Bold.ttf"; sourceTree = "<group>"; };
 		D56433814F403B523DC6EEC2 /* FeedInputFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInputFieldStyle.swift; sourceTree = "<group>"; };
@@ -290,7 +292,7 @@
 		32477C28E1791F4A6C3710C9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C1B783AD1BD8F04CA9253360 /* BeamBox.app */,
+				C1B783AD1BD8F04CA9253360 /* BoppyV2App.app */,
 				3EB13B7770F1A226DCDE7186 /* BoppyV2AppTests.xctest */,
 				83C411C3A3598B46CCCD9E51 /* BoppyV2AppUITests.xctest */,
 			);
@@ -301,6 +303,7 @@
 			isa = PBXGroup;
 			children = (
 				9E16CE200FBC01E052DA2442 /* PhoneAuthView.swift */,
+				2695112D80B60919823162EB /* ProfileSetupView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -554,7 +557,7 @@
 				B3F672361D88A92AC66113B7 /* BoppyV2Core */,
 			);
 			productName = BoppyV2App;
-			productReference = C1B783AD1BD8F04CA9253360 /* BeamBox.app */;
+			productReference = C1B783AD1BD8F04CA9253360 /* BoppyV2App.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -587,6 +590,7 @@
 			packageReferences = (
 				2E8BB60C944B97A690043F63 /* XCLocalSwiftPackageReference "." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -674,6 +678,7 @@
 				85B7A789A4FC03E62C2F31F7 /* OrderTimelineView.swift in Sources */,
 				670EE4D1DC9283E2428E3520 /* OrdersView.swift in Sources */,
 				5BCA30D7C32E5FFFA1CD33E2 /* PhoneAuthView.swift in Sources */,
+				C2C162BFE771B6007A38E2EB /* ProfileSetupView.swift in Sources */,
 				6920C81B20D48D09107FB343 /* ProfileView.swift in Sources */,
 				F93E897325CA98B8A040F93F /* RootView.swift in Sources */,
 				88D902F959C0E7BF0DF70169 /* RouteStopCard.swift in Sources */,
@@ -778,7 +783,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 594DG4D7YR;
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -786,7 +790,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2;
-				PRODUCT_NAME = BeamBox;
+				PRODUCT_NAME = Beamly;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -936,7 +940,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 594DG4D7YR;
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -944,7 +947,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2;
-				PRODUCT_NAME = BeamBox;
+				PRODUCT_NAME = Beamly;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

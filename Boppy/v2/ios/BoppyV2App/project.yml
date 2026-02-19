@@ -35,7 +35,7 @@ targets:
     info:
       path: Sources/App/Info.plist
       properties:
-        CFBundleDisplayName: BeamBox
+        CFBundleDisplayName: Beamly
         UIAppFonts:
           - Inter-Regular.ttf
           - Inter-Medium.ttf
@@ -60,7 +60,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jesse.boppyv2
-        PRODUCT_NAME: BeamBox
+        PRODUCT_NAME: Beamly
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: BoppyV2Core
