@@ -175,7 +175,7 @@ struct FeedView: View {
     }
 
     private var selectedChannelTitle: String {
-        feedStore.channels.first(where: { $0.id == feedStore.selectedChannelID })?.title ?? "Beamly"
+        feedStore.channels.first(where: { $0.id == feedStore.selectedChannelID })?.title ?? "boppyv1"
     }
 
     @ViewBuilder

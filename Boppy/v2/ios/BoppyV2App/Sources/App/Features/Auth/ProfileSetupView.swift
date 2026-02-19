@@ -40,7 +40,7 @@ struct ProfileSetupView: View {
                                 .foregroundStyle(AppTheme.accentBlue)
                         }
 
-                        Text("Welcome to Beamly")
+                        Text("Welcome to boppyv1")
                             .font(AppTheme.inter(AppTheme.typeTitle2, weight: .bold, relativeTo: .title2))
                             .foregroundStyle(AppTheme.textPrimary)
 

@@ -790,7 +790,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2;
-				PRODUCT_NAME = Beamly;
+				PRODUCT_NAME = boppyv1;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -947,7 +947,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.boppyv2;
-				PRODUCT_NAME = Beamly;
+				PRODUCT_NAME = boppyv1;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
