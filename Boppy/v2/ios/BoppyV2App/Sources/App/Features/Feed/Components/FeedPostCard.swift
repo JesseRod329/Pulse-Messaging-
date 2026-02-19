@@ -15,7 +15,7 @@ struct FeedPostCard: View {
 
     init(
         post: ChannelPost,
-        channelTitle: String = "BeamBox Supply",
+        channelTitle: String = "boppyv1 Supply",
         showsFollowerHint: Bool,
         selectedReaction: String? = nil,
         onReactionSelected: ((String) -> Void)? = nil,

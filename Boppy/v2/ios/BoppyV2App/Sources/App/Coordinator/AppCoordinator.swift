@@ -182,7 +182,7 @@ final class AppCoordinator: ObservableObject {
     }
 
     func handleDeepLink(_ url: URL) async {
-        guard url.scheme == "beambox" else { return }
+        guard url.scheme == "boppyv1" else { return }
 
         if url.host == "invite" {
             let token = url.pathComponents.dropFirst().joined(separator: "")

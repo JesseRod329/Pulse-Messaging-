@@ -48,12 +48,12 @@ targets:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.jesse.boppyv2.deeplink
             CFBundleURLSchemes:
-              - beambox
+              - boppyv1
         CFBundleVersion: "2"
         LSApplicationQueriesSchemes:
           - maps
-        NSLocationWhenInUseUsageDescription: BeamBox uses your location to show your position on the dispatch map and optimize delivery routes.
-        NSPhotoLibraryUsageDescription: BeamBox needs access to your photo library to attach images and videos to posts and inventory items.
+        NSLocationWhenInUseUsageDescription: boppyv1 uses your location to show your position on the dispatch map and optimize delivery routes.
+        NSPhotoLibraryUsageDescription: boppyv1 needs access to your photo library to attach images and videos to posts and inventory items.
         SUPABASE_URL: $(SUPABASE_URL)
         SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
         SUPABASE_EDGE_BASE_URL: $(SUPABASE_EDGE_BASE_URL)

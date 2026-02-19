@@ -94,7 +94,7 @@ struct ProfileView: View {
                 }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("BeamBox Control")
+                Text("boppyv1 Control")
                     .font(AppTheme.inter(AppTheme.typeTitle3, weight: .bold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Text("Owner operations and channel governance")

@@ -27,7 +27,7 @@
 			<string>com.jesse.boppyv2.deeplink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>beambox</string>
+				<string>boppyv1</string>
 			</array>
 		</dict>
 	</array>
@@ -38,9 +38,9 @@
 		<string>maps</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>BeamBox uses your location to show your position on the dispatch map and optimize delivery routes.</string>
+	<string>boppyv1 uses your location to show your position on the dispatch map and optimize delivery routes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>BeamBox needs access to your photo library to attach images and videos to posts and inventory items.</string>
+	<string>boppyv1 needs access to your photo library to attach images and videos to posts and inventory items.</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>$(SUPABASE_ANON_KEY)</string>
 	<key>SUPABASE_EDGE_BASE_URL</key>

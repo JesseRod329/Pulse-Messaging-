@@ -48,7 +48,7 @@ struct PhoneAuthView: View {
                         headerIcon
 
                         VStack(spacing: 6) {
-                            Text("BeamBox")
+                            Text("boppyv1")
                                 .font(AppTheme.inter(brandSize, weight: .bold, relativeTo: .largeTitle))
                                 .foregroundStyle(AppTheme.textPrimary)
                             Text("Secure phone verification")
@@ -188,7 +188,7 @@ struct PhoneAuthView: View {
                                 .stroke(AppTheme.accentBlue.opacity(0.12), lineWidth: 1)
                         )
                         .accessibilityLabel("Invite-only access info")
-                        .accessibilityHint("Explains how to request BeamBox access.")
+                        .accessibilityHint("Explains how to request boppyv1 access.")
                         .accessibilityIdentifier("auth.inviteInfo")
                     }
                     .padding(authCardPadding)
@@ -252,7 +252,7 @@ struct PhoneAuthView: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Security trust strip")
-        .accessibilityValue("Encrypted, verified, BeamBox version 2.0.4")
+        .accessibilityValue("Encrypted, verified, boppyv1 version 2.0.4")
         .accessibilityIdentifier("auth.trustStrip")
     }
 

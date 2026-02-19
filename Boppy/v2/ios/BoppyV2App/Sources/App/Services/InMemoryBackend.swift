@@ -556,7 +556,7 @@ final class InMemoryBackend: AuthServiceProtocol, ChannelFeedServiceProtocol, Or
             id: record.id,
             channelID: channelID,
             token: token,
-            inviteURL: "beambox://invite/\(token)",
+            inviteURL: "boppyv1://invite/\(token)",
             expiresAt: expiresAt,
             maxUses: maxUses
         )

@@ -763,7 +763,7 @@ struct FeedView: View {
             let pickedType = item.supportedContentTypes.first
             let ext = pickedType?.preferredFilenameExtension ?? defaultImportedExtension
             let targetURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("beambox-photo-\(UUID().uuidString)")
+                .appendingPathComponent("boppyv1-photo-\(UUID().uuidString)")
                 .appendingPathExtension(ext)
 
             try data.write(to: targetURL, options: [.atomic])
@@ -785,7 +785,7 @@ struct FeedView: View {
         do {
             let ext = url.pathExtension.isEmpty ? defaultImportedExtension : url.pathExtension
             let targetURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("beambox-file-\(UUID().uuidString)")
+                .appendingPathComponent("boppyv1-file-\(UUID().uuidString)")
                 .appendingPathExtension(ext)
 
             try FileManager.default.copyItem(at: url, to: targetURL)
