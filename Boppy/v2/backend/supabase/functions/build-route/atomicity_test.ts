@@ -17,10 +17,10 @@ async function integrationConfig(): Promise<IntegrationConfig | null> {
 
   const supabaseURL = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const channelID = Deno.env.get("BEAMBOX_ROUTE_ATOMIC_TEST_CHANNEL_ID");
-  const driverID = Deno.env.get("BEAMBOX_ROUTE_ATOMIC_TEST_DRIVER_ID");
-  const actorID = Deno.env.get("BEAMBOX_ROUTE_ATOMIC_TEST_ACTOR_ID");
-  const rawOrderIDs = Deno.env.get("BEAMBOX_ROUTE_ATOMIC_TEST_ORDER_IDS");
+  const channelID = Deno.env.get("BOPPYV1_ROUTE_ATOMIC_TEST_CHANNEL_ID");
+  const driverID = Deno.env.get("BOPPYV1_ROUTE_ATOMIC_TEST_DRIVER_ID");
+  const actorID = Deno.env.get("BOPPYV1_ROUTE_ATOMIC_TEST_ACTOR_ID");
+  const rawOrderIDs = Deno.env.get("BOPPYV1_ROUTE_ATOMIC_TEST_ORDER_IDS");
 
   if (!supabaseURL || !serviceRoleKey || !channelID || !driverID || !actorID || !rawOrderIDs) {
     return null;

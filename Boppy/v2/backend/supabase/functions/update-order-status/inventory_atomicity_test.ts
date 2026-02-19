@@ -15,8 +15,8 @@ async function integrationConfig(): Promise<IntegrationConfig | null> {
 
   const supabaseURL = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const orderID = Deno.env.get("BEAMBOX_INVENTORY_ATOMIC_TEST_ORDER_ID");
-  const actorID = Deno.env.get("BEAMBOX_INVENTORY_ATOMIC_TEST_ACTOR_ID");
+  const orderID = Deno.env.get("BOPPYV1_INVENTORY_ATOMIC_TEST_ORDER_ID");
+  const actorID = Deno.env.get("BOPPYV1_INVENTORY_ATOMIC_TEST_ACTOR_ID");
 
   if (!supabaseURL || !serviceRoleKey || !orderID || !actorID) {
     return null;
