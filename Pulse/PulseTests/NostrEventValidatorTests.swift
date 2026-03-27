@@ -7,7 +7,7 @@ import XCTest
 @testable import Pulse
 
 final class NostrEventValidatorTests: XCTestCase {
-    func testValidZapRequestPasses() throws {
+    func testValidSignaturePasses() throws {
         guard let identity = NostrIdentity.create() else {
             XCTFail("Failed to create identity")
             return
@@ -15,12 +15,12 @@ final class NostrEventValidatorTests: XCTestCase {
 
         let event = try NostrEvent.createSigned(
             identity: identity,
-            kind: .zapRequest,
-            content: "",
-            tags: [["amount", "1000"], ["p", "ff".padding(toLength: 64, withPad: "f", startingAt: 0)]]
+            kind: .textNote,
+            content: "hello",
+            tags: []
         )
 
-        XCTAssertNoThrow(try NostrEventValidator.validateZapRequest(event))
+        XCTAssertNoThrow(try NostrEventValidator.validateEventSignature(event))
     }
 
     func testInvalidSignatureFails() throws {
@@ -31,9 +31,9 @@ final class NostrEventValidatorTests: XCTestCase {
 
         var event = try NostrEvent.createSigned(
             identity: identity,
-            kind: .zapRequest,
-            content: "",
-            tags: [["amount", "1000"]]
+            kind: .textNote,
+            content: "hello",
+            tags: []
         )
         event = NostrEvent(
             id: event.id,
@@ -45,23 +45,7 @@ final class NostrEventValidatorTests: XCTestCase {
             sig: String(repeating: "0", count: 128)
         )
 
-        XCTAssertThrowsError(try NostrEventValidator.validateZapRequest(event))
-    }
-
-    func testInvalidKindFails() throws {
-        guard let identity = NostrIdentity.create() else {
-            XCTFail("Failed to create identity")
-            return
-        }
-
-        let event = try NostrEvent.createSigned(
-            identity: identity,
-            kind: .textNote,
-            content: "",
-            tags: []
-        )
-
-        XCTAssertThrowsError(try NostrEventValidator.validateZapRequest(event))
+        XCTAssertThrowsError(try NostrEventValidator.validateEventSignature(event))
     }
 
     func testInvalidEventIdFails() throws {
@@ -72,8 +56,8 @@ final class NostrEventValidatorTests: XCTestCase {
 
         var event = try NostrEvent.createSigned(
             identity: identity,
-            kind: .zapReceipt,
-            content: "",
+            kind: .textNote,
+            content: "hello",
             tags: []
         )
 
@@ -87,6 +71,6 @@ final class NostrEventValidatorTests: XCTestCase {
             sig: event.sig
         )
 
-        XCTAssertThrowsError(try NostrEventValidator.validateZapReceipt(event))
+        XCTAssertThrowsError(try NostrEventValidator.validateEventSignature(event))
     }
 }

@@ -127,8 +127,6 @@ struct ChatContentView: View {
                                     MessageRow(
                                         message: message,
                                         isFromMe: message.senderId == "me",
-                                        peerPubkey: peer.nostrPubkey ?? peer.id,
-                                        peerLightningAddress: peer.lightningAddress,
                                         showImageViewer: $showImageViewer,
                                         viewerMessage: $viewerMessage
                                     )
@@ -538,17 +536,12 @@ struct ChatContentView: View {
 struct MessageRow: View {
     let message: Message
     let isFromMe: Bool
-    let peerPubkey: String
-    let peerLightningAddress: String?
     @Binding var showImageViewer: Bool
     @Binding var viewerMessage: Message?
 
     @EnvironmentObject var chatManager: ChatManager
-    @ObservedObject private var zapManager = ZapManager.shared
 
     @State private var showEmojiPicker = false
-    @State private var showZapSheet = false
-    @State private var showZapDetails = false
 
     var body: some View {
         HStack {
@@ -614,20 +607,6 @@ struct MessageRow: View {
                     currentUserId: UserDefaults.standard.string(forKey: "myPeerID") ?? "unknown"
                 )
 
-                // Zap display (only show on received messages)
-                if !isFromMe {
-                    ZapDisplayView(
-                        messageId: message.id,
-                        recipientPubkey: peerPubkey,
-                        lightningAddress: peerLightningAddress,
-                        onZap: {
-                            showZapSheet = true
-                        },
-                        onShowZapDetails: {
-                            showZapDetails = true
-                        }
-                    )
-                }
             }
 
             if !isFromMe { Spacer(minLength: 60) }
@@ -637,38 +616,6 @@ struct MessageRow: View {
                 chatManager.addReaction(emoji, toMessageId: message.id)
             }
             .presentationDetents([.fraction(0.4)])
-            .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $showZapSheet) {
-            ZapAmountSheet(
-                recipientHandle: message.senderId,
-                lightningAddress: peerLightningAddress ?? ""
-            ) { amount, comment in
-                Task {
-                    do {
-                        try await zapManager.zapMessage(
-                            messageId: message.id,
-                            recipientPubkey: peerPubkey,
-                            lightningAddress: peerLightningAddress ?? "",
-                            amount: amount,
-                            comment: comment
-                        )
-                    } catch {
-                        // Surface the error to the user
-                        ErrorManager.shared.showError(.unknown(message: "Failed to send zap: \(error.localizedDescription)"))
-                        print("Zap error: \(error)")
-                    }
-                }
-            }
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $showZapDetails) {
-            ZapDetailsSheet(
-                messageId: message.id,
-                zaps: zapManager.zapsForMessage(message.id)
-            )
-            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
     }
@@ -1114,7 +1061,6 @@ struct CodeShareSheet: View {
             distance: 12,
             publicKey: nil,
             signingPublicKey: nil,
-            lightningAddress: "swiftdev@getalby.com",
             nostrPubkey: "npub1examplepubkey"
         )
     )

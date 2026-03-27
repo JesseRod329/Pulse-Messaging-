@@ -69,22 +69,18 @@
 		0A000309 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000308 /* HapticManager.swift */; };
 		0A000410 /* NostrIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000411 /* NostrIdentity.swift */; };
 		0A000412 /* NostrIdentityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000413 /* NostrIdentityManager.swift */; };
-		0A000414 /* Zap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000415 /* Zap.swift */; };
-		0A000416 /* LNURLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000417 /* LNURLService.swift */; };
-		0A000418 /* ZapManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000419 /* ZapManager.swift */; };
-		0A00041A /* ZapButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00041B /* ZapButton.swift */; };
-		0A00041C /* ZapAmountSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00041D /* ZapAmountSheet.swift */; };
-		0A00041E /* ZapDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00041F /* ZapDisplayView.swift */; };
-		0A000420 /* Bolt11Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000422 /* Bolt11Parser.swift */; };
-		0A000421 /* Bolt11Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000423 /* Bolt11Validator.swift */; };
 		0A000424 /* NostrNormalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000426 /* NostrNormalization.swift */; };
 		0A000425 /* EventNormalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000427 /* EventNormalization.swift */; };
-		0A000428 /* AmountGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042A /* AmountGuard.swift */; };
-		0A000429 /* ZapSecurityGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042B /* ZapSecurityGuard.swift */; };
 		0A00042C /* NostrEventValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042D /* NostrEventValidator.swift */; };
-		0A00042E /* WalletURISanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00042F /* WalletURISanitizer.swift */; };
 		0A000430 /* RateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000431 /* RateLimiter.swift */; };
 		0A000432 /* PrivacyExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000433 /* PrivacyExtensions.swift */; };
+		0A000500 /* SecureNetworkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000501 /* SecureNetworkSession.swift */; };
+		0A000502 /* DebugLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000503 /* DebugLogger.swift */; };
+		0A000504 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000505 /* ClipboardManager.swift */; };
+		0A000506 /* PeerConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000507 /* PeerConnectionManager.swift */; };
+		0A000508 /* SentMessageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A000509 /* SentMessageCache.swift */; };
+		0A00050A /* ChatHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00050B /* ChatHeaderView.swift */; };
+		0A00050C /* ChatInputBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A00050D /* ChatInputBarView.swift */; };
 		88E8D9A62F1CE36A00FE7DC2 /* P256K in Frameworks */ = {isa = PBXBuildFile; productRef = 0A000401 /* P256K */; };
 /* End PBXBuildFile section */
 
@@ -164,22 +160,18 @@
 		0A000308 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		0A000411 /* NostrIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrIdentity.swift; sourceTree = "<group>"; };
 		0A000413 /* NostrIdentityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrIdentityManager.swift; sourceTree = "<group>"; };
-		0A000415 /* Zap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zap.swift; sourceTree = "<group>"; };
-		0A000417 /* LNURLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LNURLService.swift; sourceTree = "<group>"; };
-		0A000419 /* ZapManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapManager.swift; sourceTree = "<group>"; };
-		0A00041B /* ZapButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapButton.swift; sourceTree = "<group>"; };
-		0A00041D /* ZapAmountSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapAmountSheet.swift; sourceTree = "<group>"; };
-		0A00041F /* ZapDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapDisplayView.swift; sourceTree = "<group>"; };
-		0A000422 /* Bolt11Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bolt11Parser.swift; sourceTree = "<group>"; };
-		0A000423 /* Bolt11Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bolt11Validator.swift; sourceTree = "<group>"; };
 		0A000426 /* NostrNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrNormalization.swift; sourceTree = "<group>"; };
 		0A000427 /* EventNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventNormalization.swift; sourceTree = "<group>"; };
-		0A00042A /* AmountGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmountGuard.swift; sourceTree = "<group>"; };
-		0A00042B /* ZapSecurityGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZapSecurityGuard.swift; sourceTree = "<group>"; };
 		0A00042D /* NostrEventValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrEventValidator.swift; sourceTree = "<group>"; };
-		0A00042F /* WalletURISanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletURISanitizer.swift; sourceTree = "<group>"; };
 		0A000431 /* RateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimiter.swift; sourceTree = "<group>"; };
 		0A000433 /* PrivacyExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyExtensions.swift; sourceTree = "<group>"; };
+		0A000501 /* SecureNetworkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureNetworkSession.swift; sourceTree = "<group>"; };
+		0A000503 /* DebugLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogger.swift; sourceTree = "<group>"; };
+		0A000505 /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
+		0A000507 /* PeerConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerConnectionManager.swift; sourceTree = "<group>"; };
+		0A000509 /* SentMessageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentMessageCache.swift; sourceTree = "<group>"; };
+		0A00050B /* ChatHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHeaderView.swift; sourceTree = "<group>"; };
+		0A00050D /* ChatInputBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputBarView.swift; sourceTree = "<group>"; };
 		886480202F133977003A7D61 /* PulseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PulseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -220,9 +212,8 @@
 				0A0000A2 /* ImageMessageBubble.swift */,
 				0A0000AE /* EmojiPickerView.swift */,
 				0A0000B0 /* ReactionDisplayView.swift */,
-				0A00041B /* ZapButton.swift */,
-				0A00041D /* ZapAmountSheet.swift */,
-				0A00041F /* ZapDisplayView.swift */,
+				0A00050B /* ChatHeaderView.swift */,
+				0A00050D /* ChatInputBarView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -233,6 +224,8 @@
 				0A000204 /* Typography.swift */,
 				0A00009F /* ImageUtility.swift */,
 				0A0000A5 /* AvatarManager.swift */,
+				0A000503 /* DebugLogger.swift */,
+				0A000505 /* ClipboardManager.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -307,7 +300,6 @@
 				0A000020 /* Message.swift */,
 				0A000022 /* PulseIdentity.swift */,
 				0A000411 /* NostrIdentity.swift */,
-				0A000415 /* Zap.swift */,
 				0A000026 /* PersistedMessage.swift */,
 				0A000027 /* PersistedConversation.swift */,
 				0A0000A6 /* Group.swift */,
@@ -324,7 +316,6 @@
 				0A000021 /* KeychainManager.swift */,
 				0A000023 /* IdentityManager.swift */,
 				0A000413 /* NostrIdentityManager.swift */,
-				0A000419 /* ZapManager.swift */,
 				0A000025 /* ChatManager.swift */,
 				0A000028 /* PersistenceManager.swift */,
 				0A000029 /* PowerManager.swift */,
@@ -335,6 +326,8 @@
 				0A000067 /* VoiceNoteManager.swift */,
 				0A000097 /* ErrorManager.swift */,
 				0A000308 /* HapticManager.swift */,
+				0A000507 /* PeerConnectionManager.swift */,
+				0A000509 /* SentMessageCache.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -346,19 +339,14 @@
 				0A000052 /* MessageDeduplicationService.swift */,
 				0A000053 /* MessageRouter.swift */,
 				0A000054 /* NostrTransport.swift */,
-				0A000422 /* Bolt11Parser.swift */,
-				0A000423 /* Bolt11Validator.swift */,
 				0A000426 /* NostrNormalization.swift */,
 				0A000427 /* EventNormalization.swift */,
-				0A00042A /* AmountGuard.swift */,
-				0A00042B /* ZapSecurityGuard.swift */,
 				0A00042D /* NostrEventValidator.swift */,
-				0A00042F /* WalletURISanitizer.swift */,
 				0A000431 /* RateLimiter.swift */,
-				0A000417 /* LNURLService.swift */,
 				0A000055 /* GeohashService.swift */,
 				0A000056 /* MeshTopologyTracker.swift */,
 				0A000057 /* UnifiedTransportManager.swift */,
+				0A000501 /* SecureNetworkSession.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -506,8 +494,6 @@
 				0A000410 /* NostrIdentity.swift in Sources */,
 				0A00000D /* IdentityManager.swift in Sources */,
 				0A000412 /* NostrIdentityManager.swift in Sources */,
-				0A000414 /* Zap.swift in Sources */,
-				0A000418 /* ZapManager.swift in Sources */,
 				0A00000F /* ChatManager.swift in Sources */,
 				0A000031 /* PersistedMessage.swift in Sources */,
 				0A000032 /* PersistedConversation.swift in Sources */,
@@ -519,17 +505,11 @@
 				0A000042 /* MessageDeduplicationService.swift in Sources */,
 				0A000043 /* MessageRouter.swift in Sources */,
 				0A000044 /* NostrTransport.swift in Sources */,
-				0A000420 /* Bolt11Parser.swift in Sources */,
-				0A000421 /* Bolt11Validator.swift in Sources */,
 				0A000424 /* NostrNormalization.swift in Sources */,
 				0A000425 /* EventNormalization.swift in Sources */,
-				0A000428 /* AmountGuard.swift in Sources */,
-				0A000429 /* ZapSecurityGuard.swift in Sources */,
 				0A00042C /* NostrEventValidator.swift in Sources */,
-				0A00042E /* WalletURISanitizer.swift in Sources */,
 				0A000430 /* RateLimiter.swift in Sources */,
 				0A000432 /* PrivacyExtensions.swift in Sources */,
-				0A000416 /* LNURLService.swift in Sources */,
 				0A000045 /* GeohashService.swift in Sources */,
 				0A000046 /* MeshTopologyTracker.swift in Sources */,
 				0A000047 /* UnifiedTransportManager.swift in Sources */,
@@ -554,11 +534,15 @@
 				0A000307 /* CreateChannelSheet.swift in Sources */,
 				0A0000AD /* EmojiPickerView.swift in Sources */,
 				0A0000AF /* ReactionDisplayView.swift in Sources */,
-				0A00041A /* ZapButton.swift in Sources */,
-				0A00041C /* ZapAmountSheet.swift in Sources */,
-				0A00041E /* ZapDisplayView.swift in Sources */,
 				0A0000B2 /* GroupListView.swift in Sources */,
 				0A0000B4 /* GroupChatView.swift in Sources */,
+				0A000500 /* SecureNetworkSession.swift in Sources */,
+				0A000502 /* DebugLogger.swift in Sources */,
+				0A000504 /* ClipboardManager.swift in Sources */,
+				0A000506 /* PeerConnectionManager.swift in Sources */,
+				0A000508 /* SentMessageCache.swift in Sources */,
+				0A00050A /* ChatHeaderView.swift in Sources */,
+				0A00050C /* ChatInputBarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
